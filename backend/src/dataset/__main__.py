@@ -1,7 +1,7 @@
 """CLI: dataset acquisition.
 
-    uv run python -m dataset kaggle scrape-plan  --plan-out /tmp/plan.json
-    uv run python -m dataset kaggle scrape-fetch --plan-in  /tmp/plan.json
+uv run python -m dataset kaggle scrape-plan  --plan-out /tmp/plan.json
+uv run python -m dataset kaggle scrape-fetch --plan-in  /tmp/plan.json
 """
 
 from __future__ import annotations

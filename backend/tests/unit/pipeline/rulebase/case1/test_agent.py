@@ -14,9 +14,7 @@ from typing import Any
 
 import pytest
 
-_CASE_DIR = (
-    Path(__file__).resolve().parents[5] / "pipeline" / "rulebase" / "case1"
-)
+_CASE_DIR = Path(__file__).resolve().parents[5] / "pipeline" / "rulebase" / "case1"
 
 
 def _load_agent_module() -> Any:

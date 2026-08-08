@@ -45,14 +45,17 @@ backend/                Python implementation (pyproject.toml / uv.lock live her
     simulate/           kaggle-environments wrapper, replay dumping (python -m simulate)
     dataset/            Replay → training data, Kaggle scraping (python -m dataset)
     evaluate/           Cross-case evaluation
+    gpu/common/         Provider-agnostic: credentials, run metadata
     gpu/runpod/         RunPod pod control (python -m gpu.runpod)
-    gpu/kaggle/         Kaggle Notebook GPU training (python -m gpu.kaggle)
+    gpu/kaggle/         Kaggle Kernel GPU training (python -m gpu.kaggle)
   pipeline/             Agent families — this IS the submitted code
-    rulebase/caseN/     Hand-written heuristics
+    rulebase/case1/     Wheat loop (hand-written heuristic)
+    imitation/case1/    2-layer MLP, behaviour-cloned; numpy-only at inference
   tests/                Pytest (unit / integration / e2e)
 infra/                  Terraform (S3 DVC remote, GitHub Actions OIDC)
 data/                   4 layers (lake / processed / mart / output) — DVC-managed, gitignored
 dev/                    Command wrappers (each cd's to root and runs uv under backend/)
+.github/workflows/      ci.yml (ruff/mypy/pytest) + scrape-kaggle.yml (daily replay fetch)
 docs/
   competition/          Official rules (README.md / AGENTS.md) + abstract.md summary
   experiment/           Experiment plans and results — see .claude/rules/docs.md

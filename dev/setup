@@ -4,13 +4,15 @@
 # Usage:
 #   dev/setup            # runtime + dev deps
 #   dev/setup --nn       # + torch (training only)
+#   dev/setup --gpu      # + RunPod SDK (GPU pod control)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== backend: installing dependencies =="
-if [[ "${1:-}" == "--nn" ]]; then
-  (cd backend && uv sync --group nn)
-else
-  (cd backend && uv sync)
-fi
+case "${1:-}" in
+  --nn)  (cd backend && uv sync --group nn) ;;
+  --gpu) (cd backend && uv sync --group gpu) ;;
+  --all) (cd backend && uv sync --group nn --group gpu) ;;
+  *)     (cd backend && uv sync) ;;
+esac
 echo "== done =="

@@ -38,6 +38,7 @@ WHEAT = "WHEAT"
 WHEAT_SEED_COST = 10
 MAX_MARKET_ORDERS = 10
 
+
 def _weights_path() -> Path:
     """Locate weights.npz next to this file.
 

@@ -11,7 +11,7 @@ paths:
 
 | Command | What it does |
 |---|---|
-| `dev/setup` | `uv sync` under `backend/`. Run once after clone and after dependency changes |
+| `dev/setup` | `uv sync` under `backend/`. Run once after clone and after dependency changes. `--nn` adds torch, `--gpu` adds the RunPod SDK, `--all` adds both |
 | `dev/format` | `ruff format` — writes |
 | `dev/lint` | `ruff check --fix` + `mypy`. Non-zero exit on any failure |
 | `dev/test [args...]` | `pytest` under `backend/`. Extra args pass through (`dev/test tests/unit -x`) |
@@ -27,12 +27,17 @@ paths:
 
 | Command | What it does |
 |---|---|
-| `dev/kaggle submissions` | Submission status + IDs |
+| `dev/kaggle submissions kaggriculture` | Submission status + IDs |
 | `dev/kaggle episodes <SUBMISSION_ID>` | Games played by a submission |
-| `dev/kaggle leaderboard` | Current standings |
+| `dev/kaggle leaderboard kaggriculture -s` | Current standings |
 | `dev/scrape [--top N] [--limit-per-team K] [--workers W]` | Fetch leaderboard replays + agent logs into `data/lake/kaggle_episodes/`, checkpointing to DVC as it goes |
 
 `dev/scrape` is the local form of the `Scrape Kaggle Episodes` GitHub Actions workflow. It is **incremental**: it pulls the existing DVC state first and only fetches episodes it does not already have. It checkpoints (DVC commit + push) periodically, so a mid-run failure still persists everything fetched up to that point.
+
+Two things worth knowing, both verified against the live API:
+
+- **Replays are ~29 MB each.** Defaults are deliberately small (top 20 teams, 5 episodes each). Raise them with the S3 bill in mind.
+- **Agent logs 403 for other teams' submissions** — Kaggle only serves logs you own. Log fetching is best-effort and never fails a run. Replays contain the actions and observations, which is what training needs.
 
 ## Data (DVC)
 
@@ -51,9 +56,14 @@ paths:
 
 | Command | What it does |
 |---|---|
-| `dev/runpod ...` | RunPod pod lifecycle (create / status / ssh / terminate) |
+| `dev/runpod ...` | RunPod pod lifecycle (train / dev / ps / stock / pull / promote / cost-report) |
+| `dev/kaggle-gpu ...` | Kaggle Kernel GPU training — free tier, no SSH; state is surfaced through an S3 channel |
 
-Only needed once training enters the picture; the rulebase family runs fine on CPU.
+Both need the optional GPU deps: `dev/setup --gpu`. Trainable cases are registered in
+`backend/src/gpu/runpod/config/cases.py`; add an entry there before launching a new one.
+
+Neither is needed yet — the rulebase family is pure CPU, and `imitation/case1` trains
+in about 20 seconds on a laptop.
 
 ## Infrastructure
 
