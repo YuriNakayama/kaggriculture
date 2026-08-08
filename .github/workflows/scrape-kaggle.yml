@@ -66,7 +66,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Skipped until `terraform apply` has created the role and AWS_ROLE_ARN is
+      # set. Without it the scrape still runs and fetches episodes — it just
+      # cannot pull prior state or push to S3, so it re-fetches from scratch and
+      # discards the result. That makes the workflow testable before the
+      # infrastructure exists; see the guard on the scrape step below.
       - name: Configure AWS credentials (OIDC)
+        id: aws
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -86,7 +93,19 @@ jobs:
         working-directory: backend
 
       - name: Scrape episodes (incremental, DVC-checkpointed)
-        run: dev/scrape
+        # Without AWS credentials there is nowhere to push, so run a small
+        # capped fetch that exercises the whole path (leaderboard -> plan ->
+        # download -> DVC commit) without pretending the data was persisted.
+        env:
+          SCRAPE_SKIP_PUSH: ${{ secrets.AWS_ROLE_ARN == '' && '1' || '0' }}
+          SCRAPE_LIMIT: ${{ secrets.AWS_ROLE_ARN == '' && '2' || env.SCRAPE_LIMIT }}
+        run: |
+          if [ -z "${{ secrets.AWS_ROLE_ARN }}" ]; then
+            echo "::warning::AWS_ROLE_ARN is not set — running a capped scrape "\
+                 "with no S3 push. Run terraform apply and set the secret to "\
+                 "enable persistence."
+          fi
+          dev/scrape
 
       - name: Upload scrape log
         if: always()
