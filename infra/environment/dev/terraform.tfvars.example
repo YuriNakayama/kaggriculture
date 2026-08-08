@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored —
+# this repository is public, so never commit real values.
+
+aws_region      = "ap-northeast-1"
+dvc_bucket_name = "kaggriculture-dvc-REPLACE_WITH_ACCOUNT_ID"
+resource_prefix = "kaggriculture-dev"
+github_repo     = "YuriNakayama/kaggriculture"

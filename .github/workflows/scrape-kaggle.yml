@@ -1,0 +1,98 @@
+name: Scrape Kaggle Episodes
+
+# Fetch leaderboard replays (and, where permitted, agent logs) incrementally
+# and persist them to the DVC remote on S3. Runs on demand and once a day.
+#
+# The scrape is resumable by construction: dev/scrape pulls the current DVC
+# state first, plans only what is missing, and checkpoints periodically — so a
+# timeout or a mid-run failure still leaves everything fetched so far in S3.
+#
+# NOTE: replays are ~29 MB each. The defaults below are deliberately small;
+# raise them with the S3 bill and the job timeout in mind.
+
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "Top N leaderboard teams to scan"
+        required: false
+        type: string
+        default: "20"
+      limit_per_team:
+        description: "Max episodes per team (0 = no limit)"
+        required: false
+        type: string
+        default: "5"
+      limit:
+        description: "Hard cap on episodes fetched this run (0 = whole plan)"
+        required: false
+        type: string
+        default: "0"
+      no_logs:
+        description: "Skip agent logs (they 403 for other teams' submissions)"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # 02:00 UTC daily (11:00 JST). The fetch is incremental, so daily is plenty.
+    - cron: "0 2 * * *"
+
+# id-token: write is required to assume the AWS role via OIDC. There are no
+# long-lived AWS keys in this repository.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  # Serialise: two concurrent runs would race on the DVC cache and remote,
+  # and cancelling mid-push can leave the remote inconsistent with the stubs.
+  group: scrape-kaggle
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      # Inputs are empty on a cron trigger, so fall back to the defaults.
+      SCRAPE_TOP: ${{ inputs.top || '20' }}
+      SCRAPE_LIMIT_PER_TEAM: ${{ inputs.limit_per_team || '5' }}
+      SCRAPE_LIMIT: ${{ inputs.limit || '0' }}
+      SCRAPE_NO_LOGS: ${{ inputs.no_logs && '1' || '0' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+        working-directory: backend
+
+      - name: Verify competition access
+        run: uv run kaggle competitions list --group entered
+        working-directory: backend
+
+      - name: Scrape episodes (incremental, DVC-checkpointed)
+        run: dev/scrape
+
+      - name: Upload scrape log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-kaggle-log-${{ github.run_id }}
+          path: data/output/scrape/
+          if-no-files-found: ignore
+          retention-days: 30

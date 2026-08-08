@@ -1,0 +1,6 @@
+outs:
+- md5: fe61e239f800a5bb3a496b378012f95c.dir
+  size: 87978759
+  nfiles: 3
+  hash: md5
+  path: replays

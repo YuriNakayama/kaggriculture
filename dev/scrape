@@ -1,0 +1,92 @@
+#!/bin/bash
+# Fetch Kaggle leaderboard replays (and, where permitted, agent logs) into
+# data/lake/kaggle_episodes/, checkpointing to DVC as it goes.
+#
+# Incremental: pulls the current DVC state first, then plans only the episodes
+# that are not already present. Safe to run repeatedly and on a schedule.
+#
+# Usage:
+#   dev/scrape [--top N] [--limit-per-team K] [--limit N] [--no-push] [--no-logs]
+#
+# Env (override defaults; also how the GitHub Actions workflow configures it):
+#   SCRAPE_TOP / SCRAPE_LIMIT_PER_TEAM / SCRAPE_LIMIT
+#   SCRAPE_SKIP_PUSH=1   fetch without pushing to S3
+#   SCRAPE_NO_LOGS=1     skip agent logs entirely
+#   KAGGLE_USERNAME / KAGGLE_KEY
+#
+# NOTE: replays are ~29 MB each, so the defaults are deliberately small. Raise
+# them only with the S3 bill and the Actions timeout in mind.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+
+TOP="${SCRAPE_TOP:-20}"
+LIMIT_PER_TEAM="${SCRAPE_LIMIT_PER_TEAM:-5}"
+LIMIT="${SCRAPE_LIMIT:-0}"
+SKIP_PUSH="${SCRAPE_SKIP_PUSH:-0}"
+NO_LOGS="${SCRAPE_NO_LOGS:-0}"
+CHECKPOINT_EVERY="${SCRAPE_CHECKPOINT_EVERY:-25}"
+CHECKPOINT_INTERVAL_SEC="${SCRAPE_CHECKPOINT_INTERVAL_SEC:-600}"
+PLAN_PATH="${SCRAPE_PLAN_PATH:-/tmp/kaggriculture_scrape_plan.json}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --top) TOP="$2"; shift 2 ;;
+    --limit-per-team) LIMIT_PER_TEAM="$2"; shift 2 ;;
+    --limit) LIMIT="$2"; shift 2 ;;
+    --no-push) SKIP_PUSH=1; shift ;;
+    --no-logs) NO_LOGS=1; shift ;;
+    *) echo "Unknown arg: $1" >&2; exit 1 ;;
+  esac
+done
+
+UV_RUN="uv run --directory backend"
+DVC="$ROOT_DIR/dev/dvc"
+REPLAY_DIR="$ROOT_DIR/data/lake/kaggle_episodes/replays"
+LOG_DIR="$ROOT_DIR/data/lake/kaggle_episodes/logs"
+
+RUN_STAMP="${GITHUB_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
+SCRAPE_LOG_DIR="$ROOT_DIR/data/output/scrape"
+SCRAPE_LOG_FILE="$SCRAPE_LOG_DIR/scrape_${RUN_STAMP}.log"
+mkdir -p "$SCRAPE_LOG_DIR"
+
+# 1. Sync existing state so the plan can diff against it. A first run on a
+#    fresh clone has nothing to pull, which is not an error.
+echo "== Step 1: dvc pull existing episodes =="
+"$DVC" pull data/lake/kaggle_episodes/replays.dvc || \
+  echo "   (nothing to pull — first run or remote unconfigured)"
+
+# 2. Plan.
+echo "== Step 2: plan =="
+$UV_RUN python -m dataset kaggle scrape-plan \
+  --plan-out "$PLAN_PATH" \
+  --top "$TOP" \
+  --limit-per-team "$LIMIT_PER_TEAM" \
+  --replay-dir "$REPLAY_DIR"
+
+# 3. Checkpoint command — commit the DVC stubs, then push blobs to S3.
+DVC_CMD="$DVC commit -f data/lake/kaggle_episodes/replays.dvc data/lake/kaggle_episodes/logs.dvc"
+if [[ "$SKIP_PUSH" -ne 1 ]]; then
+  DVC_CMD="$DVC_CMD && $DVC push"
+fi
+
+# 4. Fetch. The finalize command runs even if this step is killed, so a
+#    timed-out Actions run still persists what it managed to download.
+echo "== Step 3: fetch (checkpoint every ${CHECKPOINT_EVERY} or ${CHECKPOINT_INTERVAL_SEC}s) =="
+fetch_args=(
+  --plan-in "$PLAN_PATH"
+  --replay-dir "$REPLAY_DIR"
+  --log-dir "$LOG_DIR"
+  --checkpoint-every "$CHECKPOINT_EVERY"
+  --checkpoint-interval-sec "$CHECKPOINT_INTERVAL_SEC"
+  --checkpoint-cmd "$DVC_CMD"
+  --finalize-cmd "$DVC_CMD"
+  --log-file "$SCRAPE_LOG_FILE"
+)
+[[ "$LIMIT" -gt 0 ]] && fetch_args+=(--limit "$LIMIT")
+[[ "$NO_LOGS" -eq 1 ]] && fetch_args+=(--no-logs)
+
+$UV_RUN python -m dataset kaggle scrape-fetch "${fetch_args[@]}"
+
+echo "== done — log: $SCRAPE_LOG_FILE =="
