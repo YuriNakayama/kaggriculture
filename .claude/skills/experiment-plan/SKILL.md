@@ -198,7 +198,7 @@ Template (the `## 検証方法` section must reflect the skip list):
 - {例外条件があれば: 例 H3 のみ inconclusive 時に 300 対戦追加}
 
 ### 実施する検証
-- ローカル: `dev/test-backend` + `uv run --directory backend pytest tests/pipeline/<family>/case<N> -x`
+- ローカル: `dev/test` + `uv run --directory backend pytest tests/pipeline/<family>/case<N> -x`
 - (submit-shape 変更時) `uv run --directory backend python -m submit submit <family>/case<N> --dry-run`
 - リモート: `dev/runpod train --case {caseN}` (RunPod skip 時は「不要」と明記)、想定所要時間 {if known}
 - 評価: 対戦相手 {opponents}、エピソード数 {N | 「対戦評価 skip」}、主要メトリクス {metric}、採否しきい値 {threshold}

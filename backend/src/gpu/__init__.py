@@ -1,1 +1,1 @@
-"""GPU provider CLIs: runpod / kaggle (RunPod, Kaggle Kernel)."""
+"""GPU provider CLI: runpod (RunPod)."""

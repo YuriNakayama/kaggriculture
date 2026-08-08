@@ -13,7 +13,7 @@ Python/FastAPI バックエンド開発の包括的スキル。パターン、�
 - `/python-tdd` - TDD ワークフロー（RED→GREEN→REFACTOR）
 - `/python-lint` - ビルド・型・lint エラーの段階的修正
 - `/python-review` - コードレビュー（パターン、async安全性、セキュリティ）
-- `/typescript-lint` - TypeScript/ビルド・lintエラーの段階的修正
+- `/python-lint` - ruff / mypy エラーの最小修正
 
 ## Core Principles
 

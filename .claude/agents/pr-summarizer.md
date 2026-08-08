@@ -52,7 +52,7 @@ Return exactly this markdown structure to the caller. No preamble, no closing re
 
 ## Test plan
 
-- [ ] [How to verify change 1, e.g. "Run `dev/test-backend` — new tests in `tests/dataset/test_storage.py` should pass"]
+- [ ] [How to verify change 1, e.g. "Run `dev/test` — new tests in `tests/dataset/test_storage.py` should pass"]
 - [ ] [How to verify change 2]
 - [ ] [Manual / E2E checks if applicable]
 ```

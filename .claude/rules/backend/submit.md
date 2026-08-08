@@ -38,15 +38,25 @@ Enforce these in `backend/src/submit/` rather than relying on discipline:
 
 ## Dry run first
 
-`dev/submit --dry-run` must build the archive, unpack it into a temp dir, import `main.py` from that temp dir, and run one episode — without touching the Kaggle API. Do this before every real submission; it catches the nested-`main.py` and stray-import failures that otherwise burn a submission slot.
+```bash
+dev/submit --case rulebase/case1 --dry-run
+```
+
+This builds the archive, unpacks it into a temp dir, and in a **separate interpreter** with only that dir importable: imports `main.py` flat, asserts `agent` is the last callable defined (the harness takes the last one), and runs a full 720-turn season against `starter`. No Kaggle API call.
+
+Do this before every real submission. It catches the nested-`main.py`, stray-`backend/src`-import, and relative-import failures that otherwise burn a slot.
+
+`train.py` is **excluded from the archive** by `EXCLUDE_NAMES`: it imports torch, a training-only dependency. A module needed at inference must not be named `train.py`.
 
 ## Submission history
 
-Record every real submission under `data/output/submit/` (DVC-managed): the archive itself, the message, the case, the timestamp, and later the resulting score. This is the audit trail linking a leaderboard score back to the exact code that produced it.
+Every real submission is recorded under `data/output/submit/` (DVC-managed) with the case, message, **git sha**, timestamp, archive size, member list, and verification result. This is the audit trail linking a leaderboard score back to the exact code that produced it.
 
 ## Quota
 
-Kaggle enforces a per-day submission limit on this competition. Before submitting, check remaining quota via `kaggle competitions submissions kaggriculture` and refuse the submission locally if the day's budget is spent — an over-quota API call wastes time and produces a confusing error. Treat submission slots as a scarce resource: prefer a batch of local episodes over "submit and see".
+**5 submissions/day**, and only the latest are scored on the ladder. `dev/submit` counts today's entries in `data/output/submit/` and refuses at the cap (`--force` overrides). Kaggle enforces the real limit; this is a local guard so an over-quota attempt fails immediately instead of producing a confusing API error.
+
+Treat slots as scarce: prefer a batch of local episodes (`dev/simulate --episodes 50`) over "submit and see".
 
 ## Monitoring after submit
 

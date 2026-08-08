@@ -128,7 +128,7 @@ Generate 5–10 hypothesis drafts from Phase 1 (code) + Phase 2 (web) findings, 
 **Q2. Execution skips**
 - `どれもスキップしない (default, Recommended)`
 - `smoke test (1-episode self-play) を skip`
-- `dev/test-bot を skip`
+- `dev/test を skip`
 - `RunPod GPU を使わない (local CPU only)`
 - `auto-recover loop を使わない (失敗時は手動)`
 - `Other`
@@ -137,7 +137,7 @@ Generate 5–10 hypothesis drafts from Phase 1 (code) + Phase 2 (web) findings, 
 - User selects `Kaggle publicScore を採否に使う` → reject (project rule, cite memories). Project default `Kaggle publicScore は引用しない` / `skill rating は使わない` are always ON and never asked here.
 - User selects `n<300 で結論を出す` → warn (cite memory `project_imitation_case1_phase3`) and confirm before allowing.
 
-No individual confirmation dialog is required for `smoke test skip` / `dev/test-bot skip` — record the user's choice as-is.
+No individual confirmation dialog is required for `smoke test skip` / `dev/test skip` — record the user's choice as-is.
 
 **Per-hypothesis exceptions**: free-text input via Other. Examples like "Q1 で 300 対戦 skip だが H4 だけは 300 対戦したい" are recorded in Phase 5's `例外条件` section.
 

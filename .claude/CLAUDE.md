@@ -44,10 +44,8 @@ backend/                Python implementation (pyproject.toml / uv.lock live her
     submit/             Submission packaging / validation / quota (python -m submit)
     simulate/           kaggle-environments wrapper, replay dumping (python -m simulate)
     dataset/            Replay → training data, Kaggle scraping (python -m dataset)
-    evaluate/           Cross-case evaluation
     gpu/common/         Provider-agnostic: credentials, run metadata
     gpu/runpod/         RunPod pod control (python -m gpu.runpod)
-    gpu/kaggle/         Kaggle Kernel GPU training (python -m gpu.kaggle)
   pipeline/             Agent families — this IS the submitted code
     rulebase/case1/     Wheat loop (hand-written heuristic)
     imitation/case1/    2-layer MLP, behaviour-cloned; numpy-only at inference

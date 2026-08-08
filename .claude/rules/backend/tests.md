@@ -61,11 +61,10 @@ Prefer placing as many tests as practical under `unit`.
 
 Additional placement rules:
 
-- `src/evaluate`'s own logic tests belong under `unit/src/evaluate`.
-- Tests that use `src/evaluate` to evaluate a pipeline case belong under `e2e/pipeline/...` when they execute self-play or full episodes.
+- Tests that run a pipeline case through real episodes belong under `e2e/pipeline/...`.
 - Prefer `conftest.py` for shared fixtures and pytest-only setup. Use a `utils` package only for tiny importable helpers that cannot be represented as fixtures.
 - `utils` packages must not contain `test_*.py` files or `test_*` test functions. Test bodies must live outside `utils`.
-- Tests may depend on `tests/pipeline/utils`-style helpers only when the helper is tiny (for example short assertion helpers). If helper logic becomes worth testing, move it to `backend/src/evaluate` or another `backend/src` module.
-- Avoid importing test implementation from another test module. Shared production-like evaluation, aggregation, snapshot, or comparison logic belongs in `backend/src/evaluate`.
+- Tests may depend on `tests/pipeline/utils`-style helpers only when the helper is tiny (for example short assertion helpers). If helper logic becomes worth testing, move it into a `backend/src` module.
+- Avoid importing test implementation from another test module. Shared evaluation and aggregation logic belongs in `backend/src/simulate` (see `MatchSummary`).
 - Pytest scope markers are assigned from the top-level directory by `backend/tests/conftest.py` only for `integration` and `e2e`; `unit` tests intentionally have no scope marker. Keep the directory classification as the source of truth and reserve per-test markers for orthogonal concerns such as `slow` or `timeout`.
 

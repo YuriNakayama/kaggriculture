@@ -53,7 +53,7 @@ Required sections:
 - **`## 実施しない検証 / 評価 (skip list)`** — must always be present. Subsections:
   - `### 評価` (Evaluation) — e.g. `do not run local self-play 300 matches (adopt/reject on loss curve only)`, `do not quote Kaggle publicScore`, `decide adoption on 100 matches only`
   - `### 分析` (Analysis) — e.g. `do not run replay analysis`, `do not draw conclusions from n<300 results`
-  - `### 実行` (Execution) — e.g. `skip smoke test (1-episode self-play)` ⚠️, `skip dev/test-backend` ⚠️, `do not use RunPod GPU (local CPU only)`, `do not use the auto-recover loop`
+  - `### 実行` (Execution) — e.g. `skip smoke test (1-episode self-play)` ⚠️, `skip dev/test` ⚠️, `do not use RunPod GPU (local CPU only)`, `do not use the auto-recover loop`
   - `### 例外条件` (Exception conditions) — per-hypothesis overrides (e.g. `add 300 matches for H4 only when inconclusive`)
 - **`## 仮説リスト (priority 順)`** (Hypothesis list, in priority order) — checkbox + priority label + (optional) `depends on H{m}`:
   ```markdown

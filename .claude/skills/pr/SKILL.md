@@ -138,7 +138,7 @@ rm tmp-pull-request-template.tmp
 
 - マージ方式は **squash merge を既定** とする（main の履歴を線形に保つため）。リポジトリ設定で squash がデフォルトになっていればそれに従い、わざわざ override しない
 - PR は **小さく、1 トピック 1 PR** を心がける。複数の関心が混ざっていたらコミットを分けて 2 本に切る方が良い
-- レビュー前に `dev/test-backend` 等の CI 相当チェックをローカルで通しておくと往復が減る
+- レビュー前に `dev/test` 等の CI 相当チェックをローカルで通しておくと往復が減る
 - マージ済みの feature / fix ブランチは GitHub 側で削除して構わない（`gh pr merge --delete-branch` または UI から）
 
 ## Language

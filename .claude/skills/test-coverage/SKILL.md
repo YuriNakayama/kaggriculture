@@ -6,7 +6,6 @@ description: Analyze test coverage and generate missing tests
 
 Analyze test coverage and generate missing tests:
 
-1. Run tests: `dev/test-backend` or `dev/test-frontend`
 
 2. Analyze coverage report (coverage/coverage-summary.json)
 

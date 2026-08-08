@@ -30,10 +30,9 @@ Suggested categories:
 
 - **Research / 調査** — `research-*`, `find-skills`, and anything focused on information gathering
 - **Python** — `python-*`, Python-flavored TDD, etc.
-- **Frontend / Web** — `typescript-*`, `playwright`, `web-design-*`, `vercel-*`, frontend/UI design skills
-- **Testing / QA** — `tdd`, `e2e-*`, `test-*`, `eval-*`, `verify`, `playwright`
+- **Testing / QA** — `python-tdd`, `test-*`, `eval-*`, `verify`
 - **Code Quality / Review** — `code-review`, `*-lint`, `*-review`, `simplify`, `remove-unused`
-- **Git / Release / CI-CD** — `pr`, `release-*`, `ci-*`, `deploy`, `checkpoint`
+- **Git / Release / CI-CD** — `pr`, `release-*`, `ci-*`, `checkpoint`
 - **Planning / Docs** — `plan`, `feature-plan`, `update-docs`, `update-codemaps`, `orchestrate`
 - **Skill / Meta / Learning** — `skill-creator`, `find-skills`, `list-skills`, `learn`, `instinct-*`, `update-config`, `keybindings-help`
 - **Automation / Scheduling** — `loop`, `schedule`
@@ -47,8 +46,8 @@ When the user invokes this skill with an argument (a domain, keyword, or purpose
 
 If the argument is Japanese, expand it to semantically related English keywords before matching, because most skill metadata is in English. Rough mappings:
 
-- 「テスト」「試験」 → `test`, `tdd`, `e2e`, `coverage`, `playwright`, `verify`
-- 「デプロイ」「リリース」 → `deploy`, `release`, `ci`, `cd`
+- 「テスト」「試験」 → `test`, `python-tdd`, `coverage`, `verify`
+- 「リリース」 → `release`, `ci`, `pr`
 - 「調査」「リサーチ」 → `research`, `gather`, `retrieval`, `cluster`
 - 「計画」「設計」 → `plan`, `feature`, `design`, `orchestrate`
 - 「レビュー」 → `review`, `lint`, `quality`

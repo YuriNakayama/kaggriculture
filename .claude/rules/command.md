@@ -21,7 +21,8 @@ paths:
 | Command | What it does |
 |---|---|
 | `dev/simulate --case <family>/<caseN> [--opponent random\|starter\|pass] [--episodes N]` | Run episodes locally via `kaggle-environments` and report final money / win rate |
-| `dev/submit --case <family>/<caseN> [--dry-run] [-m MSG]` | Build the tar.gz and submit. **Always `--dry-run` first** — it unpacks to a temp dir and runs an episode, catching the nested-`main.py` and stray-import failures that would otherwise burn a submission slot |
+| `dev/submit --case <family>/<caseN> --dry-run` | Build + verify only. **Always run this first.** |
+| `dev/submit --case <family>/<caseN> -m MSG` | Build, verify, submit, and record to `data/output/submit/`. Refuses at 5/day |
 
 ## Kaggle data
 
@@ -57,12 +58,11 @@ Two things worth knowing, both verified against the live API:
 | Command | What it does |
 |---|---|
 | `dev/runpod ...` | RunPod pod lifecycle (train / dev / ps / stock / pull / promote / cost-report) |
-| `dev/kaggle-gpu ...` | Kaggle Kernel GPU training — free tier, no SSH; state is surfaced through an S3 channel |
 
-Both need the optional GPU deps: `dev/setup --gpu`. Trainable cases are registered in
+Needs the optional GPU deps: `dev/setup --gpu`. Trainable cases are registered in
 `backend/src/gpu/runpod/config/cases.py`; add an entry there before launching a new one.
 
-Neither is needed yet — the rulebase family is pure CPU, and `imitation/case1` trains
+Not needed yet — the rulebase family is pure CPU, and `imitation/case1` trains
 in about 20 seconds on a laptop.
 
 ## Infrastructure

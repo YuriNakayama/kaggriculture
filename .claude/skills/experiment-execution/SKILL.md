@@ -4,7 +4,7 @@ description: >
   Execution runner for Kaggriculture experiments under `backend/pipeline/`. Takes
   a single hypothesis (one line in `hypotheses.md` or one `iterN_plan.md`) and
   drives the full cycle inline in the main session: case implementation →
-  local smoke test (1-episode self-play, mandatory) → `dev/test-backend` →
+  local smoke test (1-episode self-play, mandatory) → `dev/test` →
   push & RunPod GPU launch → in-flight monitoring (progress / steps / loss /
   GPU·CPU·memory) → on failure, stop & terminate the pod and relaunch
   (auto-recover) → evaluation → `iterN_result.md`. Honors the
@@ -67,7 +67,7 @@ Items to confirm (extract from `iterN_plan.md` / `hypotheses.md`; ask 1–2 ques
 2. one-sentence hypothesis + scope
 3. primary metric + default episode count (when `300 対戦 skip` is set, mark `対戦評価 skip`)
 4. compute target (RunPod GPU / local CPU only)
-5. skip list (smoke skip / dev/test-backend skip / replay 分析 skip / RunPod 不使用 / auto-recover 不使用)
+5. skip list (smoke skip / dev/test skip / replay 分析 skip / RunPod 不使用 / auto-recover 不使用)
 
 ### Phase 2 — Reality check
 
@@ -115,9 +115,9 @@ In order:
    cd backend && uv run python -m dataset.selfplay.run --case <family>/case<N> --episodes 1 --seed 0
    ```
    Or call the case's smoke harness. Failure here means **no remote launch**. This 1-episode pass is the last line of defense before paying for GPU time.
-3. **`dev/test-backend`** (mandatory unless skip list disables it):
+3. **`dev/test`** (mandatory unless skip list disables it):
    ```bash
-   dev/test-backend
+   dev/test
    ```
 4. Submit-shape changes → dry-run validator:
    ```bash
@@ -184,7 +184,7 @@ Otherwise (default):
 2. **Pull artifacts & logs**: `dev/runpod pull <run_id> --from s3` + `dev/runpod logs <run_id>`
 3. **Diagnose**: env/setup error (first-pass against memories `project_runpod_onstart_pitfalls` and `project_runpod_5_traps_2026_05_04`) / code bug / config / OOM / experiment code bug
 4. **Fix** in the worktree:
-   - Code/config bug → edit, `dev/test-backend`, commit + push
+   - Code/config bug → edit, `dev/test`, commit + push
    - OOM → batch size / GPU class change
    - Onstart / env → fix `dev/runpod` script or case-level setup
    - Infra flake (RunPod outage / GPU node lottery) → surface to user and stop (no auto-relaunch)

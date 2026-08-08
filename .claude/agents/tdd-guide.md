@@ -130,10 +130,10 @@ describe('GET /api/markets/search', () => {
 ```
 
 ### 3. E2E Tests (For Critical Flows)
-Test complete user journeys with Playwright:
+Test complete user journeys with pytest:
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@pytest/test'
 
 test('user can search and view market', async ({ page }) => {
   await page.goto('/')

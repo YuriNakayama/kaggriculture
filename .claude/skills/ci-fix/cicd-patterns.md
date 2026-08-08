@@ -11,8 +11,6 @@ GitHub Actions パイプラインの監視・トラブルシューティング�
 ## Commands
 
 - `/ci-fix` - バックエンド・フロントエンドの CI 状況確認と失敗時の修正
-- `/e2e-fix` - E2E テスト（Playwright）の CI 状況確認と失敗時の修正
-- `/deploy` - バックエンド（ECS Fargate）・フロントエンド（AWS Amplify）のデプロイ実行
 
 ## Workflows
 

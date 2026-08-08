@@ -36,28 +36,24 @@ gh run view <run-id> --log-failed
 
 | Step | Check command | Fix method |
 |------|--------------|------------|
-| ruff format | `dev/test-backend` (includes format check) | `dev/format` |
+| ruff format | `dev/test` (includes format check) | `dev/format` |
 | ruff check | `dev/lint` | `dev/lint` (with --fix) |
 | mypy | `dev/lint` (includes mypy) | Fix type errors |
-| pytest | `dev/test-backend` | Fix test failures |
+| pytest | `dev/test` | Fix test failures |
 
 #### Frontend CI failure patterns
 
 | Step | Check command | Fix method |
 |------|--------------|------------|
-| type-check | `dev/test-frontend` (includes type-check) | Fix type errors |
-| format:check | `dev/test-frontend` (includes format:check) | `dev/format` |
 | lint | `dev/lint` | Fix lint errors |
-| Playwright | `dev/test-frontend` (includes Mockoon + Playwright) | Fix test failures |
 
 ### 5. Local verification after fix
 
 ```bash
 # Backend (format check → lint → type check → pytest)
-dev/test-backend
+dev/test
 
 # Frontend (type-check → format:check → lint → Mockoon + Playwright)
-dev/test-frontend
 ```
 
 ### 6. Commit and push fix to re-run CI

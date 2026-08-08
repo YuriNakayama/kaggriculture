@@ -68,7 +68,7 @@ if [ "<CASE_FAMILY>" != "reinforce" ]; then
 # torch が "driver too old" で CPU fallback して 6.5h/epoch 化した
 # (retry #17 epoch 0 完走後 pod gone)。
 # 解決: GPU 認識を smoke で確認、失敗時は cu118 wheel で torch を
-# 強制 reinstall する (kaggle-kernel template と同じパターン)。
+# 強制 reinstall する。
 CUDA_SMOKE_OUT=$(backend/.venv/bin/python -c "
 import json, torch
 out = {

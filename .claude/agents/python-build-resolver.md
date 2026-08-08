@@ -308,7 +308,7 @@ error: Argument of type "str" cannot be assigned to parameter "value" of type "i
 - CI/CD pipeline failing on lint/type checks
 
 **DON'T USE when:**
-- Code needs refactoring (use refactor-cleaner)
+- Code needs refactoring (out of scope — report it, do not restructure)
 - Architectural changes needed (use architect)
 - New features required (use planner)
 - Tests failing (use tdd-guide)

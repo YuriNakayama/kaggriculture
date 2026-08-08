@@ -45,7 +45,7 @@ and uses `aws-actions/configure-aws-credentials@v4` with `role-to-assume: ${{ se
 
 | Variable | Used by | Purpose |
 |---|---|---|
-| `KAGGRICULTURE_DVC_BUCKET` | `gpu/runpod`, `gpu/kaggle` | DVC/S3 bucket name. **Never hardcoded** — the bucket name embeds the AWS account id, and this repository is public. Set it from `terraform output -raw dvc_bucket_name`. |
+| `KAGGRICULTURE_DVC_BUCKET` | `gpu/runpod` | DVC/S3 bucket name. **Never hardcoded** — the bucket name embeds the AWS account id, and this repository is public. Set it from `terraform output -raw dvc_bucket_name`. |
 
 ## Repository secrets required
 

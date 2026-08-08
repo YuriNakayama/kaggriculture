@@ -285,7 +285,7 @@ Coverage: 100% ✅ (Target: 80%)
 - External service calls
 - React components with hooks
 
-**E2E Tests** (use `/playwright` command):
+**E2E Tests** (use `/pytest` command):
 - Critical user flows
 - Multi-step processes
 - Full stack integration

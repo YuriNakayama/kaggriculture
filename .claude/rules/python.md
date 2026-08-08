@@ -20,12 +20,11 @@ Each subdirectory is exposed as a top-level package via `[tool.hatch.build.targe
 ```
 backend/src/
   submit/          Kaggle submission packaging / validation / quota (python -m submit)
-  simulate/        kaggle-environments wrapper: run matches, dump replays (python -m simulate)
+  simulate/        kaggle-environments wrapper: run matches, aggregate results,
+                   dump replays (python -m simulate)
   dataset/         Replay → training-data pipeline (python -m dataset)
-  evaluate/        Cross-case evaluation (win rate, final-money margin, aggregation)
   gpu/             GPU provider CLIs (one subpackage per provider):
     runpod/        RunPod pod control CLI (python -m gpu.runpod)
-    kaggle/        Kaggle Notebook GPU training CLI (python -m gpu.kaggle)
 ```
 
 `backend/pipeline/` holds the **agent families** — the code that actually gets submitted:

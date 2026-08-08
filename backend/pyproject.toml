@@ -42,7 +42,6 @@ build-backend = "hatchling.build"
 # imports are bare: `from simulate import ...`, `from submit import ...`.
 packages = [
     "src/dataset",
-    "src/evaluate",
     "src/gpu",
     "src/simulate",
     "src/submit",

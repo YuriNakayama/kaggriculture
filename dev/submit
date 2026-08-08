@@ -1,0 +1,14 @@
+#!/bin/bash
+# Build, verify, and submit an agent to Kaggle.
+#
+# Usage:
+#   dev/submit --case rulebase/case1 --dry-run          # ALWAYS do this first
+#   dev/submit --case rulebase/case1 -m "wheat loop v1"
+#
+# --dry-run packs the archive, unpacks it into a temp dir, and runs a full
+# season importing main.py the way the Kaggle harness does. That catches the
+# nested-main.py and stray-import failures which otherwise burn a submission
+# slot (5/day, and only the latest submissions are scored).
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec uv run --directory backend python -m submit "$@"
