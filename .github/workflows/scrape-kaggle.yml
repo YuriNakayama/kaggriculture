@@ -62,6 +62,9 @@ jobs:
       SCRAPE_LIMIT_PER_TEAM: ${{ inputs.limit_per_team || '5' }}
       SCRAPE_LIMIT: ${{ inputs.limit || '0' }}
       SCRAPE_NO_LOGS: ${{ inputs.no_logs && '1' || '0' }}
+      # `secrets` is not addressable in a step-level `if:`, so surface it as an
+      # env var here and branch on that instead.
+      HAS_AWS: ${{ secrets.AWS_ROLE_ARN != '' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -72,8 +75,7 @@ jobs:
       # discards the result. That makes the workflow testable before the
       # infrastructure exists; see the guard on the scrape step below.
       - name: Configure AWS credentials (OIDC)
-        id: aws
-        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        if: env.HAS_AWS == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -96,14 +98,11 @@ jobs:
         # Without AWS credentials there is nowhere to push, so run a small
         # capped fetch that exercises the whole path (leaderboard -> plan ->
         # download -> DVC commit) without pretending the data was persisted.
-        env:
-          SCRAPE_SKIP_PUSH: ${{ secrets.AWS_ROLE_ARN == '' && '1' || '0' }}
-          SCRAPE_LIMIT: ${{ secrets.AWS_ROLE_ARN == '' && '2' || env.SCRAPE_LIMIT }}
         run: |
-          if [ -z "${{ secrets.AWS_ROLE_ARN }}" ]; then
-            echo "::warning::AWS_ROLE_ARN is not set — running a capped scrape "\
-                 "with no S3 push. Run terraform apply and set the secret to "\
-                 "enable persistence."
+          if [ "${HAS_AWS}" != "true" ]; then
+            echo "::warning::AWS_ROLE_ARN is not set — running a capped scrape with no S3 push. Run terraform apply and set the secret to enable persistence."
+            export SCRAPE_SKIP_PUSH=1
+            export SCRAPE_LIMIT=2
           fi
           dev/scrape
 
