@@ -1,0 +1,9 @@
+#!/bin/bash
+# Run local matches.
+#
+# Usage:
+#   dev/simulate --case rulebase/case1 --opponent random
+#   dev/simulate --case imitation/case1 --opponent starter --episodes 10
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec uv run --directory backend python -m simulate "$@"

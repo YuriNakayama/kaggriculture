@@ -1,0 +1,139 @@
+[project]
+name = "kaggriculture"
+version = "0.1.0"
+description = "Agents for the Kaggle Kaggriculture farming-sim competition"
+readme = "../README.md"
+requires-python = ">=3.13,<3.14"
+authors = [{ name = "Yuri Nakayama" }]
+dependencies = [
+    "kaggle>=1.6",
+    "kaggle-environments>=1.17",
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=17.0",
+    "pydantic>=2.0",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+    "typer>=0.12",
+    "dvc[s3]>=3.50",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.11",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pytest-xdist>=3.6",
+    "ruff>=0.6",
+]
+# GPU providers. Not needed for the rulebase family; install with
+#   uv sync --group gpu
+gpu = ["runpod>=1.7"]
+nn = [
+    "torch>=2.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Each src/ subdirectory is exposed as a top-level package, so dev tooling
+# imports are bare: `from simulate import ...`, `from submit import ...`.
+packages = [
+    "src/dataset",
+    "src/evaluate",
+    "src/simulate",
+    "src/submit",
+]
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "build",
+    "dist",
+    "site-packages",
+    "venv",
+    ".claude",
+]
+line-length = 88
+indent-width = 4
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+# typer's API *requires* typer.Option()/Argument() calls in argument defaults;
+# B008 ("no function call in default") does not apply to CLI entrypoints.
+"**/__main__.py" = ["B008"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 5
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.mypy]
+exclude = [
+    ".venv",
+    ".github",
+    ".claude",
+    "__pycache__",
+]
+python_version = "3.13"
+strict = true
+disallow_any_decorated = false
+disallow_any_unimported = false
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+strict_optional = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+addopts = [
+    '--rootdir=tests',
+    '--strict-config',
+    '--cov=src',
+    '--log-cli-level=INFO',
+    '-p no:cacheprovider',
+    '-n=auto',
+    '--dist=worksteal',
+    '-ra',
+]
+testpaths = ['tests']
+cache_dir = "tests/.pytest_cache"
+markers = [
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow (full seasons, training runs)",
+    "e2e: marks tests as end-to-end self-play or full-episode tests",
+    "timeout: marks tests with an execution timeout",
+]
+
+[tool.coverage.run]
+branch = true
+omit = ["**/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING",
+    "if __name__ == .__main__.",
+]

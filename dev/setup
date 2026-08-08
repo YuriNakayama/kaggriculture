@@ -1,0 +1,16 @@
+#!/bin/bash
+# Install Python dependencies.
+#
+# Usage:
+#   dev/setup            # runtime + dev deps
+#   dev/setup --nn       # + torch (training only)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "== backend: installing dependencies =="
+if [[ "${1:-}" == "--nn" ]]; then
+  (cd backend && uv sync --group nn)
+else
+  (cd backend && uv sync)
+fi
+echo "== done =="
