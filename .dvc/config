@@ -1,5 +1,5 @@
 [core]
     remote = s3
 ['remote "s3"']
-    url = s3://kaggriculture-dvc-CHANGEME/remote
+    url = s3://kaggriculture-dvc-286854171013/remote
     region = ap-northeast-1

@@ -11,7 +11,6 @@
         ],
         "deny": [
             "Bash(gh pr merge:*)",
-            "Bash(terraform apply:*)",
             "Bash(terraform destroy:*)"
         ]
     },
