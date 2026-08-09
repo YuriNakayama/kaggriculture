@@ -44,7 +44,7 @@ Two things worth knowing, both verified against the live API:
 
 | Command | What it does |
 |---|---|
-| `dev/create-worktree <branch>` | Create `<repo>.worktrees/<branch>/`, symlink `data/` to the main repo, share the DVC cache, copy `.env` files |
+| `dev/create-worktree <branch>` | Create `.claude/worktrees/<branch>/`, symlink `data/` to the main repo, share the DVC cache, copy `.env` files. Inside cmux it also opens a pane running Claude on the new tree |
 | `dev/delete-worktree [<branch>]` | Remove a worktree (no arg = the current one). Warns on uncommitted/unpushed work, offers to delete the branch |
 | `dev/sync-data` | Merge a worktree's real `data/` back into the main repo and replace it with a symlink |
 
