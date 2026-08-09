@@ -21,7 +21,7 @@ data/
 
 | Layer | Nature | Examples |
 |---|---|---|
-| `lake/` | Immutable, original. Re-acquisition required if lost | `lake/kaggle_episodes/replays/` (leaderboard replay JSON) / `lake/kaggle_episodes/logs/` (agent stderr logs) / `lake/selfplay/replays/` |
+| `lake/` | Immutable, original. Re-acquisition required if lost | `lake/kaggle_episodes/replays/` (leaderboard replay JSON) / `lake/selfplay/replays/` |
 | `processed/` | Intermediate data derived from lake | Parsed replay → per-turn parquet |
 | `mart/` | Curated data read directly during training/evaluation | `mart/imitation/case1/{train,val}.parquet` |
 | `output/` | Pipeline execution results, regenerable | `output/models/` (trained weights) / `output/submit/` (submission tar.gz + history) / `output/scrape/` (scrape run logs) / `output/experiment/` (experiment JSON / plots) |

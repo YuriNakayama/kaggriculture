@@ -64,8 +64,10 @@ Treat slots as scarce: prefer a batch of local episodes (`dev/simulate --episode
 kaggle competitions submissions kaggriculture       # status + submission IDs
 kaggle competitions episodes <SUBMISSION_ID>        # games played
 kaggle competitions replay <EPISODE_ID> -p data/lake/kaggle_episodes/replays
-kaggle competitions logs <EPISODE_ID> 0 -p data/lake/kaggle_episodes/logs
+kaggle competitions logs <EPISODE_ID> 0    # your own submissions only
 kaggle competitions leaderboard kaggriculture -s
 ```
 
-Downloaded replays and logs land under `data/lake/` (raw, DVC-managed) — see `.claude/rules/data.md`.
+Downloaded replays land under `data/lake/` (raw, DVC-managed) — see `.claude/rules/data.md`.
+
+Agent logs are available only for **your own** submissions, and only via the CLI above; `dev/scrape` does not collect them.

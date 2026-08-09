@@ -1,24 +1,24 @@
-"""Fetch leaderboard episodes (replays + agent logs) from Kaggle.
+"""Fetch top-team match replays from the Kaggle leaderboard.
 
 Two phases, deliberately separated:
 
 * **plan**  — read the leaderboard, list each team's episodes, diff against
   what is already on disk, and write a JSON plan. Cheap and reviewable.
-* **fetch** — download the planned episodes, checkpointing to DVC periodically
+* **fetch** — download the planned replays, checkpointing to DVC periodically
   so a mid-run failure (or an Actions timeout) still persists what it got.
 
 Two API layers are needed, because neither covers the whole job:
 
-* The **public SDK** (``kaggle.api``) downloads replays and logs, and serves
-  the leaderboard — but its leaderboard rows carry no submission id.
+* The **public SDK** (``kaggle.api``) downloads replays and serves the
+  leaderboard — but its leaderboard rows carry no submission id.
 * Kaggle's **internal** ``/api/i/competitions.*`` endpoints map a team id to
   its leaderboard submission id and list that submission's episodes. There is
   no public equivalent, so the team → episodes hop goes through them.
 
-Verified against the live API: agent logs return **403 for other people's
-submissions** — Kaggle only serves logs you own. Log fetching is therefore
-best-effort and never fails a run; replays carry the actions and observations
-that matter for training anyway.
+A replay holds the whole match: every turn's action, observation, and reward
+for both players. That is the training signal. Agent *logs* (an agent's own
+stderr) are deliberately **not** fetched — Kaggle returns 403 for any
+submission you do not own, and they carry no gameplay data regardless.
 """
 
 from __future__ import annotations
@@ -44,9 +44,8 @@ COMPETITION = "kaggriculture"
 INTERNAL_BASE_URL = "https://www.kaggle.com/api/i/competitions."
 LEADERBOARD_URL = f"https://www.kaggle.com/competitions/{COMPETITION}/leaderboard"
 
-#: Repo-root-relative destinations, both DVC-tracked.
+#: Repo-root-relative destination, DVC-tracked.
 REPLAY_DIR = Path("data/lake/kaggle_episodes/replays")
-LOG_DIR = Path("data/lake/kaggle_episodes/logs")
 
 #: Replays run ~29 MB each, so defaults stay small on purpose — the cron job
 #: accumulates history incrementally rather than pulling hundreds of GB once.
@@ -355,15 +354,13 @@ def fetch_episodes(
     plan: ScrapePlan,
     *,
     replay_dir: Path = REPLAY_DIR,
-    log_dir: Path = LOG_DIR,
     rate: RateLimiter | None = None,
     checkpoint_every: int = 25,
     checkpoint_interval_sec: float = 600.0,
     checkpoint_cmd: str = "",
     finalize_cmd: str = "",
-    fetch_logs: bool = True,
 ) -> dict[str, int]:
-    """Download planned episodes, checkpointing as we go.
+    """Download planned episode replays, checkpointing as we go.
 
     The finalize command runs in a ``finally``, so an interrupted or timed-out
     run still persists everything fetched up to that point.
@@ -375,9 +372,8 @@ def fetch_episodes(
     limiter = rate or RateLimiter()
 
     replay_dir.mkdir(parents=True, exist_ok=True)
-    log_dir.mkdir(parents=True, exist_ok=True)
 
-    stats = {"fetched": 0, "failed": 0, "logs": 0, "logs_forbidden": 0}
+    stats = {"fetched": 0, "failed": 0}
     since_checkpoint = 0
     last_checkpoint = time.monotonic()
 
@@ -405,29 +401,6 @@ def fetch_episodes(
                 stats["failed"] += 1
                 continue
 
-            if fetch_logs:
-                for agent_index in (0, 1):
-                    limiter.acquire()
-                    try:
-                        api.competition_episode_agent_logs(
-                            episode.episode_id,
-                            agent_index,
-                            path=str(log_dir),
-                            quiet=True,
-                        )
-                        stats["logs"] += 1
-                    except Exception as exc:
-                        # Expected for other people's submissions (403).
-                        if "403" in str(exc):
-                            stats["logs_forbidden"] += 1
-                        else:
-                            logger.debug(
-                                "episode %d agent %d: log unavailable: %s",
-                                episode.episode_id,
-                                agent_index,
-                                exc,
-                            )
-
             since_checkpoint += 1
             if (
                 since_checkpoint >= checkpoint_every
@@ -440,11 +413,5 @@ def fetch_episodes(
     finally:
         _run_shell(finalize_cmd or checkpoint_cmd, label="finalize")
 
-    if stats["logs_forbidden"]:
-        logger.info(
-            "%d agent logs were forbidden (403) — Kaggle only serves logs for "
-            "your own submissions; replays carry the training signal.",
-            stats["logs_forbidden"],
-        )
     logger.info("fetch complete: %s", stats)
     return stats

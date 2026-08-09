@@ -1,7 +1,9 @@
 name: Scrape Kaggle Episodes
 
-# Fetch leaderboard replays (and, where permitted, agent logs) incrementally
-# and persist them to the DVC remote on S3. Runs on demand and once a day.
+# Fetch top-team match replays from the leaderboard incrementally and persist
+# them to the DVC remote on S3. Runs on demand and once a day.
+#
+# A replay holds every turn's action, observation, and reward for both players.
 #
 # The scrape is resumable by construction: dev/scrape pulls the current DVC
 # state first, plans only what is missing, and checkpoints periodically — so a
@@ -28,11 +30,6 @@ on:
         required: false
         type: string
         default: "0"
-      no_logs:
-        description: "Skip agent logs (they 403 for other teams' submissions)"
-        required: false
-        type: boolean
-        default: false
   schedule:
     # 02:00 UTC daily (11:00 JST). The fetch is incremental, so daily is plenty.
     - cron: "0 2 * * *"
@@ -61,7 +58,6 @@ jobs:
       SCRAPE_TOP: ${{ inputs.top || '20' }}
       SCRAPE_LIMIT_PER_TEAM: ${{ inputs.limit_per_team || '5' }}
       SCRAPE_LIMIT: ${{ inputs.limit || '0' }}
-      SCRAPE_NO_LOGS: ${{ inputs.no_logs && '1' || '0' }}
       # `secrets` is not addressable in a step-level `if:`, so surface it as an
       # env var here and branch on that instead.
       HAS_AWS: ${{ secrets.AWS_ROLE_ARN != '' }}

@@ -31,14 +31,14 @@ paths:
 | `dev/kaggle submissions kaggriculture` | Submission status + IDs |
 | `dev/kaggle episodes <SUBMISSION_ID>` | Games played by a submission |
 | `dev/kaggle leaderboard kaggriculture -s` | Current standings |
-| `dev/scrape [--top N] [--limit-per-team K] [--workers W]` | Fetch leaderboard replays + agent logs into `data/lake/kaggle_episodes/`, checkpointing to DVC as it goes |
+| `dev/scrape [--top N] [--limit-per-team K] [--limit N]` | Fetch top-team match replays into `data/lake/kaggle_episodes/replays/`, checkpointing to DVC as it goes |
 
 `dev/scrape` is the local form of the `Scrape Kaggle Episodes` GitHub Actions workflow. It is **incremental**: it pulls the existing DVC state first and only fetches episodes it does not already have. It checkpoints (DVC commit + push) periodically, so a mid-run failure still persists everything fetched up to that point.
 
 Two things worth knowing, both verified against the live API:
 
 - **Replays are ~29 MB each.** Defaults are deliberately small (top 20 teams, 5 episodes each). Raise them with the S3 bill in mind.
-- **Agent logs 403 for other teams' submissions** — Kaggle only serves logs you own. Log fetching is best-effort and never fails a run. Replays contain the actions and observations, which is what training needs.
+- **Replays are the training signal.** Each one holds every turn's action, observation, and reward for both players. Agent *logs* (stderr) are not fetched: Kaggle 403s them for any submission you do not own, and they contain no gameplay data.
 
 ## Data (DVC)
 

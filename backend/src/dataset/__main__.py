@@ -15,7 +15,6 @@ import typer
 from .kaggle_scrape import (
     DEFAULT_LIMIT_PER_TEAM,
     DEFAULT_TOP,
-    LOG_DIR,
     REPLAY_DIR,
     RateLimiter,
     ScrapePlan,
@@ -79,7 +78,6 @@ def scrape_plan(
 def scrape_fetch(
     plan_in: Path = typer.Option(..., "--plan-in"),
     replay_dir: Path = typer.Option(REPLAY_DIR, "--replay-dir"),
-    log_dir: Path = typer.Option(LOG_DIR, "--log-dir"),
     rate_capacity: int = typer.Option(45, "--rate-capacity", min=1),
     rate_window: float = typer.Option(60.0, "--rate-window", min=1.0),
     checkpoint_every: int = typer.Option(25, "--checkpoint-every", min=1),
@@ -88,11 +86,10 @@ def scrape_fetch(
     ),
     checkpoint_cmd: str = typer.Option("", "--checkpoint-cmd"),
     finalize_cmd: str = typer.Option("", "--finalize-cmd"),
-    no_logs: bool = typer.Option(False, "--no-logs"),
     log_file: Path | None = typer.Option(None, "--log-file"),
     limit: int = typer.Option(0, "--limit", min=0, help="0 = whole plan."),
 ) -> None:
-    """Download the planned episodes, checkpointing to DVC as it goes."""
+    """Download the planned replays, checkpointing to DVC as it goes."""
     _configure_logging(log_file)
 
     plan = ScrapePlan.from_json(plan_in)
@@ -102,13 +99,11 @@ def scrape_fetch(
     stats = fetch_episodes(
         plan,
         replay_dir=replay_dir,
-        log_dir=log_dir,
         rate=RateLimiter(rate_capacity, rate_window),
         checkpoint_every=checkpoint_every,
         checkpoint_interval_sec=checkpoint_interval_sec,
         checkpoint_cmd=checkpoint_cmd,
         finalize_cmd=finalize_cmd,
-        fetch_logs=not no_logs,
     )
     typer.echo(json.dumps(stats))
 
