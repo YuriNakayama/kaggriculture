@@ -40,6 +40,22 @@ Two things worth knowing, both verified against the live API:
 - **Replays are ~29 MB each.** Defaults are deliberately small (top 20 teams, 5 episodes each). Raise them with the S3 bill in mind.
 - **Replays are the training signal.** Each one holds every turn's action, observation, and reward for both players. Agent *logs* (stderr) are not fetched: Kaggle 403s them for any submission you do not own, and they contain no gameplay data.
 
+## Worktrees
+
+| Command | What it does |
+|---|---|
+| `dev/create-worktree <branch>` | Create `<repo>.worktrees/<branch>/`, symlink `data/` to the main repo, share the DVC cache, copy `.env` files |
+| `dev/delete-worktree [<branch>]` | Remove a worktree (no arg = the current one). Warns on uncommitted/unpushed work, offers to delete the branch |
+| `dev/sync-data` | Merge a worktree's real `data/` back into the main repo and replace it with a symlink |
+
+**Always use `dev/create-worktree`, not `git worktree add`.** A bare `git worktree add`
+gives the new tree its own `data/` and its own empty DVC cache, so `dvc pull`
+re-downloads everything from S3 and the replays end up duplicated on disk.
+
+The wrapper also marks the tracked `data/**` stubs `skip-worktree`. Replacing that
+directory with a symlink otherwise makes git see them as deleted — including
+`replays.dvc`, the pointer to everything in S3 — and a `git commit -a` would drop it.
+
 ## Data (DVC)
 
 | Command | What it does |

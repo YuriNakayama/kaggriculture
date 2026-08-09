@@ -1,0 +1,134 @@
+#!/bin/bash
+set -euo pipefail
+
+# Create a git worktree for a branch.
+#
+# Usage:
+#   dev/create-worktree <branch-name>
+#   dev/create-worktree feature-simulator
+#
+# Worktrees live in a sibling directory of the main repo:
+#   /Users/user/project/kaggriculture.worktrees/<dir-name>
+# Slashes in the branch name become hyphens (feature/x -> feature-x).
+#
+# Two things this does that a bare `git worktree add` does not:
+#
+#   1. **Symlinks data/ to the main repo.** Replays run ~29 MB each and the
+#      lake is already >130 MB; copying it per worktree wastes disk and, worse,
+#      splits the DVC cache so each worktree re-downloads from S3.
+#   2. **Copies .env files**, which are gitignored and would otherwise be
+#      missing in the new tree.
+#
+# Running this from inside a worktree still creates the new one as a sibling
+# (never nested) and branches from the main worktree's HEAD.
+
+WORKTREE_BASE_SUFFIX=".worktrees"
+
+if [ $# -lt 1 ]; then
+  cat >&2 <<'EOF'
+Usage: dev/create-worktree <branch-name>
+Example: dev/create-worktree feature-simulator
+
+Creates <main-repo>.worktrees/<dir-name> with data/ symlinked to the main repo.
+EOF
+  exit 1
+fi
+
+BRANCH_NAME="$1"
+DIR_NAME="${BRANCH_NAME//\//-}"
+
+# Always anchor on the MAIN worktree — it is the first entry of `worktree list`.
+# This keeps worktrees siblings rather than nesting them when run from inside
+# one, and branches from main's HEAD rather than the current worktree's.
+MAIN_WORKTREE="$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')"
+WORKTREE_BASE="${MAIN_WORKTREE}${WORKTREE_BASE_SUFFIX}"
+WORKTREE_PATH="${WORKTREE_BASE}/${DIR_NAME}"
+
+if [ -e "$WORKTREE_PATH" ]; then
+  echo "Error: worktree already exists: $WORKTREE_PATH" >&2
+  exit 1
+fi
+
+mkdir -p "$WORKTREE_BASE"
+
+if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+  echo "Using existing local branch: ${BRANCH_NAME}"
+  git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
+elif git show-ref --verify --quiet "refs/remotes/origin/${BRANCH_NAME}"; then
+  echo "Creating from remote branch: origin/${BRANCH_NAME}"
+  git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "origin/${BRANCH_NAME}"
+else
+  MAIN_BRANCH="$(git -C "$MAIN_WORKTREE" symbolic-ref --short HEAD 2>/dev/null || echo HEAD)"
+  echo "Creating new branch: ${BRANCH_NAME} (from main worktree's ${MAIN_BRANCH})"
+  git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "$MAIN_BRANCH"
+fi
+
+# Share data/ with the main repo. `git worktree add` created a real (empty)
+# data/ from the tracked .gitkeep stubs, so remove it before symlinking.
+DATA_DIR="${MAIN_WORKTREE}/data"
+mkdir -p "$DATA_DIR"
+rm -rf "${WORKTREE_PATH}/data"
+ln -s "$DATA_DIR" "${WORKTREE_PATH}/data"
+echo "  data/ -> ${DATA_DIR} (symlink; DVC cache stays shared)"
+
+# Replacing the directory with a symlink makes git see every tracked file
+# under data/ as deleted — including replays.dvc, the pointer to everything in
+# S3. A `git commit -a` here would silently drop it. Mark those paths
+# skip-worktree so git ignores the discrepancy in this worktree only; the
+# index (and therefore the main repo) is untouched.
+DATA_TRACKED="$(git -C "$WORKTREE_PATH" ls-files -- data)"
+if [ -n "$DATA_TRACKED" ]; then
+  # shellcheck disable=SC2086 # paths are repo-relative and contain no spaces
+  printf '%s\n' "$DATA_TRACKED" |
+    xargs -I{} git -C "$WORKTREE_PATH" update-index --skip-worktree -- "{}"
+  echo "  marked $(printf '%s\n' "$DATA_TRACKED" | wc -l | tr -d ' ') data/ stubs skip-worktree"
+fi
+
+# `.gitignore` has `/data/**`, which covers the contents but not a `data`
+# symlink standing in their place — it would show up as untracked. Exclude it
+# in this worktree's private info/exclude rather than the shared .gitignore,
+# since the symlink only exists here.
+WT_GIT_DIR="$(git -C "$WORKTREE_PATH" rev-parse --git-path info)"
+mkdir -p "$WT_GIT_DIR"
+if ! grep -qxF '/data' "${WT_GIT_DIR}/exclude" 2>/dev/null; then
+  printf '/data\n' >>"${WT_GIT_DIR}/exclude"
+fi
+
+# Point DVC at the main repo's cache. Without this the worktree has no cache
+# and `dvc pull` re-downloads everything from S3 (currently ~139 MB, and
+# growing by up to 2.9 GB/day once the scrape runs at full rate).
+# .dvc/config.local is gitignored, so this stays local to the worktree.
+MAIN_DVC_CACHE="${MAIN_WORKTREE}/.dvc/cache"
+if [ -d "${MAIN_WORKTREE}/.dvc" ]; then
+  mkdir -p "$MAIN_DVC_CACHE" "${WORKTREE_PATH}/.dvc"
+  printf "[cache]\n    dir = %s\n" "$MAIN_DVC_CACHE" \
+    >>"${WORKTREE_PATH}/.dvc/config.local"
+  echo "  DVC cache -> ${MAIN_DVC_CACHE} (shared)"
+fi
+
+# Copy gitignored .env files so the new tree can actually run.
+COPIED=()
+for dir in backend infra; do
+  src_dir="${MAIN_WORKTREE}/${dir}"
+  dst_dir="${WORKTREE_PATH}/${dir}"
+  [ -d "$dst_dir" ] || continue
+  for env_file in "${src_dir}"/.env "${src_dir}"/.env.*; do
+    [ -f "$env_file" ] || continue
+    filename="$(basename "$env_file")"
+    [ "$filename" = ".env.example" ] && continue
+    cp "$env_file" "${dst_dir}/${filename}"
+    COPIED+=("${dir}/${filename}")
+  done
+done
+
+echo ""
+echo "Worktree created:"
+echo "  path:   $WORKTREE_PATH"
+echo "  branch: $BRANCH_NAME"
+if [ ${#COPIED[@]} -gt 0 ]; then
+  echo "  copied .env files:"
+  printf '    - %s\n' "${COPIED[@]}"
+fi
+echo ""
+echo "Next:"
+echo "  cd $WORKTREE_PATH && dev/setup"
