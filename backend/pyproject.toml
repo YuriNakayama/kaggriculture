@@ -62,6 +62,9 @@ exclude = [
     "site-packages",
     "venv",
     ".claude",
+    # Other competitors' public notebooks, kept verbatim for analysis. Not our
+    # code — linting or reformatting them would destroy the reference.
+    "notebook",
 ]
 line-length = 88
 indent-width = 4
@@ -101,6 +104,7 @@ exclude = [
     ".github",
     ".claude",
     "__pycache__",
+    "notebook",
 ]
 python_version = "3.13"
 strict = true

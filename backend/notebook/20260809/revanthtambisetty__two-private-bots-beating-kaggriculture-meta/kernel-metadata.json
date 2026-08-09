@@ -1,0 +1,23 @@
+{
+  "id": "revanthtambisetty/two-private-bots-beating-kaggriculture-meta",
+  "id_no": 130158550,
+  "title": "Two Private Bots Beating Kaggriculture Meta",
+  "code_file": "two-private-bots-beating-kaggriculture-meta.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "revanthtambisetty/kaggriculture-top-player-opening-fingerprints"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "kaggriculture"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:dafd4ce5668bbf1ad422e4c109e0f18c9623c3a7c7f48b0235f13142755c40b9",
+  "machine_shape": "None"
+}

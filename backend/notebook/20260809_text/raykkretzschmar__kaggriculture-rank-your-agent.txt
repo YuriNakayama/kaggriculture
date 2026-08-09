@@ -1,0 +1,1062 @@
+
+===== CELL 0 [markdown] =====
+# Kaggriculture: rank your agent against a known ladder
+
+[Kaggriculture](https://www.kaggle.com/competitions/kaggriculture) scores you on
+**head-to-head wins**, not on an absolute metric. That makes progress genuinely hard
+to read. Your agent banked 40,000 coins — is that good? It depends entirely on who it
+played. Beating the built-in `starter` baseline tells you almost nothing, and the
+public leaderboard only updates after you have spent a submission.
+
+So I built a fixed ladder to measure against. This notebook:
+
+1. loads **ten documented reference agents** spanning a very wide skill range, plus the
+   top-meta agent that beats all ten of them,
+2. lets you plug in **your own agent** three different ways,
+3. plays a seat-swapped round robin and ranks everyone with **Bradley-Terry** —
+   the same method the competition uses for final standings,
+4. tells you which rung you landed on,
+5. and writes a **submittable `submission.tar.gz`**, so the agent you ranked is
+   literally the artifact you submit.
+
+The whole default run takes a couple of minutes. There is a knob at the bottom for a
+much heavier evaluation when you want tighter error bars.
+
+> **What you need:** the
+> [Kaggriculture Reference Agents](https://www.kaggle.com/datasets/raykkretzschmar/kaggriculture-reference-agents)
+> dataset attached (Add Input → Datasets), the output of
+> [Findings from Zero to Top Meta](https://www.kaggle.com/code/raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta)
+> attached (Add Input → Notebook Output) for the rung above the ladder, and
+> **Internet on** so the notebook can install a matching `kaggle-environments`.
+
+
+===== CELL 1 [markdown] =====
+---
+## 1. Setup
+
+One thing worth being fussy about: **pin the engine version**, and then *verify the pin
+actually took*.
+
+This is not a formality. The same game on the same seed pays out completely differently
+across releases — Rancher Rita banks 28,370 on 1.32.3 and 9,002 on 1.32.6; Broker Bea
+170,674 and 114,008. Every number in the reference dataset was measured on **1.32.3**,
+and I confirmed that by replaying games straight out of `head_to_head_games.csv` and
+checking they reproduce to the coin.
+
+Worse, checking the version string is not enough. `importlib.metadata.version()` reads
+the *newly written* package metadata, while `import kaggle_environments` can still
+resolve to an older copy earlier on `sys.path` — so a pip install reports success, the
+version check passes, and the engine you are actually running is the old one. I lost
+several hours to exactly that, comparing measurements taken on three different engines
+without realising it.
+
+So the cell below installs the pin, then **replays a game from the dataset and asserts
+the bank matches**. A behavioural fixture cannot be fooled by a stale import.
+
+
+===== CELL 2 [code] =====
+import subprocess, sys
+from importlib.metadata import PackageNotFoundError, version as pkg_version
+
+ENGINE_VERSION = "1.32.3"   # the version these reference agents were measured on
+
+
+def installed_engine():
+    try:
+        return pkg_version("kaggle-environments")
+    except PackageNotFoundError:
+        return None
+
+
+def ensure_engine(want=ENGINE_VERSION):
+    have = installed_engine()
+    if have != want:
+        print(f"installing kaggle-environments=={want} (found: {have})")
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-q", f"kaggle-environments=={want}"],
+            check=False,
+        )
+        for mod in [m for m in list(sys.modules) if m.startswith("kaggle_environments")]:
+            del sys.modules[mod]
+        have = installed_engine()
+    return have
+
+
+actual = ensure_engine()
+print("kaggle-environments (reported):", actual)
+
+from kaggle_environments import make
+make("kaggriculture", configuration={"episodeSteps": 24})
+print("kaggriculture environment loads OK")
+
+
+===== CELL 3 [code] =====
+import importlib.util, itertools, json, math, os, shutil, sys, tarfile, time, zipfile
+from pathlib import Path
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+pd.set_option("display.width", 200)
+pd.set_option("display.max_colwidth", 90)
+
+def find_dataset():
+    """Locate the reference-agent dataset.
+
+    Prefers the canonical mount, but falls back to scanning /kaggle/input for the
+    manifest so a renamed or forked copy still works.
+    """
+    root = Path("/kaggle/input")
+    # Kaggle has two input layouts depending on the image: the older flat
+    # /kaggle/input/SLUG and the newer /kaggle/input/datasets/OWNER/SLUG.
+    # Try both, then fall back to searching for the manifest.
+    for candidate in (root / "kaggriculture-reference-agents", root / "datasets" / "raykkretzschmar/kaggriculture-reference-agents"):
+        if (candidate / "agents_manifest.csv").exists():
+            return candidate
+    for hit in sorted(root.rglob("agents_manifest.csv")):
+        return hit.parent
+    raise SystemExit(
+        "Reference-agent dataset not attached.\n"
+        "Add Input -> Datasets -> search 'Kaggriculture Reference Agents', then re-run."
+    )
+
+
+DATASET_DIR = find_dataset()
+print("dataset:", DATASET_DIR)
+print("contents:", sorted(p.name for p in DATASET_DIR.iterdir()))
+
+
+===== CELL 4 [code] =====
+# Behavioural engine check. The version string can lie -- a pip install writes new
+# package metadata while `import kaggle_environments` may still resolve to an older copy
+# earlier on sys.path. So replay a real game out of the dataset and require the banks to
+# match. Expected values are read from the CSV, so this stays correct if the dataset is
+# ever re-measured.
+def _fixture_agent(path, name):
+    spec = importlib.util.spec_from_file_location(f"fixture_{name}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.agent
+
+
+def verify_engine_behaviour():
+    """Replay one recorded pairing; return (ok, detail)."""
+    games = pd.read_csv(DATASET_DIR / "head_to_head_games.csv")
+    row = games.iloc[0]
+    a = _fixture_agent(DATASET_DIR / f"{row.agent_a}.py", "a")
+    b = _fixture_agent(DATASET_DIR / f"{row.agent_b}.py", "b")
+    seat = int(row.seat_of_a)
+    pair = [a, b] if seat == 0 else [b, a]
+    env = make("kaggriculture",
+               configuration={"episodeSteps": 720, "seed": int(row.seed)}, debug=False)
+    env.run(pair)
+    rewards = [step.reward for step in env.steps[-1]]
+    got_a, got_b = round(rewards[seat]), round(rewards[1 - seat])
+    ok = (got_a == int(row.bank_a)) and (got_b == int(row.bank_b))
+    return ok, (f"{row.agent_a} vs {row.agent_b}, seed {row.seed}, seat {seat}: "
+                f"expected {int(row.bank_a):,}/{int(row.bank_b):,}, got {got_a:,}/{got_b:,}")
+
+
+_ok, _detail = verify_engine_behaviour()
+print(("PASS  " if _ok else "FAIL  ") + _detail)
+if not _ok:
+    raise SystemExit(
+        "The engine is not behaving like the one the dataset was measured on "
+        f"({ENGINE_VERSION}), whatever version string it reports.\n"
+        "Every bank, margin and expected_bank below would be measured in a different "
+        "game than the one documented. Restart the session after installing "
+        f"kaggle-environments=={ENGINE_VERSION}, or re-measure the ladder yourself."
+    )
+
+
+===== CELL 5 [markdown] =====
+---
+## 2. Meet the opponents
+
+Ten agents in two bands, and they isolate different variables.
+
+**Tiers 0–5 — authored.** Written from scratch, all sharing a **byte-identical action
+scheduler**; the only difference between them is a `POLICY` dict at the top of each
+file. That is deliberate: any gap in results comes from *economic decisions* alone, not
+from one agent having better pathfinding than another. Diff two of these and the diff
+is the lesson.
+
+**Tiers 6–9 — the shared meta line.** These hold the opposite variable constant. All
+four run the *same* production plan — the public meta line that shows up identically
+across large groups of unrelated teams in public replays — and differ only in their
+**market layer**: what to sell, in what order, and when to hold. They bank within ~1%
+of each other against the baseline and still separate cleanly head-to-head.
+
+Together: tiers 0–5 teach you how to build a farm, tiers 6–9 show you that once
+everyone builds the same farm, selling is the whole game. Expect a large jump between
+the two bands — tier 5 banks ~53k, tier 6 ~187k.
+
+
+===== CELL 6 [code] =====
+manifest = pd.read_csv(DATASET_DIR / "agents_manifest.csv").sort_values("tier")
+manifest[["tier", "agent_name", "headline", "expected_bank",
+          "hands", "extra_quadrants", "crops", "animals"]].to_string(index=False)
+
+
+===== CELL 7 [code] =====
+for _, row in manifest.iterrows():
+    print(f"--- tier {row.tier}: {row.agent_name} " + "-" * (52 - len(str(row.agent_name))))
+    print("  strategy:", row.strategy)
+    print("  lesson  :", row.lesson)
+    print()
+
+
+===== CELL 8 [markdown] =====
+---
+## 3. Why the top tiers do what they do
+
+Before ranking anything, look at this table. It is the single most useful thing I
+worked out about this game, and it explains the whole top half of the ladder.
+
+Every product has an independent **glut curve**. Sell into the market and the price
+drops — but *how fast* varies enormously. The `units_until_price_floor` column is the
+punchline: it is how many units you can sell before that product is worth $1.
+
+
+===== CELL 9 [code] =====
+curves = pd.read_csv(DATASET_DIR / "price_curves.csv")
+curves.sort_values("base_price", ascending=False).to_string(index=False)
+
+
+===== CELL 10 [code] =====
+# Same thing as a picture: revenue you can actually extract per product.
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 4.6))
+
+sold = [50, 150, 400, 1000]
+for _, r in curves.iterrows():
+    prices = [r.price_at_50_sold, r.price_at_150_sold,
+              r.price_at_400_sold, r.price_at_1000_sold]
+    style = "-o" if r.glut_target >= 1.0 else "--s"
+    ax1.plot(sold, prices, style, label=f"{r['product']} ({r.glut_shape})", alpha=.85)
+ax1.set_xscale("log")
+ax1.set_xlabel("net units sold into the market")
+ax1.set_ylabel("price per unit ($)")
+ax1.set_title("Price decay by product\n(solid = collapses under one field's output)")
+ax1.legend(fontsize=7, ncol=2)
+ax1.grid(alpha=.3)
+
+# Cumulative revenue if you sold N units, at the price after N units.
+for _, r in curves.iterrows():
+    rev = [n * p for n, p in zip(sold, [r.price_at_50_sold, r.price_at_150_sold,
+                                        r.price_at_400_sold, r.price_at_1000_sold])]
+    ax2.plot(sold, rev, "-o", label=r["product"], alpha=.85)
+ax2.set_xscale("log")
+ax2.set_yscale("log")
+ax2.set_xlabel("net units sold")
+ax2.set_ylabel("gross revenue at that price ($)")
+ax2.set_title("Where the money actually is")
+ax2.legend(fontsize=7, ncol=2)
+ax2.grid(alpha=.3)
+
+plt.tight_layout(); plt.show()
+
+
+===== CELL 11 [markdown] =====
+Read that chart and the ladder stops looking arbitrary:
+
+- **MELON** grosses ~115 per tile per day, about five times wheat — but its glut curve
+  is *quadratic* (`above_target` 3.60), so the market absorbs only ~150 melons before
+  the price floors. That is why **Melon Mateo** meters his sales into 12-unit lots and
+  holds a price floor, and why buying more land does *not* help him.
+- **MILK** and **WOOL** floor almost as fast. **Rancher Rita** still wins with them,
+  because livestock earns far more *per action* than crops once `CARE` is running.
+- **WHEAT** and **EGG** are logarithmic (`above_target` 0.20) — nearly glut-proof.
+  Wheat is why Rita can run a feed chain without wrecking her own margins.
+
+The general lesson: **in this game, deciding what to sell matters more than deciding
+what to grow.**
+
+
+===== CELL 12 [markdown] =====
+---
+## 4. Load the reference agents
+
+Nothing clever here — the agents are plain single-file Python modules exposing
+`agent(obs)`, so `importlib` is all it takes. This is exactly how the competition
+loads your `main.py`, which makes it a good habit.
+
+
+===== CELL 13 [code] =====
+def load_agent(path, name=None):
+    """Import a single-file Kaggriculture agent and return its `agent` callable."""
+    path = Path(path)
+    name = name or path.stem
+    spec = importlib.util.spec_from_file_location(f"kagri_{name}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if not hasattr(module, "agent"):
+        raise AttributeError(f"{path} defines no `agent` function")
+    return module.agent
+
+
+reference = {}
+for _, row in manifest.iterrows():
+    reference[row.agent_slug] = load_agent(DATASET_DIR / row.file, row.agent_slug)
+
+TIER_OF = dict(zip(manifest.agent_slug, manifest.tier))
+NAME_OF = dict(zip(manifest.agent_slug, manifest.agent_name))
+print(f"loaded {len(reference)} reference agents:",
+      ", ".join(f"{s} (t{TIER_OF[s]})" for s in reference))
+
+
+===== CELL 14 [markdown] =====
+### One more opponent: the top of the public meta
+
+The ladder above tops out at Closer Cleo. There is a rung above it that is not in the
+dataset, because it is not mine to redistribute: the agent shipped by my other notebook,
+[Kaggriculture: Findings from Zero to Top Meta](https://www.kaggle.com/code/raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta),
+which is built on a public replay tape and beats **all ten** reference agents 60–0–0 —
+Cleo included, by about 13,500 coins.
+
+It is attached here as a *notebook output* (Add Input → Notebook Output) rather than
+copied, so what you rank against is byte-for-byte the artifact that notebook published.
+If the input is missing the cell below just skips it and the rest of the notebook runs
+unchanged.
+
+
+===== CELL 15 [code] =====
+def find_top_meta():
+    """Locate the top-meta agent from the attached notebook output, if present."""
+    root = Path("/kaggle/input")
+    if not root.exists():
+        return None
+    for candidate in (root / "kaggriculture-findings-from-zero-to-top-meta" / "main.py",
+                      root / "kernels" / "raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta" / "main.py"):
+        if candidate.exists():
+            return candidate
+    # Fall back to any attached main.py that carries the tape the agent is built on.
+    for hit in sorted(root.rglob("main.py")):
+        try:
+            head = hit.read_text(errors="ignore")[:4000]
+        except OSError:
+            continue
+        if "_ACTIONS" in head and "b85decode" in head:
+            return hit
+    return None
+
+
+TOP_META_PATH = find_top_meta()
+TOP_META_SLUG = "top_meta_host"
+if TOP_META_PATH is None:
+    top_meta = None
+    print("top-meta host not attached -- skipping it. Add Input -> Notebook Output ->")
+    print("  raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta")
+else:
+    top_meta = load_agent(TOP_META_PATH, TOP_META_SLUG)
+    TIER_OF[TOP_META_SLUG] = 10
+    NAME_OF[TOP_META_SLUG] = "Top Meta Host"
+    print(f"top-meta host: {TOP_META_PATH} ({TOP_META_PATH.stat().st_size:,} bytes)")
+
+
+===== CELL 16 [markdown] =====
+---
+## 5. Two worked examples: an idea I killed, and one that survived
+
+Before you plug in your own agent, here is the harness doing the job it exists for —
+on me. I had a new agent, I was fairly confident in it, and it is not in the dataset.
+This is why.
+
+### The hypothesis
+
+Straight out of `price_curves.csv`: **EGG never floors.** Its glut curve is logarithmic
+with `above_target` 0.20, so 4,700 eggs only move the price from 50 to about 35. MILK is
+linear at 1.60 and floors after roughly **76** units; WOOL is quadratic and floors after
+**59**. Rancher Rita (tier 5) sells milk and wool. Her ceiling therefore looked like a
+*price* problem, not a production problem — so bolting a goose wing onto her working
+wheat feed chain should add an uncapped revenue stream to a herd already paid for.
+
+That is a clean, evidence-backed argument. It is also wrong.
+
+### Attempt 1 — add geese to Rita
+
+32 configurations: coop share, flock size, when the coops start, feed float, sell chunk.
+**All 32 lost to Rita**, the best by −7,569. But that test moved three things at once —
+more mouths on the feed chain, fewer tiles growing wheat, more structures — so it does
+not tell you *which* one hurt.
+
+### Attempt 2 — hold everything constant, vary only the mix
+
+Same 16 animals, same 16 structures, same land, same feed load. Only the composition
+changes:
+
+| cows | sheep | geese | bank | vs Rita |
+| ---: | ---: | ---: | ---: | ---: |
+| 10 | 6 | 0 | 52,957 | — (Rita) |
+| 12 | 4 | 0 | 54,512 | +1,555 |
+| **16** | **0** | **0** | **57,407** | **+4,450** |
+| 10 | 0 | 6 | 38,845 | −14,112 |
+| 8 | 0 | 8 | 36,638 | −16,319 |
+| 0 | 0 | 16 | 10,602 | −42,356 |
+
+Every goose variant loses badly, and an all-goose farm is a catastrophe. Meanwhile
+dropping the sheep and running 16 cows looked like a **+4,450** improvement.
+
+### The part that matters
+
+That +4,450 was measured on the same seeds I tuned on. Re-run on **held-out** seeds
+(8000–8005, both seats), the all-cow agent **loses to Rita 3–9**, margin −3,627. It beats
+every other tier 12–0 and loses to the one that counts.
+
+So there is no new tier. The idea died, and it died specifically because I checked it on
+seeds it had not seen. If you take one habit from this notebook, take that one: **tune on
+one seed set, decide on another.** Six games on the seeds you tuned with will tell you
+whatever you want to hear.
+
+The cell below reproduces the flip on a 3-seed subset so it finishes in about a minute —
+expect roughly 4–2 for the candidate on the tuned seeds and 1–5 against it on the
+held-out ones. The 12-game run quoted above (3–9) is the same effect measured harder.
+
+
+===== CELL 17 [markdown] =====
+### Why eggs lose, and why the price curve misled me
+
+`price_curves.csv` measures a **static** market. Real games are not static: town shops
+consume product every four turns, all season, which continuously drains inventory and
+holds the price up. What actually decides your realised price is **how many shops demand
+your product**, not how steep its glut curve is.
+
+| Product | Shops demanding it | Base price | Shop demand/day |
+| :--- | ---: | ---: | ---: |
+| WHEAT | 5 | 25 | 30 |
+| STRAWBERRY | 4 | 120 | 24 |
+| **MILK** | **3** | **160** | **18** |
+| EGG | 2 | 50 | 12 |
+| CARROT / TOMATO | 2 | 35 / 60 | 12 |
+| WOOL | 1 | 200 | 12 |
+| **MELON** | **0** | **250** | **0** |
+
+Measured at the end of a 720-turn season, this is what that does:
+
+| Farm | MILK inventory | MILK price | EGG inventory | EGG price |
+| :--- | ---: | ---: | ---: | ---: |
+| 16 cows | **−148** (scarce) | **266** | −302 | 68 |
+| 16 geese | −464 | 347 | **+104** (glutted) | **42** |
+
+Three shops drain milk faster than sixteen cows can supply it, so milk sells **above** its
+$160 base for the entire season — the 76-unit "ceiling" never binds. Eggs, on two shops at
+a $50 base, do glut and sell at 42. The uncapped product is worth less per action than the
+capped one that nobody can keep in stock.
+
+The same table explains the rest of the ladder. **Melon appears in no shop at all** —
+only the town centre buys it, a couple of units a day — which is the real reason Melon
+Mateo tops out around 44k no matter how much land he buys. And **wool has a single shop**,
+which is why deleting the sheep helped at all.
+
+So: `units_until_price_floor` is the wrong column to optimise. Multiply base price by shop
+demand and you get much closer to what you can actually bank.
+
+
+===== CELL 18 [code] =====
+# Build the candidate, so you can re-run the experiment yourself.
+#
+# Every shipped agent exposes `act(obs, policy)` -- the scheduler and the policy are
+# separate -- so a new agent is a dict, not a new file. This is the cheapest way to
+# test a production idea in this game.
+import copy
+
+spec = importlib.util.spec_from_file_location("rita_mod", DATASET_DIR / "rancher_rita.py")
+rita_mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rita_mod)
+
+DROVER = copy.deepcopy(rita_mod.POLICY)          # Rita's plan...
+DROVER["build"] = [{"kind": "PASTURE", "target": 16, "share": 0.5,
+                    "from_day": 0, "until_day": 20}]
+DROVER["animals"] = ["COW"]                       # ...with the sheep leg replaced
+DROVER["animal_target"] = {"COW": 16}             #    by four more cows
+DROVER["sell_order"] = ["MILK", "WHEAT"]
+
+drover = lambda obs: rita_mod.act(obs, DROVER)
+rita = lambda obs: rita_mod.act(obs, rita_mod.POLICY)
+
+
+def quick_duel(a, b, seeds):
+    """Minimal seat-swapped comparison. Self-contained so this section can be read
+    and run on its own, before the full harness further down."""
+    wins = losses = 0
+    margins = []
+    for seed in seeds:
+        for seat in (0, 1):
+            pair = [a, b] if seat == 0 else [b, a]
+            env = make("kaggriculture",
+                       configuration={"episodeSteps": 720, "seed": seed}, debug=False)
+            env.run(pair)
+            r = [s.reward for s in env.steps[-1]]
+            x, y = r[seat], r[1 - seat]
+            if x is None or y is None:
+                continue
+            margins.append(x - y)
+            wins += x > y
+            losses += x < y
+    return wins, losses, sum(margins) / len(margins)
+
+
+# Tuning seeds say the all-cow build is better. Held-out seeds disagree.
+for label, seed_set in (("tuned-on  (7000-7002)", [7000, 7001, 7002]),
+                        ("held-out  (8000-8002)", [8000, 8001, 8002])):
+    w, l, margin = quick_duel(drover, rita, seed_set)
+    verdict = "candidate wins" if w > l else "Rita wins"
+    print(f"{label}:  {w}-{l}  margin {margin:+,.0f}   -> {verdict}")
+
+
+===== CELL 19 [markdown] =====
+---
+## 5. Default submission artifact: C64 horizon-25
+
+This notebook packages **`c64_horizon25`** byte-for-byte as its default
+`submission.tar.gz`, and the evaluation below loads that exact archive.
+
+C64 uses the current public Kakuteki/V14 replay-derived production route and the
+debt-tracked premium-sale controller, with eligible planned premium sales shifted
+25 turns earlier when inventory and the public near-clone gate allow it. The field
+route is public/replay-derived; the horizon controller is the local experiment.
+
+Important evaluation boundary: C64 won the horizon-finalist tournament, but later
+showed seed/shop sensitivity and lost a fresh six-game block to V14. It is packaged
+here because it is the explicitly selected submission, not because the notebook
+claims it is more robust than C45.
+
+
+===== CELL 20 [code] =====
+import base64, hashlib, io, tarfile, zlib
+
+WORK = Path("/kaggle/working") if Path("/kaggle/working").exists() else Path(".")
+C64_B85 = 'c-qZ<*OuZ+&*=R;1vKHep_$J%7{ey#XmXx47-Nhv7~43I;n|M^!E~5C-}%>B>-5DmT_vehDoG`&s+hO8w@d*2$404=MDvPmE(yHC(vnRQRE4&QoGROto#0bciMNRoy=K+5{+nKl3M=qGfBeX^G&i%6{LIFYQ$ezkl-?oRC}B<O<kmK2LEB`7oO1Mys=Od2dS;s*jIIi~(i&H+PUFW~VkA~x@GLJ+ZHgfJWJ-`&p0Ua5bj`}LPWq?K)>1VtHTs;uu$0b^OiNo@Ht31!l+zk}i2sMiiy-+pfg(BEj@E{hXpv+kgIiwUIhLnMNkeBT+Q+U%4cykwRjW2Zn$h~G?>7M~=pPC#tyx~9BQG>M6i1W1D%ympG4RaB^2XRt@zEkj9&}bU@!H7QmgFgoKbm71RujaJyC`LnqYVk$bP3BE9a*8tnN6761fDh+RV0#H={+-Aq_uyvRnn(%SnHo=^i+}Gf5?I+Z(gP;RbjXKvXMNmab;4cNZvNprOwV3t#QXH3vC%})Pm$0U9^gzX!F{rq{g~(`1#}Q?d^vq4M9?DQ&Ogbf%{*SARg|Ym$Ja$Kd(t;asPbe*y)cSKZsPOQ>xe6wwM9=lM~394CtLdXSAjo`jW|jN&e?FgzAkm8u%Z|C#|CO_!Re`?r9I0Vu4FBR|gTYPM^eve<EYm(6j?*vxN-6r^`j|JolGcYLvU$F9o*I_RxK53)h$7^7zCB;=@=f=)ROB-*j_4zz8=wZqOo~oq4YbV2~xLGB<?J_@#C#`@HmF9LO&mlX0UTp%pe2i3)&xiZ4c3h4mCX3US_dcJeiHzBE|uk{C^@%>k2WE$k;M1W%JqSV_g_jfEKZ_2}Rv;;};j<xhYr+FguYk=?d856E<v*xEy*1nU77Xa+5L2qY$F2;QkS1>b}_Bxr%6rp|EesL1T}nhc>*ch?R@>^;S^^tO`Jxh4@U&NU)EJ~Y0VOrdIO#cv3upWpku&R#p5TqH=eJmfDGs(u<4?QNBwVwFPdfSnopIa_J?>1m2;a~t2}NK1RiG`T)Zv&Xz{Bt&#WjV3$(l1mNThs8c76iIZ8Ht1S@-|3Kjuam44O0EeR^ngbR6EBfszv8WK6FcADGoKe|z+b#>7DWCKW)X$Q7cyHrzyn`2eCj{~8tixQN}x?L2{&`_bz-^Fs5&2)Pm^S#o*GI;$iB)3bKI8o5dpE}6~eSDo3QsGraN+$<n1Mk#K8#2re}D_7xbasPG;kFXV*v2A&(~+bkUidXVF&D&$rr*PQF@m9)11gzE7-SV(L9CLD}0^y{dCac|(bUFXkA}mS7|1qE0Eu>22&6P`OxQ9qDC%Q-yQ&t`qGH&p34)5q+h{$MNl=syI|i9_%_D4u+Z&(H+Tdu)SkkRmaE_AJ+o1i$xHiwDWdPK*BeXMbKY7r6UcD1u_K27NE)+qQYFH>P&A}6DHA&onymwyiw+IbSkDsV%claO$AP=L}6ae?oQ$C0vdXNbFt>*F{hp9LdO_fZY|PaDopt!x!P$8Vi=QgZz|<d#$5m$`;6oi)lG<WNA@SFv0KU!cv@(dcY%H=!EN^*dOqcLu1@se^DSJAM2sTiO+7tn?~>S+q$mFJOa+lZd{hP!$6#-QWJ<%mcPm6Cb-Ufq!ECs%BnxS;n!9$pjWgfzXA1tkJ=cmK6gnSo;bQ_DtR|z}nm#Wk0+EQ;k>pVk8`5y-^s(6-p*l|Eb@kAns&XOS4pJzWS~5IQhZ*M{=|NcCPAn2_H<fXZw#khWMo*2{)SC+^UfG){@Rv1;rtlOi=BZ9IwG5Bw44LoOxTqgE)YxOdt_;r@-zyUng(~G%e4#e-Ot!I3^Aaq(^N!qc6g<FXbh*cxfCE~~4&MoI9~hiSbYR(Yq^@#YIl`lIzRb_tZgjIlC=Mj1)OFBs5QE)D)pV0xxyn&DS@bQMlPJ#wWfC~xYf3F#=JD=$fVv>bPhepw2PN0UaYF=?3oZbU8-reWUKlLXtw^vRIqhqq&@k^Ar`OQ}q9lfcrgvEclN&7P4K`ElL9XK9>~ZhN*WVuE-tft%4y(&bkYGmWWqnLl$jETA&eD?!(*ld}*uj&6@XXQ?4~N&`{kYfcITzS04`<v?awxH5_}YMmT_lftD*l?{Q;+bewqcSinRU4id~78*+u_LQ+;kn|dmj;OAf+TZ9PNw#O3b<BE6A)k(Ka`(vyN_eCBh%as?1vH)?#$5+Km7Ra?Pne)yECVQa)I@va#f)4~T0wH9w86k$f((;pSa<-0L(D>Nq~+tLIiGQ>;0$8H-DR(60zb@7m*BXv+*@Wib<_cDXr`R#L^<IklU6Hta#zMC&Pky|E`EeCl!$56jbz%U1J|)CN|P;bqIm5)NQHs<S;&U{`=<tdUS+-kY&YtSC3#{?5#;Y_E)`AVu4~^0KFll_Z)Bd+3c4W7J0Snq~^AHm&x@hi?AR=&!4*9)acj%o&Vv6U2Q8`P6D=>;d^~y_8=A{C4V7V`_u#bcc}rf|Uj<1RGTYNE9E9fk<jyj1m!Wj}6=~JVCO3W*=(;XGe3gS1*HoeBwG_^1d1j)@$n!=JF=zaPN|is0$GtdDhqt7)qCBkw1^l3|Vg`lyC!zfliO$tv9pSalq_gdz25BPJDWKfLz^rHN7kQk0~0hG3BO65Bzpthwv9C0@Iaqn#H+F{S)N~9?l8Ib@C^>&cm4ZU}<-|)W`P-aSAl~)`{AVmD3#M^VK-FTe2|SA{5^qW$4VL+Grr#Wg|I)8d)z9jKcs*UkW{PeqMPi4)?HqUN~u_dMG44PO*<Kye=PH&{&|h7|vh36Qxtxb{izQYgc=+-CfL;$g`T>(<7gK7y@|`)%4EcEplPh6ATQv`dZ?=o7QH5sM?ywz0@KQ%bk{qS+z4xd6r}?-D2aJ^(jO-N7#Ah6S3~t9}Kn*VHG&Gf{n<swhJSQ$DW?hYEW%+v-KL!GSzw{obn#~+Zl%PaUvK5N%`cd=PLaydYxoyGA*y8rRcbF5ye$sDdQt{814^u<7kmvIp^VicJ7qL@HvqdDuhx5y>RUeRVRTQ;@F5>rP3LM)BfDD7~JR6qfW%JLM7E*^a260y&I5+cq2V;4^ixrKZ0(^4`B%mJ?wCPd2OcK$5T9%toQjy9dE4Gr@<A?bofF%)wT!IO<%Z|a=OC9>ySl3W;t%P{EU6HWR9m!O>XWKwX+>8qt0>Yx`1XiYCFe|2js8`UbOf}fy-bv=4Z#{#<B=>75Knzo5{9FWx_2m8mzlUC|nBmigE_VBV}mUU%_*cAFRBd5YdH1Q5dSHt2p6Z$<|d&g<G+Jy#oa3h<Aua3Q`vpLc|CV+NVk)<w5ZUdOX!9S$s3u3|X%?y)F*Nc;OiIlvzMYsfPpA>_fW%1^Z9pt~g2}zS_~#*c2)MzT@+xsa8EI7M$}z9<oP{6QVaN?xb{=%<X&B)i1k6a8d81dJA9|3P6Ko)JwGo15%tWTmI${g{kIc9aMatK>i@iNA>}pcTA$9(5dDxE+|BU+1W&ntrlotGsa8)S$W{9c#_%n#N&^x1MV={cGb(cyFLJ_$!m4mo)nh$PzO^)|Aa1Vm_l$Pw(_mY#cf9}?LlTX66`LS<^acuDMT`TvIpc_BD4Z}Ua@v&M*H<}f8M79u4R8<Uk>a|FXP3JF?VKdPw$Us?pjcCQ!c$2hXR=Zj>XPp%Gs;-U65n!;d}JF;k0Mw#ZrdtE6XBTuH%gFI$^WSG8Tw6wldV&G?zlhN#ki?u-;P3t{lh?0LEUaBxGkSx&_hrFw#cXaxo|JSh*jJR%s-2<tP!y(12zf4CM+idwT3R5aHUo3L@c^XorOTd{Zbp3TsG!(lgFA&4_%SlEf)m?B=S7%d<@dW-;*^JxaT^)L6O8)kJiQuMa*f()FFZO&J-^*~6^6DSOWgkq{;wJGMP8L>E|2&PAfQ@dQ?OFKTymP7r-MY<*Mj9$!T0TGWojN@^$Amk04~3bLzk#s!P{)ULQxYiKe6w(5<X@04S^TA;}9rg=V1<Cg{93wXNeaimnJW5Gdlk?CI?!mcJ_b=)DZm2DzIMOTotsdvdrF}4UIOJ&_{_BV+0a^+$RB%T5Wp&r`YEZ0lynwGBiIh5)gXAVa-fgiKM61$P0(RLGn<z0q51g`}xf19?^6UtwyX2o5^H-zL;1RpZ&cjqx-3ETJGX&R1P`#9l_`yB<rb%~UQ!|N2P_~Uh@7A>B${FF}b*hqg74n*4{M2H-ZYro?d2xK~KsIwr5+QxZ=<NfnEp&%W9EDcvwILOPnH7M|iL#STL<biBQU1xi^*cco-nNA!X1!i@BdL&I4HBbq)TAj=^rLKp$^@;K?8`%WlW$lfq%sPW%yu`7sy6mc}(^JEr^DAWB?Q}V*#v(gyxvt!1)5yDul|<Vg$X<MDZJ&=<HoM|rngf}Vs}n=U<=|*s3p*U-CA~~X_LJc3d|ZQ@l8agphh!W^-P<<2n1m4)U2(p&i-75z*BR})wpa|kGI4R8^>y95QKB7UkM6}t#Cp^oi#8V1!g@)cwwu|x$UFFacM7PY?4VtaxC0ZHVAJC-(8vgwUHjQdTJ(w8z@<_d34<XDQrr9m1SA<dl;T?^kGnm78MY^fvj8oX)=nRjnRqguNozXgrbMzINT-{<dcvM7QEeGq<YZvAAjnc!^voH0<WDY6x$+*q2r#kCXttY<q$*C@>Dyc*l~MOt3kos+O5Ugm*%uW0d@tvZsKbk=e(@}}%wbQI*OB5Xe%aM(N@KM=92GBGC~VGMBrBY^jAoVnQAfPQl58{4MS!hc?nU^a$6sFiqVOqsI`@}@<9OH1ZGu(*S>!sUMlOdPg)W9PCmv>>0p;_$(}=;YlqbIv3WIgC?eA~7`Yh3@_MNM8s5<v@#h$}Op{`77u}`Z@r6564J;QgytLg%;qa+>W%OyY9#70BsNp0_gBA72l_EfRRQG@eoSoJa0(=h^%j;`F{I_D>O>~P*MTE*#Up7pi5okRM1%%ZSbt=6+dIF*EBa9fC~n>hx?A>XpLh;*w1Z|<<<fa<Cl@s1qBq|4K0CUG){)6m?(hn&vp<+Scq5dW%KqXjmWJ``2e9<8O*S9P?SdZF0xyzj0cE|K>3-R`2}g!EgJ&ZeInRufZ?Sm`LPad(>W+M&xh(_BZeX!1f0@di>v!BJL_H%K6g9|Ai%$~t>Ef9;kDzNR{^Oe}>$8CHvPM3SW)-cj6L=><;BN_Uk&Ak<H&=@~X!pftrr=F^M6F}Tn(w1gF+M@&dHPthw>$DHvwm98NbS5;iam~<BM*A|uT8g;7PgCEDqRA}Q2L~Dam+T{uDfc{SIA?2_Lz)jWeTwS15fyY|`|8dmpr?3E<0dkdv-7a{^-g3tc6{5asT~5`u<Wv}Wu~`bPVLrU3TNphkWJ>6|R}`<SZCK1}5o<Vu5ZU2s>uh<1EdU3yelC(i&YPmbNBUiiQMZIE*e#%d-=2Xd=R$Kn=pQ$fQXXn~U8pf!_%q9kgO1MKtsxXUB$dfxR*sDN=g9PQJxY}#8-WM?x~4b)<x03B-L#KnVq|kR8ukz<F!Jon?9mmIH}mFd6z^YJ$w+O8Cz46;u#kcRdq*JKsa#Ilz9k=n@o~%rOeRC6AZJbmxa1%RvdOL}z7glHV^2Pw??Cf(Y}t06Ynips>ScT`#yfE5x2JfISWr1Mqe6=`kn|$!7CA;UIl6IdLf*bh%#@4i<1C)PD(KpI4JM0=1Ko^NT7l)9-arnZD?!Ore$xu6-b6p;U3(L?mb)f5(p?}vPmO%rB`}&`+kK|&tAGnfYs^8eOeS(!y5}R!I1w1pHo*Ao*o&%&-Q}qveh&7I^Kkqem7~r=qhB11I0nw8GsC#ASf&#NAzD8YbY&(6#M*jrxDo|C4JHph2^H!qp}38eSCV6#khv@Fg=3ZRc8yg+WH-z@w)I(;x(p(4YKM0gbzui+NqaZC@Kx*>;_4K)jd;PCRMvfxtj{6;lI<hTO*B^=pj|9Hl(PjsyTK<Nx)hH$ok}b3mZ}l7F>`}cFYH6S)sT_}lly{@Y@S3I$mFAoVQ<$DPy6XEnh1C@L{x_0V{pP<sn}%Zs6=-X!t?7)89GbVShwn?Ni2rs9K_-}tffowLV(N=?5wu}z-w}VWYM_ufLEExC7wZZyXrni_4}(!hnr>{hlD#KEKoVebn$K<OZtmUI#$u*yp6L15nEr0Yk8K<WQI$XuH-aKrGVgejb@w4VJF;I>Giy-<<eBUuvDEF)SjA*diHX;)XQXcc%2NBoG3;ksiYsjdRo%}TP2z<be?xztHh#kR2p{2Zq&TkyY7i|h~%QK6_X~z-K;$j<G_PdClz~6>S^1`G(9Rs(SDDFOa38RY8LGqbUG{eK)g9>GDy20T%ilvI}Rt6RRBpz!R%nO->DaDSQJh}pt;VanRHcBV`$!6Wbrd!Njv03ZxMB@*#4#MJ>=4YZ_X(ZpMO(mVao(VcaMz6Z_kd)8fT&uIpiZ)KB;bY?q+ZYGc$pkugSsy$2?oS8B|M|u$qovnSDETE~N9T;#du|?Wc242vvDGRNK29B?a^z09F?2d|(w0)H)2-s1-c&amKqE1&wEBlyiF5MHj~T`#ge8YxwAx>hHxv*3H`Ms4G}Osz?SOo{tTuc$xI5Qh*54lK|eEg_|d~t4c*bBPoGZk`3fbrCn`<6?3>)PAtmjwz_Urm&H>P@*T;c5OS2q!BEYqRNVd;90*JrweGl&`6wTnZY;z(*71gB#eHj?^tKfrxvhD7`%*8IwV(Fc3>)^xW2ifgX{k+Di|V#OIVBgTv5ZR1=uRe<kENj#6?HlXok==T1Bk(zUe~BKF2Hkme37%ksY525EveG1=Vy!}4T~<g%jD;+l4cq8r5Hh7qQASS#E)=>LeuHobVnqEH0^N)k^J6W9YUUHI75u(Kq9vlmYG>wP8<dyU}RrUSFL_E;tTD_sJ-0_=SvbRX0s4DI<turiP&eQYPPWT_KuvA4RN`(XCIrDd)xW)kUwAha3r+%L%FOpt~IM3|Ah<|xMC`H?VXt<H|}7ZLezXKB(VuIyQ51?2>I@DPb-bVL{w8X;N<Wv)mEYccL5nAluE9hp^{l90!DWT$flt>k7f#-V<%Sq(q^<$@>#Xwj^eS4Cq`c<XIT{FBoQiQ&IP9KV^%m-)|^ak2#*dlTCR&HEoPv%QR37*_iLlh7C&c$&11WA-E$#IvudZa-U%w+)M486PlG#8w>~P)sve9KTM#6-3odWVJ#U_}2lrsO6MUm9?`TX0a#3(J8Y_87d(T|%=$h`Sj7y!O{r<J>oaLjH?FsVC_sE{D*bCT+^hge%#y6wEWmMca-1*8f1i5NqHk5CH*c_xvE`Pnerdpu`G^?WH+VnV#Ws7^K<W&1Ao>`X8JNrf)9}{9fF`br0=RSW}I3k%=E9MSGfDo3;v}!d+kWRzu0XXMsGyiHkTCY^kkVDsJxiRs3Hj{p42k`jX)vLExMas)>8F5`0T^rQ}u!<Ec6KvJ5T<9iyoJ&oKA)DQTOK~tcZ-Ilc>A5hW7F%i~sB3<jtXwJq1zhpddWZqT^Mu+i)W=Xota!uo<Q^8CaZkaY1~DcB$6B>z2E@qWT8Y_XNRp?Uak$c;klw6>32=N{Y<k@yg+_Lc7F%^zN44o`suWu*x-Z6?{ZRhW7NkHbyGi77h4L^@N=+gdTpXxsy{--`-9seXisO;_1zsW1^e!>w;!}3j*~F*2dNmY=3zf{wU5iA-P`Nd>7b?VJ+zf}pP^)})mGksEdiIV(<LYX+$H5NT9&2e_0m`z`aj%`NG>5{x44~0q?;v`sGnuO8uVQvBI+U^+5j%|}q>d_$?nJIa%4F1zwMMxnt$CUm(&<*U*b$#0OFO_8njs7okb`g#<#}!3-m}<|MHaLpm0cyqv$7Y>E%vLX$YxhOvfVO%5O<b1IC23G=Y+TJimx`=#yB-h*t^3*E-ppF*bGSx=BZBT+|;uEnoF&tCFiW<Bi#1b5gVKweR&~g!*W)kp!Q^znR=+)6^JCjMa8Ye6BOy%GtC`xtPH$k-HhR2pjn6q3)N`JgSy*CkT|%g(<r_Tw_WIEQXkc40)q6*yAYb2dg|SpC*#fboy~BIb2nl~c2><Do!~lw59i)lp{2Sr`=fgZca}kWGbCM<L!dfOo?N~5y1$6COq$&hPIQ^w#<>OSVbJR?4t6nrEi^i;vi-C#iISe&Xfdx9T1X(*7^XdP(3>d|(d!WgcKoE)YzEr2z1ZNSVo5mAq$<yt8C=xzmt?zC_W8sJ8yE+)K<iY$ip4@dU$4iAUhz=PVf}P<kv!oz)7q7KBE4*HMrE;vr>eU=B45*0rFxQm&FW@X<-0|ekEbFt{yb?&WW&i<<-r=}v7pc0aYq20c7*ekdkbvxLK>&);9O{h&;}s2_m{CJ<VW%jZo1mU%I<bK+?W>lwPU)$%4D$}DV3+;QL|YsD}nmrz~LF>f}RSI?#wmvS497EZij2f>OzgV1Bc6YUClI`TWvS5S9kRB5{v9OAwv$&4taT@x7}bX%%M`V-n>v)P8#ehzCA$JT=c4ZP1OP|r+2js!@f2~bq+gl<K6*h2cw+a;BelZ%7u%#9ZQY!q&=ywTZ{5Rsg~>RU{g4^c9M9WIxj7!3%j<c)#>QpyX>h$THXq|U@<TwvVkRB&9~cNKZ1KjAdjhs8XgFv;9R9I{aAU>ZF*#^!UhDD%)*C3amDun+p@jfE{w`9&{v8wQXR)niA2G}uDbn1ox}R0+NQN045(v`Ja>8`8kj|(blcNu__i0f6W*0j2ZqrFjBDhZyLzl2*cG%X)|z&oJQu){XX)D{FYFRrc5-u9^Xw~lLNFJ%uS4!ZE~!YF;Z8xs6<h0vI~6K|yQ3>i*&_4)vPSmR@D-{}?F{ZX92R1xSMpqz9v1{T(r3;$XHTNwaRJVKH6!#+#fZDA)Z6EY?+j+He2}Sn`a7}Y*#)aIvf-Apd>&?3BIY`@no-2R%|yNQv9yl1ofmg((3FP=+AfB&{xMeAMS}6vM9^fw*}H|EA4og#)K0Tj_i8F_efvXfKus?mEPNE4llo%8`gZZkb()Kn7m0pkmxd!LCpwL=jdTc~^I-e5aP)J$ini=@=WLIM;ltQbOGo8#CO&MkzG!#C9=%1EUkV4Bk(nb%CMHCbMIhBtlHz?7-`4}(@iZ@QuS>ESKZe&HA)*Y%`9U#M$SOHkLH3rSn9TFT+OEnTSMqXuRj?FY;3^w<hX<|+h3{kveQ%>{Z#A$o)reh6xV;0l#03`CmNfvSyR{V3ZMW@7`z6)&E>B|w=7QP4p~VF7LL;5t?*<e1=A@_v!c*hzyqJ!hYQ<)x;ak$nqF8Ut<W$tn`KIMwXugX^rj0H_G<k8cPL$OG;vS#1y@yI4QW?J%SWS!B@gZH$j7Oz*dhhb`sYE=sPhe>|D$`jwKC7_f667qj!CJa8!E5E&s<hw=)hoN?>uG<}6)DeE<rvxbt1Dq6uIy+Jj&-Say}?dEXR+sL1Xq<*13ZD$axaQ~PuY*!H^ts&LoR|Yq}8niY6lk!6v-`@10;Weh_O_j+sTQ+Fy0YX1ij@%ir-VJoOYArDacC1c?R_lsZi7lK;Gbft=NI$qQVtUmjKcYgo>wA_v8n9JO7#T2@|H23bhg#9++&Sj=AFW@3O)3FdxKJsSV<x>LJ$KZ&iPp$|qwUr!-5)`AKY2O%`H#sWrg8ao4!TbF*T2+NrN1*>nl?b5fuSG;2^j86RU*VXL&$m0-ay2d7*^LbiD|RSiocM+z(ja7H?0QcJ}jwWr4CMQACufyQhRBKp;Ry*{7LC+$w2Jf0G*;96!D?hY`CHB>BAXF)$h%bis#DB!zfi-tEt=e6ouC%8$8U@jP|E(UQe0E91@VoF+#TFby_;PbEYm6Lmh2I`eDbM*#Q=_D1a(PAd;a9x-wv7h<<Biv2`ITvF;AxQX0ghK)MCKB}V&TFfUWQSXbnRR9>6(74jc%+qXp4sM}=Q4O<P*a@42AK0_?8<f&4)mz2XdeYap8m`kXm8o$<%BK$#EPHcjC<Cm9ixa)0&;3Rh6xR}08oK?vVBh22bEUXC2;2^5a1&*Dc%Zfs$OV&^%eJ_g)~q+r?6b6HgGzD)=IV6K~DEa1Tz^|{TX&FY)VaEbSIzyR!-!T>yRR+{k_Fz){+)1##|?Hq3`w8QuSSMD>0o@DR2#8oupDOCNcXwb?F`&Q+o~oc7ifHq~qbDJmNdpl|ptKh-!v=sXUd+1i~<?xo|HW#{I(u%Qy3@b{_T11@|tdh>mfmZm+q5z1$w0P8Jz-2IPx7-hX9=j2FbC@hwm~c0=1h#OvC`?OjKKi!cB$fLXU&bhp?Ox!>d15r<bJW-_5s04c{OUMR6Ic8_T2P$;d|D~81EeS9*_Havbjna{EH!6KK;s-YO-XcW&qb_;gqFtitEi~Lvu`?WEc(n93EE9}XNIWfJ8p33+%<$}0yrb;#_DNrq(Qg#LjI^^-F?dA`1ejBSqy3-m5lS~F5bcUI8GNA?k1;*LyphdcxkB}1NTkK97-j5)Q6)<9(X{RH57}S#Zaj+iDl1<fXZ{nR9j>P%y^|b5Z=Pnol;<*}@iX(d@7-O6cCaOe_<blXS&gfVWs>#$^ied>z?TFMM@>HJ$8Fw1-HInVqiSc-oeJ$wi^1j8@U5^i|$uXVi_A>s+|A64n+vTD+Rhj!jZy@-CAhxum-z6gmTg>*B2?mH_y;U03YY6)G;|I}bl`=UZuZ6@dtsnkDWOI0`mL*cvMlq$eKtB=m2Z5(rm0X8tq*^Ilzvy)OVbgxz`o&zT^Y)JoK+ty^3~4{_wt)W6o4k>fw|5OYr2WAOjPV%(-%Y$ss@19+h<*zq3Rz*TM6f$zr;evObsaGXJrEINMDvE50Uog82Jg7-PAk<<=UT0yjt?VG0`M!#n3Wp*B!K6t^_n@`C$1m*%(eE>|3u3b3ObS%$B%qw_>++EQng}mYMCmGyvQZ^4X6Ejy=pKDStp5p&FEvme6H0gRZF8>%NQ2=7YSSc)JR-@5ba{Up(#{7+s$+=T9Qsxa;DG?S-ju%=00wtG#aH0WCO;S_xoe5KY^!P-I^BAw;QGgz0!PtS?4>-Fx9FN?M}UwGcXMCyx%)@{m-;=Dg4QTg~Yq<!O#b;HG9aU@+QTbLO*D>@p`>eEam=4@*($B3(vLMHzPASyiev%*eZ_K3F>msRja9VHK&POQALghUhP$L0@YHpTgs;Ndx}K8mCfn44!qdnyX`JWiyFM&mHr`xPp0(6LcQM<@coB2azB^LYNAhdbnZ^jKep3FQ!D+~<<{BCHL9th29s;(N)yucsFd$Kk&H2Q%r}md6+%{MQ4^96*2XdJguWTnOxECk2fOG_FPFm`9U@oL#g^3u=}0R5Y|ppMJDpkw@)LTt<Ea6WPIWRxt;7GJJ)_AfM`TMH+qI0&chJ&bs@)uIOJ4)StwOKe`EIA%$`Q?Os@5rWh8jrV382wzb#(WPK-R{3Lmwt&X}h_0op01=#Y<gWU+a(h_qwXL1p|Nl_%WmBHiDrQU`ui;{cc;)hj*LSNUEF?s|h>}{$mK5o!eMhzrw5E_PqnoSW3C|>pv20+@&@;f9f=?#6SZ~YgK4T<52rRDvETc^rro-@nsBnACDqAPQO|Wm`I-oGTXlx<=Jl?;}z~Ub^YQmVP5P8%wM;0%s(_vbqH;rrA7V24aO!&nsU7ic6xC4HYcSuEou74v9fZ*FywLX0d@ReZ;e#D{r3Cj77WY<$<K7f{bgVpceP(YZF4~~uW;+vvR_D>s3zs#;BO1jH7Tt$>Aq0?6Qvvc2U3^2#AKS(h)m_1oNm*H4GrNHz)&WwTU%58o;Ypn7zQov-<YP;Hky-Z8+0e9i^PQ23Ezn7jj|?tgJBCrqg^AYv329l%7fASODFSN=SKfvi`qDv2aF!j9QpK^3CXbxPZ)x`3E<uKoY+GFzS0o`g5HZXrQbV`8G{&nTITbV6!?B$+E1(-&G(spzn*uS(8n=)Ky7CC@t=labp53F3eC@eUw5@J)|$}QSt5Cc1|EF-EcC$JASMsLZsY&fSo=F=G~j>zbEp0Lw{>Mqq7MyP&@)Y*lzvZMW{-Clvmm*-Hk{sK`_F%D$k)~d7+^k|=I8I9H1Qg()|T(!Utz%yx-Ck=(qP}<(OkwCub{84t`c9avH>AV?3Pq$9mrw{W}~+Jn%6L$#|`*4-ecd>e>6w+k8Mrv0WAvCP0H|JrUiiyAYJ%|M>Bi170|u0sf4%T^q5bZhILf%C#%qF831qdHq?sW(!3%_Ed6S7PbwCO&l)TWGHbqz(Nx7i)P?i@aDy6xHV;Vib2iVD_zmW>RhW9C@~lGK-`i+(zi^`O77u!({0Dz%P*qs&!yIpH7#*LdX6mTElvb71ZN@+_U}4CF)z?FR$g+R8GOw=-&8r%}nj``1tSsA^;W;%-TikRc4~ZHBymVPs!a_j*q4eiDycX5m8}3vz_8$a)8N_~DN9F~^y0hOwH8atr^lnC&puvfiH{Jgr|H6SLii0+~uEKY;UxpsMw7|bXD?fma1)6N}_Z83v*Bb!H7L92%O{aca1N|Y9(Z08~|2q5z|4l-7Vd_kt{$zCD8JlG_Zj$|AWf$wrtZJb%ZTVXhi@rC$Wm|gs@WS<sHY6n*g1qtjV#LNy#Qhz8E%MIf-pnU$nxrfcpsryb7E~Wa8`eq({`~@>i(1b@ZW8~sf9;kPNu@OZt;3w&GWEU|gy=S_hrUK;Q_STWAKD7_dRtGjG;mE87sHr!M!;9r<`&}mbSx^Yb90ML%~xjH-=<GkX^Zq`L?N%px^6w8NS<Aj+}j83`BH-n8AylEkP^L7Y1wq_x;9y5h-gmcwv~Te0KXZcz%TUZJw=O}@^=m*os%R%dbjm-H8ei|EteKG0t|V++tw@(+!X%7u3?;aExU_e58$*I#;R^I{V%p<xI+W?{`$_anj06d$dVxFdUoRlh9GUbmen=z*d2cwW~V7U_^JiuT2OgKM}1C3m-b^w(|q5J5k4u9iTzoAk70l56VM}|CnHvo*t|Cq)<ER}`UokEH=Bg4g_@+UaK@H%TQ$w4$dAn2Qepe|LclYpd*bT$^)RZ3CB45`mtj<T{-<T)H(XOLls*yp;RvC-%hOj)XY=yd<RoEdqzr%FKmU2r1jA40@u!aal1XYU@5X+7i_U*(4Zr{SxKtlDDT{^wrTXhk%#G)~I_qzgB#62gZl<n%GF`)GYNo?C90u@k5e6j<=?w&bs-mdnpx`G&jqAr|VG8#%@u%Q_8L+=?-q;7@zyC}nnp{~G?Wr`6+~eDr>it_-mFEO%rNuUy$;`CuK=}^QEHvGi)fD2lRY7Dy(lq|o3xapOx~JHjmemt8_O^J>4C}wl@@_u!mdm|_ANM2_@_52O%z4hW*hONQh3+1{HbU79M!xHWUz5wHyveB^1I`tFQ}vl+=#(D)Ud@ero>1@;3VwmoU7QX@YW-6)#vtEqQ(d4(Ry2{3-?v%ly9W3wSL4+)p-EMtZwa(Qi#O34xo^ypoS3c3Ei<uH+{}FW$755aMSXvSbio^cL=BH>V4B<Gv)cA<^TF02>rVc)BB%d)t;szQKJ#H%nnvZx?k@{5vzr#J>tcf6L}I)iHw9x&-d;p=b0;5*f}fP>mb1Rd?Q4<$FgMt#;Xh4D$+U8-Gy%7nzds5_GsB@g(>;AZc?mu5+t-I|?~CnJ4?+#{KSe<VOiBMa*E1)tvGAw)niU{D@B008`{d3H$UhZ|EQb0dYSsmAwyoj5#Q3@y-^x%%(4)s-#^3iiRj+WHVe0HwN;JFS-^Rupw?SV<s&}9t--TipA)Bxdt9nAu)O+Dak18J6?>Z}HL;!w6-xqtLzXo4-%<n-osXPg3$qe+D8{2&vw%8N@0bnlBPg2ysUEwD2mm<$?1%Df&(La7)w3(~AZ`2$L$H{=jobK(0<1k%@*Y>eMeb+rJ@GYagf1SeT^6srhBGIyDM!LmZJ}Tn_`Im+8?=P#E|9sRxT_>N~r~UO=_w+{1dus#TOY0xvR)e!&CYZSbdV?{(*?0>REo!H?Ka}n^Q4{T1gEGE?<p0i#Ju>AFX9>~R-J8FhCxHK3ug8A9ziSryhr^OT4Qei=QDXa~aMp>Ny?^DzK9z<(sD?GTFuM%JfT2H8m*_Rg^7?m-#Qs<|{HU_#0RN>ne(CH?4f~*wH>Mt$i&gXPov%rZS(x{IrK696CS_F3%=-2-OnbQh$BtuGIw@NIROq~aL(7X58x#4`x^8R#*y~;<Vs?Hpi<dp-BMFP<e{ufyFWIdAZ7zf{HI0=yCul*{>zS)5@Ru-9=fQ-$6;n02yxTs=J!&QGv3+-f_%G}!q{PtoJop9lFW27^=zk&p*UrzUqwk-Fgl|J?3Be5bxDu9W-Va_uD+ezkyiF~73rYWAqhCtqbqD-qn$vw1Oxl(u``_4)N$g4MrtuF-X8$A3HhZ7kf4d|9`Ui%dR<1=7f3wy8cLC`$C^chA3+#QoSKzOs(c7HvQRhG3gg~)JOlK*i-06HDf9T0KLEaPBM;Y22<)sGq-<O^5Dc+w;8kPd*y(CxCi@vv-+`pCQZiBp4>zPU}`}UZZL{c<ie4W?*jL{Uh(e#)fX}F$8ymK#jnYo#^H|lbHe+{UNgRtKgC#=`JbfU(_azCX0$e*!W8sq)p$ol2z(gOUc^zh>&W%HQOVB`0bp{Vs>)2stMhPuf~|B^Gp{F1Y~oW6^Vo+r28o$&r4M`p;iA?fEumVeKXb(}Ag<EM0QWWP*}b<Vc*$K3cM1Nx;2jmU$^ZxiFsXOzat`d=N^{eN&sXG-HX+h2F#{QmI>8w{0s*VT@fpQmgO+FSbWfviElafqg`+E+$ks+?|1rqO8*3I6tU?wdorC+kKoeq-`^q2=2xie%`!H}_d5_3KUZ+>*8xSUE9(wSDh(Tq{fWgQ(cUlAi>%8R}oNH+%d2;phm_H&~r^RKK9%wSB&+^)~~4=gZ8~cT==~I79eOdLNHhEoYSX34yQYta|zEq3JK@v9eVuZhG)kgU3=E_I*<d{cqo^KA4ENYRHzpCta2b^_{VMZTk*!YyP)`$@v3P&jW5}p}<?ZTdHOWOF3U#pIYbb-_AL2r*z+Kp+Ekr&~Cex@n25T?6KQX!oP4}%IWU*bvJ10_QM4}H1l?8>anm-hxoP5{d&um3U}{t*Yn$Y{(e2Y)a$(;&SB-(&E}g6FfTOVe_l4V@3)vom6jA~fY*H4?ezGzTK9tmBf|Wt#h7NYV1hhTU1QsbJ#OEAecA34w7mHSQVYJn!_b%GBaZ&{mp}Ec8(*K<5}0qWv>sUe0~!qd0TBY=pOEH<Ea(!+YAf}OtPGJpq-@5@W*&8mD<9{WH-YPk*1L_~s4T}$C05lyWQx@FdrEV{j+m=Fb^mMz>zdD+3S0WtV}5?5T3_XVkDHQ@iv>~ZfELfQ7CBZ?XSxDdN7R-_XVdndyWUt?Gq`<P>pdMc5WE(Wp0AKCY-rx>DVrakeX*6fmq~wQ&MKWhG3Wb=IV<v0UOp?MFGVulPOPsNtQn>;nqIHCX#*=8Wusfg^PjJeaV&1mfctpk<tdNbZ3#=o`lau4<@$^6TOIL5X<m<W%x~!>^lt^emD#N9-|Kx}P0e}*(r_YgK9--q-OSFc7U}1gcTT|1In&pbmJc=ZzrBcX<3+#o{8EVfW9{h2#~V2Yv<YXqf_C`g4xP0=^+5Qh5Ow=DXu>+u<J#(@@m?V?-b37S{1^0%Dkzp((B}%zS03rp*r1g(r$sK(N5X$Y#gab1)|E{fk3P-z9-GbUJbc!{9|}36*P8wkqSi4Z59Y#YJNukvR4vLf<1hVU&Mie1cKqua>n&dt0tNB)%vT4qo<tiEpHF{{FOj}8V_mclEWH_k4O+^Qx~?DrgNpX+F+8CM7m~KM+?4%RtooXm##~#&X=^rDx}j-QO`-wte)Ojc>UPWj9<1sknN<;OI{#Q4qo5!E$mS`m<^7BiSLwi-A9}51-pizS)Q|VWjKRGz8}KTk|GZ9CUw#0&*PHLOtXHz($3AV0sK<8JCqj==DOxA_-%2rKV11C|b9F40sK<mp&ga9xR#i8V?wV`(EvqN}z>w8>8c_ObeCK~3iN67OFGT*0Gd3{(?1cZy@BTk_p#Mvk_|SgSx#&*=|Jrpt_Z8!s?I-v2m5<YtF@p!Q2BAeJJaxF$zF{31xY7I1jWtmF1Z!kpe51LVnn{>}=Ib*^&z<bU7iwAb%2;bc<^)B4Ej_)=?5|%B{CDS5lCU#sEYExGf2rl~Hs398w!HrMP|7v?A6NOGiS(`1ZuLeVl-}t2Z9PKMIsN*2j`jFV1Ny078v-O+f3Ql&^cPw8NS|Ms7bo@CJsPBbyluI8W(@G%G4?N>-s>k=ItlO#eoa?rPW9#ef=S~KuNLnAO#;EOT8KI$|5$>&7Yd^`3=aND5dW?x#{bIj`Sk6JCk0>J_ctS?+y9xM<=y686X^B$?f#zdc{2Bq%6Hd2{`rGSyzWo8!GFE@KI5X>_YUucyH9T!Et$%eWQ`|cukMpDw^F_O^4$TUrX&)n=Qj@u_Z8E^dkhYlYI39b1oAzm^Wh?hhHa9(Ckr1{Q@4nZr&S+ezB#5c2)|xNd(li%b5+(CSucV8?Xc*>1zC$8-HO%ElfW+y5k8z!>Du^RIsQeBAIBBOy$sNLap0BOpYLsbh43eT{91H<BK_OViZ4+9(&#@L_@56RZh2JB_@#AO&b|NjdC`||qF!Ge-m6)!$Fk42g`b~={adyF1EuGKLQBu%4b_Td7>*{M|Emq5si$-h1(yHf-QZJsfBYXd(14Q'
+C64_SHA256 = "6cc3b69e487052a8dedc1a90d0d1296ba38577349e8d3ba8147e583605378f73"
+
+main_bytes = zlib.decompress(base64.b85decode(C64_B85.encode("ascii")))
+assert hashlib.sha256(main_bytes).hexdigest() == C64_SHA256
+(WORK / "main.py").write_bytes(main_bytes)
+
+archive = WORK / "submission.tar.gz"
+with tarfile.open(archive, "w:gz") as tf:
+    info = tarfile.TarInfo("main.py")
+    info.size = len(main_bytes)
+    info.mode = 0o644
+    tf.addfile(info, io.BytesIO(main_bytes))
+
+with tarfile.open(archive, "r:gz") as tf:
+    assert tf.getnames() == ["main.py"]
+    assert hashlib.sha256(tf.extractfile("main.py").read()).hexdigest() == C64_SHA256
+
+print(f"wrote {WORK / 'main.py'}  ({len(main_bytes):,} bytes, sha256={C64_SHA256})")
+print(f"wrote {archive}  ({archive.stat().st_size:,} bytes)")
+
+_check = load_agent(WORK / "main.py", "c64_packaged_check")
+_env = make("kaggriculture", configuration={"episodeSteps": 720, "seed": 8000}, debug=True)
+_env.run([_check, "starter"])
+_final = _env.steps[-1][0]
+print(f"packaged C64: status={_final.status}  bank={_final.reward:,.0f}")
+assert _final.status == "DONE", "packaged C64 did not survive a full season"
+
+
+===== CELL 21 [markdown] =====
+---
+## 6. Plug in your own agent
+
+Three ways, pick whichever suits you. **Option A** is the one to use if you are just
+forking this notebook to try an idea.
+
+
+===== CELL 22 [markdown] =====
+### Option A — write it in a cell
+
+Edit the cell below. The template is a deliberately mediocre wheat loop so you can see
+the machinery work end to end; replace the body with your own policy.
+
+
+===== CELL 23 [code] =====
+%%writefile my_agent.py
+"""My Kaggriculture agent.
+
+Contract: `agent(obs) -> {"farmer": [op, *args], "hands": [...], "market": [...]}`
+Handy reminders:
+  - tiles are indexed tiles[y][x]; the farmer is at [x, y]
+  - the only shed-access tile while just NW is unlocked is (4, 4)
+  - plants die after 2 unwatered days; animals die after 2 unfed days (permanently)
+  - end of day dumps every inventory into the shed, which caps at 100 items
+"""
+
+def agent(obs):
+    me = obs["farms"][obs["player"]]
+    priv = obs["private"]
+    fx, fy = me["farmer"]
+    tile = me["tiles"][fy][fx]
+
+    market = []
+    if priv["seeds"].get("WHEAT", 0) < 4 and me["money"] >= 40:
+        market.append(["BUY_SEED", "WHEAT", 4])
+    if obs["hour"] == 0:
+        market += [["HIRE"]] * 4          # four hands cost 7 coins for the whole day
+    wheat = priv["shed"].get("WHEAT", 0)
+    if wheat:
+        market.append(["SELL", "WHEAT", wheat])
+
+    # One naive farmer loop; the hands just mirror it.
+    if tile is None and priv["seeds"].get("WHEAT", 0) > 0:
+        op = ["PLANT", "WHEAT"]
+    elif isinstance(tile, dict) and tile.get("kind") == "PLANT":
+        age = obs["day"] - tile["planted_day"]
+        if age >= 4:                       # wait for the full watering bonus window
+            op = ["HARVEST"]
+        elif not tile["watered_today"]:
+            op = ["WATER"]
+        else:
+            op = ["EAST" if fx < 4 else "WEST"]
+    else:
+        op = ["EAST" if fx < 4 else "WEST"]
+
+    return {"farmer": op, "hands": [["PASS"]] * len(me["hands"]), "market": market}
+
+
+===== CELL 24 [markdown] =====
+### Option B — from your own Kaggle dataset
+
+If your agent already lives in a dataset (handy for anything with weights or several
+modules), attach it and point at the file.
+
+### Option C — from a submission archive
+
+If you submit a `submission.tar.gz`, evaluate *that exact artifact* rather than a copy
+of the source. This is the option I trust most, because it catches packaging mistakes —
+a missing module or a wrong path shows up here instead of on the leaderboard.
+
+Handles `.tar.gz` / `.tgz` / `.tar.bz2` / `.tar.xz` / plain `.tar`, and `.zip`.
+**`.7z` is not supported** — `py7zr` is not installed on Kaggle images, and the
+competition wants a `.tar.gz` anyway, so repack rather than fight it.
+
+
+===== CELL 25 [code] =====
+# ---------------------------------------------------------------------------
+# Choose how to load your challenger: "cell", "dataset" or "archive".
+#
+# Default is "archive" pointing at the submission.tar.gz built above, so the
+# ranking below measures the exact artifact this notebook submits. Switch to
+# "cell" to rank the template agent instead, or "dataset" for your own file.
+# ---------------------------------------------------------------------------
+CHALLENGER_MODE = "archive"
+
+CHALLENGER_NAME = "c64_horizon25"                # label used in the results table
+DATASET_AGENT_PATH = "/kaggle/input/my-agent-dataset/main.py"
+ARCHIVE_PATH = str(WORK / "submission.tar.gz")   # what we just packaged
+
+
+def _unsafe(name):
+    """Reject absolute paths and anything escaping the extraction directory."""
+    parts = Path(name).parts
+    return Path(name).is_absolute() or ".." in parts or name.startswith("/")
+
+
+def load_from_archive(archive_path, workdir=None):
+    """Extract a submission archive and import the main.py inside it.
+
+    Supports the .tar.gz the competition expects, its siblings (.tgz, .tar.bz2,
+    .tar.xz, plain .tar) and .zip. 7-Zip is deliberately not supported: py7zr is
+    not installed on Kaggle images.
+    """
+    archive_path = Path(archive_path)
+    if not archive_path.exists():
+        raise FileNotFoundError(f"no archive at {archive_path}")
+    # Derive from WORK rather than hard-coding /kaggle/working, so this also runs
+    # locally or in a fork with a different working directory.
+    workdir = Path(workdir) if workdir else WORK / "_unpacked"
+    if workdir.exists():
+        shutil.rmtree(workdir)               # never mix two runs' extractions
+    workdir.mkdir(parents=True, exist_ok=True)
+
+    # Check zip first: a .zip is not a tarfile, and vice versa.
+    if zipfile.is_zipfile(archive_path):
+        with zipfile.ZipFile(archive_path) as zf:
+            bad = [n for n in zf.namelist() if _unsafe(n)]
+            if bad:
+                raise ValueError(f"unsafe path in archive: {bad[0]}")
+            zf.extractall(workdir)
+    elif tarfile.is_tarfile(archive_path):
+        with tarfile.open(archive_path) as tf:
+            bad = [n for n in tf.getnames() if _unsafe(n)]
+            if bad:
+                raise ValueError(f"unsafe path in archive: {bad[0]}")
+            try:
+                tf.extractall(workdir, filter="data")   # Python 3.12+
+            except TypeError:
+                tf.extractall(workdir)
+    else:
+        raise ValueError(
+            f"{archive_path.name} is not a readable tar or zip archive. "
+            "7-Zip (.7z) is not supported here -- py7zr is not installed on Kaggle "
+            "images, and the competition expects submission.tar.gz. Repack with: "
+            "tar -czf submission.tar.gz main.py ..."
+        )
+
+    main = workdir / "main.py"
+    if not main.exists():
+        found = sorted(workdir.rglob("main.py"))
+        if not found:
+            raise FileNotFoundError(
+                "no main.py in the archive. The competition requires main.py at the "
+                f"root; archive contains: {sorted(p.name for p in workdir.rglob('*'))[:12]}"
+            )
+        # Not fatal here, but it *is* fatal on submission -- so say so loudly.
+        main = found[0]
+        print(f"WARNING: main.py is not at the archive root (found at "
+              f"{main.relative_to(workdir)}). Kaggle will reject this submission.")
+    sys.path.insert(0, str(main.parent))       # so sibling modules import cleanly
+    return load_agent(main, "challenger")
+
+
+if CHALLENGER_MODE == "cell":
+    challenger = load_agent("my_agent.py", "challenger")
+elif CHALLENGER_MODE == "dataset":
+    challenger = load_agent(DATASET_AGENT_PATH, "challenger")
+elif CHALLENGER_MODE == "archive":
+    challenger = load_from_archive(ARCHIVE_PATH)
+else:
+    raise ValueError(f"unknown CHALLENGER_MODE: {CHALLENGER_MODE!r}")
+
+print("challenger loaded:", CHALLENGER_NAME, "via", CHALLENGER_MODE)
+
+
+===== CELL 26 [markdown] =====
+### Sanity check first
+
+Before spending minutes on a round robin, play one short game and confirm the agent
+does not crash. A Kaggriculture agent that raises gets status `ERROR` and forfeits, and
+because invalid actions are *silent no-ops* you can otherwise burn a full evaluation on
+an agent that quietly did nothing at all.
+
+
+===== CELL 27 [code] =====
+def play(agent_a, agent_b, seed=0, steps=720, debug=False):
+    """One episode. Returns (rewards, statuses)."""
+    env = make("kaggriculture",
+               configuration={"episodeSteps": steps, "seed": seed},
+               debug=debug)
+    env.run([agent_a, agent_b])
+    final = env.steps[-1]
+    return [s.reward for s in final], [s.status for s in final]
+
+
+rewards, statuses = play(challenger, reference["fallow_finn"], seed=1, steps=120, debug=True)
+print("120-turn smoke test — rewards:", rewards, "statuses:", statuses)
+assert statuses[0] == "DONE", f"challenger did not survive: {statuses[0]}"
+print("OK")
+
+
+===== CELL 28 [markdown] =====
+---
+## 7. The evaluation
+
+Two details make the difference between a number you can trust and one you cannot:
+
+**Swap seats.** Player 0 and player 1 are not symmetric — market orders are processed
+in player order, so seat 0 gets first call on a contested price. Every pairing is
+played from both seats.
+
+**Fix the seeds.** Weeds, shop unlock order and shop selection are all seeded. Reusing
+the same seed list keeps runs comparable when you tweak your agent.
+
+
+===== CELL 29 [code] =====
+# ---- evaluation budget ----------------------------------------------------
+SEEDS = [9001, 9002, 9003]     # add more for tighter error bars
+FULL_ROUND_ROBIN = False       # True also replays reference-vs-reference (much slower)
+# ---------------------------------------------------------------------------
+
+def duel(name_a, agent_a, name_b, agent_b, seeds=SEEDS):
+    """Seat-swapped series. Returns a result row from name_a's perspective."""
+    wins_a = wins_b = ties = errors = 0
+    margins = []
+    for seed in seeds:
+        for seat_a in (0, 1):
+            pair = [agent_a, agent_b] if seat_a == 0 else [agent_b, agent_a]
+            rewards, statuses = play(*pair, seed=seed)
+            mine, theirs = rewards[seat_a], rewards[1 - seat_a]
+            if mine is None or theirs is None or any(
+                    s in {"ERROR", "INVALID"} for s in statuses):
+                errors += 1
+                continue
+            margins.append(mine - theirs)
+            if mine > theirs:
+                wins_a += 1
+            elif mine < theirs:
+                wins_b += 1
+            else:
+                ties += 1
+    return {
+        "agent_a": name_a, "agent_b": name_b,
+        "wins_a": wins_a, "wins_b": wins_b, "ties": ties, "errors": errors,
+        "games": wins_a + wins_b + ties,
+        "mean_margin_a": round(sum(margins) / len(margins), 1) if margins else 0.0,
+    }
+
+
+===== CELL 30 [code] =====
+started = time.time()
+rows = []
+
+# Challenger against every rung. This is the part that must be measured fresh.
+for slug, ref in reference.items():
+    row = duel(CHALLENGER_NAME, challenger, slug, ref)
+    rows.append(row)
+    print(f"  {CHALLENGER_NAME} {row['wins_a']}-{row['wins_b']} {slug}"
+          f"  (tier {TIER_OF[slug]}, margin {row['mean_margin_a']:+,.0f})")
+
+# The rung above the ladder, plus one pairing that ties it to the ladder -- otherwise
+# Bradley-Terry sees the host only through the challenger and cannot place either one.
+if top_meta is not None:
+    row = duel(CHALLENGER_NAME, challenger, TOP_META_SLUG, top_meta)
+    rows.append(row)
+    print(f"  {CHALLENGER_NAME} {row['wins_a']}-{row['wins_b']} {TOP_META_SLUG}"
+          f"  (tier 10, margin {row['mean_margin_a']:+,.0f})")
+    row = duel(TOP_META_SLUG, top_meta, "closer_cleo", reference["closer_cleo"])
+    rows.append(row)
+    print(f"  {TOP_META_SLUG} {row['wins_a']}-{row['wins_b']} closer_cleo"
+          f"  (margin {row['mean_margin_a']:+,.0f})")
+
+# Reference-vs-reference comes precomputed in the dataset, so the default run stays
+# fast. Flip FULL_ROUND_ROBIN to replay it on your own seeds instead.
+if FULL_ROUND_ROBIN:
+    print("\nreplaying reference-vs-reference...")
+    for a, b in itertools.combinations(reference, 2):
+        row = duel(a, reference[a], b, reference[b])
+        rows.append(row)
+        print(f"  {a} {row['wins_a']}-{row['wins_b']} {b}")
+else:
+    baseline = pd.read_csv(DATASET_DIR / "baseline_league.csv")
+    rows += baseline.to_dict("records")
+    print(f"\nreused {len(baseline)} precomputed reference pairings from the dataset")
+
+results = pd.DataFrame(rows)
+print(f"\n{len(results)} pairings in {time.time() - started:.0f}s"
+      f"   errors: {int(results.errors.sum())}")
+
+
+===== CELL 31 [markdown] =====
+---
+## 8. Ranking with Bradley-Terry
+
+Win rate alone is misleading in a ladder: beating tier 0 four times is not the same
+achievement as beating tier 5 twice, but a raw win rate treats them identically.
+
+Bradley-Terry fits each agent a latent strength from *who* it beat, so wins against
+strong opponents count for more. The competition uses the same family of model for
+final standings, which is the main reason I rank this way locally.
+
+I report it on an Elo-like scale (400 points per 10x strength, mean anchored at 1500)
+because those numbers are easier to hold in your head than raw strengths.
+
+
+===== CELL 32 [code] =====
+def bradley_terry(rows, iterations=10_000, tol=1e-10, prior=0.5):
+    """Fit BT strengths by MM iteration.
+
+    `prior` adds half a phantom win each way against an average opponent, which keeps
+    an undefeated (or winless) agent from running off to infinity.
+    """
+    pairs = {}
+    for r in rows:
+        key = (r["agent_a"], r["agent_b"])
+        wa, wb = pairs.get(key, (0.0, 0.0))
+        # A tie counts as half a win to each side.
+        pairs[key] = (wa + r["wins_a"] + 0.5 * r["ties"],
+                      wb + r["wins_b"] + 0.5 * r["ties"])
+
+    names = sorted({n for pair in pairs for n in pair})
+    strength = {n: 1.0 for n in names}
+    wins = {n: 0.0 for n in names}
+    games = {n: [] for n in names}
+    for (a, b), (wa, wb) in pairs.items():
+        wins[a] += wa
+        wins[b] += wb
+        games[a].append((b, wa + wb))
+        games[b].append((a, wa + wb))
+
+    for _ in range(iterations):
+        delta = 0.0
+        for n in names:
+            numerator = wins[n] + prior
+            denominator = prior / (prior + 1.0) * 2.0
+            for other, total in games[n]:
+                denominator += total / (strength[n] + strength[other])
+            if denominator <= 0:
+                continue
+            updated = numerator / denominator
+            delta = max(delta, abs(updated - strength[n]) / max(updated, 1e-12))
+            strength[n] = updated
+        geo = math.exp(sum(math.log(max(s, 1e-12)) for s in strength.values()) / len(strength))
+        for n in names:
+            strength[n] /= geo
+        if delta < tol:
+            break
+
+    return {n: 1500 + 400 * math.log10(max(s, 1e-12)) for n, s in strength.items()}
+
+
+def rank_table(rows):
+    ratings = bradley_terry(rows)
+    stats = {n: {"wins": 0, "losses": 0, "ties": 0, "margins": []} for n in ratings}
+    for r in rows:
+        a, b = r["agent_a"], r["agent_b"]
+        stats[a]["wins"] += r["wins_a"]; stats[a]["losses"] += r["wins_b"]
+        stats[b]["wins"] += r["wins_b"]; stats[b]["losses"] += r["wins_a"]
+        stats[a]["ties"] += r["ties"];   stats[b]["ties"] += r["ties"]
+        stats[a]["margins"].append(r["mean_margin_a"])
+        stats[b]["margins"].append(-r["mean_margin_a"])
+
+    out = []
+    for n, s in stats.items():
+        played = s["wins"] + s["losses"] + s["ties"]
+        out.append({
+            "agent": NAME_OF.get(n, n),
+            "slug": n,
+            "tier": TIER_OF.get(n, "you"),
+            "bt_rating": round(ratings[n]),
+            "record": f"{s['wins']}-{s['losses']}-{s['ties']}",
+            "win_pct": round(100 * s["wins"] / played, 1) if played else 0.0,
+            "mean_margin": round(sum(s["margins"]) / len(s["margins"])) if s["margins"] else 0,
+        })
+    return (pd.DataFrame(out)
+            .sort_values("bt_rating", ascending=False)
+            .reset_index(drop=True))
+
+
+table = rank_table(results.to_dict("records"))
+table.index += 1
+table
+
+
+===== CELL 33 [code] =====
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 4.4))
+
+colors = ["#d1495b" if s == CHALLENGER_NAME else "#4c6ef5" for s in table.slug]
+ax1.barh(table.agent[::-1], table.bt_rating[::-1], color=colors[::-1])
+ax1.set_xlabel("Bradley-Terry rating (1500 = field average)")
+ax1.set_title("Ranking — your agent in red")
+ax1.grid(axis="x", alpha=.3)
+
+ref_rows = table[table.slug != CHALLENGER_NAME].sort_values("tier")
+ax2.plot(ref_rows.tier, ref_rows.bt_rating, "-o", color="#4c6ef5", label="reference ladder")
+you = table[table.slug == CHALLENGER_NAME]
+if len(you):
+    ax2.axhline(you.bt_rating.iloc[0], color="#d1495b", ls="--",
+                label=f"you ({int(you.bt_rating.iloc[0])})")
+ax2.set_xlabel("reference tier"); ax2.set_ylabel("BT rating")
+ax2.set_title("Which rung did you land on?")
+ax2.legend(); ax2.grid(alpha=.3)
+
+plt.tight_layout(); plt.show()
+
+
+===== CELL 34 [markdown] =====
+---
+## 9. Reading the result
+
+Find the highest tier you beat consistently, then look up what that tier does in the
+manifest above. The gaps are where your next improvement is.
+
+
+===== CELL 35 [code] =====
+you_rows = results[(results.agent_a == CHALLENGER_NAME) | (results.agent_b == CHALLENGER_NAME)]
+print(f"{CHALLENGER_NAME} vs the ladder\n" + "=" * 58)
+beaten = []
+for _, r in you_rows.iterrows():
+    if r.agent_a == CHALLENGER_NAME:
+        opp, my_w, their_w, margin = r.agent_b, r.wins_a, r.wins_b, r.mean_margin_a
+    else:
+        opp, my_w, their_w, margin = r.agent_a, r.wins_b, r.wins_a, -r.mean_margin_a
+    verdict = "WIN " if my_w > their_w else ("tie " if my_w == their_w else "LOSS")
+    if my_w > their_w:
+        beaten.append(TIER_OF[opp])
+    print(f"  {verdict} vs tier {TIER_OF[opp]} {NAME_OF[opp]:<18} "
+          f"{my_w}-{their_w}   margin {margin:+,.0f}")
+
+print()
+if beaten:
+    top = max(beaten)
+    top_slug = next(k for k, v in TIER_OF.items() if v == top)
+    nxt = manifest[manifest.tier == top + 1]
+    print(f"Highest tier beaten: {top} ({NAME_OF[top_slug]})")
+    if len(nxt):
+        print(f"\nNext rung — tier {top + 1}, {nxt.agent_name.iloc[0]}:")
+        print("  " + nxt.headline.iloc[0])
+        print("  " + nxt.lesson.iloc[0])
+    elif top_meta is not None and top >= TIER_OF[TOP_META_SLUG]:
+        print("\nYou beat the top-meta host as well. There is no rung left here --")
+        print("raise SEEDS for tighter error bars, then submit.")
+    else:
+        print("\nYou beat the whole ladder. Time to raise the seed count and submit.")
+else:
+    print("No wins yet. Start with tier 0 (Fallow Finn) — it literally passes every turn,")
+    print("so losing to it means the agent is destroying value: buying seeds it never")
+    print("waters, or livestock it never feeds.")
+
+
+===== CELL 36 [markdown] =====
+### The checklist I actually use
+
+Most of my own broken agents failed one of these, and every one of them is cheap to
+check. In rough order of how much money they cost me:
+
+1. **Hire hands.** Four hands cost `1+1+2+3 = 7` coins for a whole day and take you
+   from 24 actions to 120. Not hiring is the single most expensive mistake available.
+2. **Sell before you buy, in the same turn.** The market queue is processed in list
+   order, so a `SELL` placed ahead of a `BUY` funds it immediately. Budget against
+   post-sale cash or you will sit at zero coins all season with a full shed.
+3. **Feed before you expand.** An animal dies *permanently* after two unfed days.
+   Wheat has to be bought before land or livestock, never after.
+4. **Do not hoard seeds.** Twenty-five melon seeds is 2,000 coins earning nothing.
+   Hold only what you can plant in the next few turns.
+5. **Spread your carriers.** One hand with a full sack cannot walk a whole quadrant in
+   24 turns. Send several part-loaded hands instead.
+6. **Meter premium sales.** Melon, milk, wool and strawberry all floor fast. Check
+   `price_curves.csv` before dumping a harvest.
+7. **Stop investing near the end.** Coins spent on day 28 never come back, and produce
+   still in the shed at the final bell scores exactly nothing — liquidate.
+8. **Count what your hands are carrying.** Wheat in a hand's inventory is still yours;
+   forget it and you will sell your feed each morning and buy it back at double by
+   afternoon.
+
+Two engine details that cost me real time, and that the written rules get wrong:
+
+- The rules say `CARE` banks **+2** per day. The engine adds **+1**
+  (`kaggriculture.py`, `_daily_refresh_animals`). Trust the source.
+- While only NW is unlocked, `(4, 4)` is the **only** usable shed tile — the other
+  three access tiles sit in locked quadrants, and `PICKUP`/`DROP` silently no-op on
+  `LOCKED`. Hired hands spawn on those locked tiles and lose a turn walking in.
+
+
+===== CELL 37 [markdown] =====
+---
+## 10. Turning up the rigour
+
+The default budget (3 seeds, challenger-only) is tuned to be fast enough that you
+actually run it. Before trusting a close result, raise it:
+
+```python
+SEEDS = list(range(9001, 9021))   # 20 seeds
+FULL_ROUND_ROBIN = True           # replay the reference pairings on your seeds too
+```
+
+That is 20 seeds x 2 seats x 21 pairings = 840 games, roughly 20 minutes. Worth it when
+two candidates are within ~50 BT points, because a 6-game sample cannot separate them.
+
+A few other things worth trying from here:
+
+- **Beat the ladder, then beat yourself.** Add your previous submission as a seventh
+  agent — the rung that matters most is your own last version.
+- **Check seat bias.** If your agent wins from seat 0 and loses from seat 1, you have a
+  market-ordering dependency worth understanding.
+- **Watch a game.** `env.render(mode="ipython", width=900, height=700)` after a `play()`
+  call is the fastest way to spot a farmer walking in circles.
+
+---
+
+*Reference agents: [kaggriculture-reference-agents](https://www.kaggle.com/datasets/raykkretzschmar/kaggriculture-reference-agents)
+(CC BY-SA 4.0, written from scratch — no competitor replays or third-party notebook code).
+Measured on `kaggle-environments` 1.32.3. If you find a rung mis-ranked, tell me
+in the comments and I will re-measure.*
+

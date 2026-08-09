@@ -20,3 +20,13 @@ variable "github_repo" {
   type        = string
   default     = "YuriNakayama/kaggriculture"
 }
+
+variable "github_owner_id" {
+  description = "Numeric GitHub owner id. `gh api users/<owner> --jq .id`"
+  type        = string
+}
+
+variable "github_repo_id" {
+  description = "Numeric GitHub repository id. `gh api repos/<owner>/<repo> --jq .id`"
+  type        = string
+}

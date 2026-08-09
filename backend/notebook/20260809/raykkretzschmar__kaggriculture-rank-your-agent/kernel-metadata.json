@@ -1,0 +1,29 @@
+{
+  "id": "raykkretzschmar/kaggriculture-rank-your-agent",
+  "id_no": 129805908,
+  "title": "Kaggriculture Rank Your Agent",
+  "code_file": "kaggriculture-rank-your-agent.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [
+    "beginner",
+    "python",
+    "education"
+  ],
+  "dataset_sources": [
+    "raykkretzschmar/kaggriculture-reference-agents"
+  ],
+  "kernel_sources": [
+    "raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta"
+  ],
+  "competition_sources": [
+    "kaggriculture"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-images/python@sha256:dafd4ce5668bbf1ad422e4c109e0f18c9623c3a7c7f48b0235f13142755c40b9",
+  "machine_shape": "None"
+}

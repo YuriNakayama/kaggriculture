@@ -28,12 +28,33 @@ data "aws_iam_policy_document" "trust" {
       values   = ["sts.amazonaws.com"]
     }
 
+    # GitHub has begun issuing *immutable* subject claims, which append the
+    # numeric owner and repo ids to each path segment:
+    #
+    #   legacy:    repo:owner/name:ref:refs/heads/main
+    #   immutable: repo:owner@84164106/name@1327603473:ref:refs/heads/main
+    #
+    # The numeric ids survive a rename, which is the point — but the classic
+    # `repo:owner/name:*` pattern no longer matches, and the assume fails with
+    # a bare "Not authorized to perform sts:AssumeRoleWithWebIdentity".
+    #
+    # Match both. The `@<id>` segments are pinned to this repository's actual
+    # ids, so widening the pattern does not widen who can assume the role: a
+    # different repo has different ids, and a renamed repo keeps its own.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values = [
+        "repo:${var.github_repo}:*",
+        "repo:${local.github_owner}@${var.github_owner_id}/${local.github_repo_name}@${var.github_repo_id}:*",
+      ]
     }
   }
+}
+
+locals {
+  github_owner     = split("/", var.github_repo)[0]
+  github_repo_name = split("/", var.github_repo)[1]
 }
 
 resource "aws_iam_role" "github_actions" {

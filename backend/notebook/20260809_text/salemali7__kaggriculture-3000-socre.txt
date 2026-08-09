@@ -1,0 +1,2010 @@
+
+===== CELL 0 [markdown] =====
+<style>
+:root{
+  --kg-ink:#182732; --kg-ink2:#273843; --kg-muted:#5c6471; --kg-soft:#7a8392;
+  --kg-line:#d8dfe4; --kg-line2:#c9d3da;
+  --kg-green:#215477; --kg-green2:#123b57;
+  --kg-teal:#1d7493; --kg-gold:#b04514; --kg-violet:#a35c6f;
+  --kg-paper:#fbfdff; --kg-paper2:#f2f5f8; --kg-paper3:#edf2f5;
+  --kg-shadow:0 10px 30px rgba(22,43,58,.08);
+  --kg-shadow-strong:0 18px 42px rgba(7,21,30,.18);
+}
+.jp-RenderedHTMLCommon p,.jp-RenderedHTMLCommon li,.rendered_html p,.rendered_html li{line-height:1.7}
+.jp-RenderedHTMLCommon h2,.rendered_html h2,h2{
+  position:relative;
+  color:var(--kg-ink)!important;
+  background:
+    linear-gradient(90deg,rgba(44,97,134,.08),rgba(44,97,134,.03) 55%,rgba(27,109,139,.07) 100%);
+  border:1px solid var(--kg-line)!important;
+  border-left:6px solid var(--kg-green)!important;
+  border-radius:18px;
+  padding:13px 18px 13px 22px!important;
+  margin-top:1.8em!important;
+  margin-bottom:.85em!important;
+  letter-spacing:-.018em;
+  box-shadow:0 8px 24px rgba(22,43,58,.05)
+}
+.jp-RenderedHTMLCommon h2::before,.rendered_html h2::before,h2::before{
+  content:"Section";
+  display:inline-block;
+  margin-right:12px;
+  padding:4px 9px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#f6fafd;
+  background:linear-gradient(135deg,var(--kg-green),#2d6992);
+  border-radius:999px;
+  vertical-align:middle;
+}
+.jp-RenderedHTMLCommon h3,.rendered_html h3,h3{color:inherit!important;letter-spacing:-.01em}
+a{color:var(--jp-brand-color1,#1d7ea1)!important}
+code{background:rgba(103,117,128,.12)!important;padding:.12em .34em;border-radius:6px}
+pre,.jp-OutputArea-output pre,.output_subarea pre{border:1px solid var(--jp-border-color2,#d8dee3);border-radius:16px;padding:14px}
+blockquote{border-left:4px solid #b54a1a!important;padding:12px 16px!important;border-radius:0 12px 12px 0}
+.jp-OutputArea-output,.output_html,.output_subarea{background:transparent!important}
+
+.kg-hero{
+  position:relative; box-sizing:border-box; margin:6px 0 24px; padding:34px; border-radius:30px; overflow:hidden;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(137,196,236,.26), transparent 23%),
+    radial-gradient(circle at 73% 88%, rgba(92,190,226,.16), transparent 28%),
+    linear-gradient(135deg,#091a25 0%,#122734 42%,#143946 100%);
+  color:#f7fbfe; border:1px solid rgba(255,255,255,.12); box-shadow:var(--kg-shadow-strong)
+}
+.kg-hero::before{
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size:26px 26px; mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 92%);
+  pointer-events:none;
+}
+.kg-hero::after{
+  content:""; position:absolute; right:-80px; top:-70px; width:240px; height:240px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.16), rgba(255,255,255,0)); filter:blur(8px);
+}
+.kg-hero-grid{position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(290px,.82fr); gap:24px; align-items:stretch}
+.kg-kicker{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#a9cee8; font-weight:800}
+.kg-hero h1{font-size:48px; line-height:1.01; margin:10px 0 12px; color:#fff!important; letter-spacing:-.045em}
+.kg-hero p{font-size:18px; line-height:1.64; margin:0; color:#f5fafd!important; max-width:850px; text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.kg-hero-copy{display:block; margin-top:10px; max-width:850px; padding:14px 16px; border-radius:16px; background:rgba(3,12,17,.34); border:1px solid rgba(255,255,255,.12); box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.kg-hero-copy p{color:#f6fbfe!important; opacity:1!important}
+.kg-chip-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:20px}
+.kg-chip{display:inline-block; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#f0f6fb; padding:7px 11px; border-radius:999px; font-size:12px; font-weight:700; backdrop-filter: blur(4px)}
+.kg-stat-row{display:grid; grid-template-columns:repeat(3, minmax(110px,1fr)); gap:10px; margin-top:18px; max-width:620px}
+.kg-stat{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:18px; padding:12px 13px; backdrop-filter:blur(3px)}
+.kg-stat .v{display:block; color:#fff; font-weight:900; font-size:24px; letter-spacing:-.03em; margin-bottom:2px}
+.kg-stat .k{display:block; color:#cedce6; font-size:12px; line-height:1.3}
+.kg-thesis{background:linear-gradient(180deg, rgba(5,14,19,.42), rgba(11,22,29,.56)); color:#f0f6fb; border-radius:24px; padding:22px; border:1px solid rgba(255,255,255,.14); box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.kg-thesis .label{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#abcfe9; font-weight:800}
+.kg-thesis .big{font-size:21px; line-height:1.28; font-weight:800; margin:8px 0 12px; color:#fff}
+.kg-thesis .point{padding:9px 0; border-top:1px solid rgba(255,255,255,.11); font-size:13px; line-height:1.5; color:#d9e5ed}
+.kg-thesis .point b{color:#fff}
+.kg-microbar{height:6px; border-radius:999px; background:linear-gradient(90deg,#549fd3 0 25%,#3b9cc0 25% 54%,#cd8e9f 54% 80%,#de7444 80%); margin-top:18px}
+
+.kg-prose{position:relative; background:linear-gradient(145deg,var(--kg-paper),var(--kg-paper2)); color:var(--kg-ink2); border:1px solid var(--kg-line); border-radius:18px;
+  padding:17px 18px; margin:12px 0 15px; box-shadow:var(--kg-shadow)}
+.kg-prose::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; border-radius:18px 0 0 18px; background:linear-gradient(180deg,var(--kg-green),#5a8aac)}
+.kg-prose p{margin:.1em 0 .4em; color:#404d56}.kg-prose b,.kg-prose strong{color:var(--kg-ink)}
+.kg-prose ol,.kg-prose ul{margin:.3em 0 .2em 1.2em; color:#404d56}
+.kg-prose .lead{font-size:15px; line-height:1.67}.kg-prose .micro{font-size:13px; color:#646d7b}
+
+.kg-grid{display:grid; grid-template-columns:repeat(2,minmax(240px,1fr)); gap:12px; margin:14px 0}
+.kg-card{position:relative; color:var(--kg-ink); border:1px solid var(--kg-line); border-radius:20px; padding:18px 18px 17px; box-shadow:var(--kg-shadow); overflow:hidden}
+.kg-card::after{content:""; position:absolute; inset:auto -40px -40px auto; width:110px; height:110px; border-radius:50%; background:radial-gradient(circle, rgba(0,0,0,.04), rgba(0,0,0,0));}
+.kg-card .eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:800; margin-bottom:6px}
+.kg-card b{color:var(--kg-ink); display:block; margin-bottom:4px}.kg-card span{color:#546068; line-height:1.55; font-size:14px}
+.kg-card.indigo{border-top:5px solid #2e6286; background:linear-gradient(145deg,#f2f7fa,#ffffff)}
+.kg-card.ice{border-top:5px solid #1d7493; background:linear-gradient(145deg,#f0f7f9,#ffffff)}
+.kg-card.ember{border-top:5px solid #b54614; background:linear-gradient(145deg,#fdf1eb,#ffffff)}
+.kg-card.crimson{border-top:5px solid #ad6477; background:linear-gradient(145deg,#faf2f4,#ffffff)}
+.kg-card.indigo .eyebrow{color:#1a4968}.kg-card.ice .eyebrow{color:#16607a}.kg-card.ember .eyebrow{color:#88350f}.kg-card.crimson .eyebrow{color:#975567}
+
+.kg-roadmap{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 8px}
+.kg-road{position:relative; border:1px solid var(--kg-line); border-radius:22px; padding:18px 16px 16px; box-shadow:var(--kg-shadow); overflow:hidden; background:linear-gradient(145deg,#fbfdff,#f3f6f8)}
+.kg-road::before{content:""; position:absolute; left:18px; top:20px; width:38px; height:38px; border-radius:14px; background:linear-gradient(135deg,#205376,#3a76a1); box-shadow:0 10px 22px rgba(32,83,118,.18)}
+.kg-road.ice::before{background:linear-gradient(135deg,#1d7493,#3192b6)}
+.kg-road.ember::before{background:linear-gradient(135deg,#b54614,#d9612a)}
+.kg-road.crimson::before{background:linear-gradient(135deg,#a35c6f,#c07f91)}
+.kg-road .n{position:relative; z-index:1; color:#fff; font-weight:900; font-size:16px; display:inline-block; margin-left:13px; margin-top:5px}
+.kg-road .t{display:block; margin-top:18px; font-weight:800; color:var(--kg-ink); font-size:16px}
+.kg-road .d{display:block; margin-top:6px; color:#546068; line-height:1.55; font-size:14px}
+
+.kg-strip{display:grid; grid-template-columns:repeat(5,minmax(105px,1fr)); gap:8px; margin:16px 0}
+.kg-mini{background:linear-gradient(145deg,#f9fbfc,#eef3f6); color:var(--kg-ink); border:1px solid var(--kg-line); border-radius:15px; padding:13px 10px; text-align:center; box-shadow:0 5px 14px rgba(26,50,66,.04)}
+.kg-mini b{display:block; font-size:14px; color:var(--kg-ink); margin-bottom:3px}.kg-mini small{color:#5c676f; line-height:1.3}
+
+.kg-note{color:var(--kg-ink); border:1px solid var(--kg-line); border-left:5px solid #2e6286; border-radius:16px; padding:15px 17px; margin:14px 0; box-shadow:var(--kg-shadow); background:linear-gradient(135deg,#eef4f9,#fbfdff)}
+.kg-note.ember{border-left-color:#b54614;background:linear-gradient(135deg,#fceee8,#fffdf8)}
+.kg-note.ice{border-left-color:#1d7493;background:linear-gradient(135deg,#ecf6f9,#fbfefe)}
+.kg-note.crimson{border-left-color:#ad6477;background:linear-gradient(135deg,#f8eff1,#fdfbfe)}
+.kg-note.red{border-left-color:#c75f4f;background:linear-gradient(135deg,#fff0ee,#fffafa)}
+.kg-note .title{font-weight:800;margin-bottom:5px;color:var(--kg-ink)}.kg-note .body{color:#49565f;line-height:1.62;font-size:14px}
+
+.kg-insight-row{display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:10px; margin:14px 0}
+.kg-insight{position:relative; border-radius:18px; padding:15px 15px 14px; border:1px solid var(--kg-line); background:#fff; color:var(--kg-ink); box-shadow:var(--kg-shadow); overflow:hidden}
+.kg-insight::after{content:""; position:absolute; right:-18px; top:-18px; width:68px; height:68px; border-radius:50%; background:radial-gradient(circle, rgba(29,116,147,.12), rgba(29,116,147,0));}
+.kg-insight .num{font-size:11px; font-weight:800; letter-spacing:.12em; color:#1d7493; text-transform:uppercase}.kg-insight b{display:block; margin:6px 0 5px}.kg-insight span{font-size:13px; color:#59666f; line-height:1.48}
+
+.kg-svg-wrap{background:linear-gradient(145deg,#fbfdff,#f2f5f8); border:1px solid var(--kg-line); border-radius:22px; padding:12px 10px; margin:16px 0; overflow-x:auto; box-shadow:var(--kg-shadow)}
+.kg-terminal{background:linear-gradient(135deg,#0e1e29,#132835); color:#ebf2f7; border:1px solid #344e60; border-radius:18px; padding:18px 20px; margin:14px 0; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; line-height:1.8; box-shadow:0 10px 24px rgba(9,23,32,.17)}
+.kg-terminal b{color:#9ec6e2}.kg-terminal .dim{color:#aabbc8}
+.kg-divider{height:1px; background:linear-gradient(90deg, transparent, #d0d9e0 18%, #d0d9e0 82%, transparent); margin:18px 0}
+.kg-caption{font-size:13px; color:#5f6775; margin-top:6px}
+
+@media (max-width:920px){ .kg-roadmap{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:760px){
+  .kg-hero{padding:24px}.kg-hero-grid{grid-template-columns:1fr}.kg-hero h1{font-size:38px}
+  .kg-grid{grid-template-columns:1fr}.kg-strip{grid-template-columns:repeat(2,minmax(120px,1fr))}.kg-insight-row{grid-template-columns:1fr}
+  .kg-stat-row{grid-template-columns:1fr 1fr 1fr}
+  .kg-roadmap{grid-template-columns:1fr}
+}
+.kg-hero .kg-chip,.kg-hero .kg-kicker,.kg-hero .kg-stat .k,.kg-hero .kg-thesis,.kg-hero .kg-thesis .point{opacity:1!important}
+
+
+/* ============================================================
+   Kaggle Light/Dark hardening
+   Public reading surfaces intentionally stay light in BOTH themes.
+   This prevents Kaggle's dark-theme table/heading rules from
+   overriding the notebook's foreground/background contrast.
+   ============================================================ */
+
+/* Section titles: always use a light editorial surface. */
+.jp-RenderedHTMLCommon h2,
+.rendered_html h2,
+.jp-MarkdownOutput h2,
+.markdown-output h2,
+.markdown-cell h2,
+h2 {
+  background-color:#fbfdff !important;
+  background-image:linear-gradient(90deg,#ffffff 0%,#f5f8fa 58%,#eef3f7 100%) !important;
+  color:#182732 !important;
+  border-color:#d3dbe1 !important;
+  border-left-color:#215477 !important;
+  -webkit-text-fill-color:#182732 !important;
+  text-shadow:none !important;
+}
+.jp-RenderedHTMLCommon h2 *,
+.rendered_html h2 *,
+.jp-MarkdownOutput h2 *,
+.markdown-cell h2 * {
+  color:#182732 !important;
+  -webkit-text-fill-color:#182732 !important;
+}
+.jp-RenderedHTMLCommon h2::before,
+.rendered_html h2::before,
+.jp-MarkdownOutput h2::before,
+.markdown-cell h2::before,
+h2::before {
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+
+/* DataFrames / notebook tables: always white with dark text. */
+.jp-OutputArea-output table,
+.jp-OutputArea-output table.dataframe,
+.jp-OutputArea-output table.ice-table,
+.output_html table,
+.output_subarea table,
+.rendered_html table,
+.jp-RenderedHTMLCommon table,
+table.dataframe,
+table.ice-table {
+  background:#ffffff !important;
+  background-color:#ffffff !important;
+  color:#212f39 !important;
+  border-color:#d7dde2 !important;
+  color-scheme:light !important;
+}
+.jp-OutputArea-output table thead,
+.jp-OutputArea-output table.dataframe thead,
+.jp-OutputArea-output table.ice-table thead,
+.output_html table thead,
+.rendered_html table thead,
+table.dataframe thead,
+table.ice-table thead {
+  background:#f2f5f7 !important;
+  background-color:#f2f5f7 !important;
+  color:#182732 !important;
+}
+.jp-OutputArea-output table th,
+.jp-OutputArea-output table.dataframe th,
+.jp-OutputArea-output table.ice-table th,
+.output_html table th,
+.output_subarea table th,
+.rendered_html table th,
+.jp-RenderedHTMLCommon table th,
+table.dataframe th,
+table.ice-table th {
+  background:#f2f5f7 !important;
+  background-color:#f2f5f7 !important;
+  color:#182732 !important;
+  -webkit-text-fill-color:#182732 !important;
+  border-color:#ccd6dd !important;
+  text-shadow:none !important;
+}
+.jp-OutputArea-output table tbody,
+.jp-OutputArea-output table.dataframe tbody,
+.jp-OutputArea-output table.ice-table tbody,
+.output_html table tbody,
+.rendered_html table tbody,
+table.dataframe tbody,
+table.ice-table tbody {
+  background:#ffffff !important;
+  background-color:#ffffff !important;
+  color:#2a3943 !important;
+}
+.jp-OutputArea-output table td,
+.jp-OutputArea-output table.dataframe td,
+.jp-OutputArea-output table.ice-table td,
+.output_html table td,
+.output_subarea table td,
+.rendered_html table td,
+.jp-RenderedHTMLCommon table td,
+table.dataframe td,
+table.ice-table td {
+  background:#ffffff !important;
+  background-color:#ffffff !important;
+  color:#2a3943 !important;
+  -webkit-text-fill-color:#2a3943 !important;
+  border-color:#e0e6eb !important;
+  text-shadow:none !important;
+}
+.jp-OutputArea-output table tbody tr,
+.jp-OutputArea-output table.dataframe tbody tr,
+.jp-OutputArea-output table.ice-table tbody tr,
+.output_html table tbody tr,
+.rendered_html table tbody tr,
+table.dataframe tbody tr,
+table.ice-table tbody tr {
+  background:#ffffff !important;
+  background-color:#ffffff !important;
+  color:#2a3943 !important;
+}
+/* Keep a very subtle zebra band without ever becoming dark. */
+.jp-OutputArea-output table tbody tr:nth-child(even) td,
+.jp-OutputArea-output table.dataframe tbody tr:nth-child(even) td,
+.jp-OutputArea-output table.ice-table tbody tr:nth-child(even) td,
+.output_html table tbody tr:nth-child(even) td,
+.rendered_html table tbody tr:nth-child(even) td,
+table.dataframe tbody tr:nth-child(even) td,
+table.ice-table tbody tr:nth-child(even) td {
+  background:#f8fafb !important;
+  background-color:#f8fafb !important;
+}
+
+
+/* ── Takeaway: the "so what" block that closes a section ─────────────── */
+.kg-takeaway{
+  position:relative; margin:20px 0 6px; padding:20px 22px 20px 26px;
+  border-radius:20px; overflow:hidden;
+  background:linear-gradient(135deg,#f2f7fb 0%,#fbf6f3 100%);
+  border:1px solid #d6dde6;
+  box-shadow:0 8px 24px rgba(24,32,50,.06);
+}
+.kg-takeaway::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:6px;
+  background:linear-gradient(180deg,#84c1cf 0%,#4167c7 30%,#2a293d 55%,#b93540 80%,#e15c33 100%);
+}
+.kg-takeaway .label{
+  display:inline-block; margin-bottom:10px; padding:4px 11px; border-radius:999px;
+  font-size:10px; font-weight:800; letter-spacing:.17em; text-transform:uppercase;
+  color:#fdf7f3; background:linear-gradient(135deg,#3b4a8c,#b93540);
+}
+.kg-takeaway ul{margin:.35em 0 0; padding-left:1.15em}
+.kg-takeaway li{margin:.42em 0; line-height:1.65}
+.kg-takeaway li b{color:#1d2a3a}
+.kg-takeaway .verdict{
+  margin-top:14px; padding-top:13px; border-top:1px dashed #cdd6e0;
+  font-size:14.5px; color:#22303f;
+}
+
+/* ── Palette ramp legend ─────────────────────────────────────────────── */
+.kg-ramp{display:flex; margin:14px 0 6px; border-radius:12px; overflow:hidden;
+  box-shadow:0 5px 16px rgba(24,32,50,.10)}
+.kg-ramp span{flex:1; height:34px}
+.kg-ramp-key{display:flex; justify-content:space-between; font-size:11.5px;
+  letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:#5e6673; margin-top:7px}
+</style>
+
+
+
+
+===== CELL 1 [markdown] =====
+<div class="kg-hero">
+  <div class="kg-hero-grid">
+    <div>
+      <div class="kg-kicker">Kaggriculture · 720-turn economic control · replay-aware execution</div>
+      <h1>🌾 Queue-Aware Farming</h1>
+      <div class="kg-hero-copy"><p>
+        A complete season route does the heavy lifting. Runtime logic stays narrow: repair local WEED disruptions,
+        rank shared-market pressure, and preempt a near-clone's predictable premium sale while repaying the shifted quantity exactly.
+      </p></div>
+      <div class="kg-chip-row">
+        <div class="kg-chip">720-turn route</div><div class="kg-chip">Local WEED repair</div>
+        <div class="kg-chip">Demand-aware SELL ordering</div><div class="kg-chip">Multi-horizon clone preemption</div>
+      </div>
+      <div class="kg-stat-row">
+        <div class="kg-stat"><span class="v">720</span><span class="k">turns coordinated as one season</span></div>
+        <div class="kg-stat"><span class="v">4</span><span class="k">small, purpose-built control layers</span></div>
+        <div class="kg-stat"><span class="v">1</span><span class="k">exact <code>main.py</code> validated and archived</span></div>
+      </div>
+    </div>
+    <div class="kg-thesis">
+      <div class="label">Controller thesis</div>
+      <div class="big">Freeze the strong route. Adapt only where the environment can invalidate or strand value.</div>
+      <div class="point"><b>Season route:</b> coordinates capital, labor, crops, livestock, logistics, and planned sales.</div>
+      <div class="point"><b>Local repair:</b> a WEED obstruction is treated as a transaction—DIG, retry, then rejoin the route.</div>
+      <div class="point"><b>Market timing:</b> existing SELL slots are ranked by price impact and observed town demand.</div>
+      <div class="point"><b>Clone preemption:</b> when public farm state is nearly symmetric, move a safe future premium sale earlier—prefer three turns, then two, then one—and subtract exactly the same quantity later.</div>
+      <div class="kg-microbar"></div>
+    </div>
+  </div>
+</div>
+
+
+===== CELL 2 [markdown] =====
+### The palette
+
+<div class="kg-prose"><div class="lead">Every figure, callout and accent in this notebook is sampled from seaborn's <b>icefire</b> diverging map. The convention is consistent throughout: <b>ice reads as supply, capacity and plan</b>; <b>ember reads as price, pressure and realised cash</b>; the deep indigo centre carries structure and neutral series.</div></div>
+
+<div class="kg-ramp">
+  <span style="background:#bde7db"></span><span style="background:#84c1cf"></span><span style="background:#4c9ccd"></span>
+  <span style="background:#4167c7"></span><span style="background:#454386"></span><span style="background:#2a293d"></span>
+  <span style="background:#1f1e1e"></span><span style="background:#3f2228"></span><span style="background:#722c3d"></span>
+  <span style="background:#b93540"></span><span style="background:#e15c33"></span><span style="background:#f49d63"></span>
+  <span style="background:#ffd4ac"></span>
+</div>
+<div class="kg-ramp-key"><span>Ice · capacity</span><span>Indigo · structure</span><span>Ember · price</span></div>
+
+
+===== CELL 3 [markdown] =====
+### Strategy in motion
+
+<div class="kg-prose"><div class="lead">Start with the behavior, then unpack the code. This is a <b>live replay rendered directly from <code>env.steps</code></b> after the exact same agent source runs a full 720-turn season. The notebook calls <code>show_farm_motion(env, seat=0, stride=6, duration=18)</code> in the cell below—there is no pre-rendered GIF, base64 asset, or decorative mock-up.</div></div>
+
+<div class="kg-note ice"><div class="title">Read this as a moving strategy map</div><div class="body">Watch productive tiles spread, labor circulate through dense service regions, stochastic WEED cells appear as local shocks, and the farm transition from early investment toward late cash realization.</div></div>
+
+
+===== CELL 4 [code] =====
+# Live strategy replay — rendered directly from a real 720-turn environment run.
+# The input is hidden in the published view; the animation output stays visible.
+from pathlib import Path
+import contextlib
+import hashlib
+import html
+import io
+from IPython.display import HTML, display
+
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    from kaggle_environments import make
+
+TOP_REPLAY_AGENT_SHA256 = '997e6bfc5234534e246e945bc61c87858ebf997ab85b0a5c9427dd4ed710f1b6'
+_TOP_AGENT_SOURCE = '"""Adaptive replay controller for Kaggriculture.\n\nA complete season route handles capital, labor, farming, and planned sales.\nRuntime logic stays narrow: actor-local WEED repair, demand-aware SELL-slot\nranking, near-clone premium preemption with exact quantity repayment, and\nterminal liquidation. When a near clone is detected, the controller searches\nthree turns ahead first, then falls back to two turns and one while repaying\nexactly the shifted quantity on its original due turn.\n"""\nimport base64\nimport copy\nimport json\nimport math\nimport zlib\n\n\n_ACTIONS = json.loads(zlib.decompress(base64.b85decode(\'c-rk<O>bM*5&bV(b74}HEO)2aOe{pP3`s7L8bT1DDGC(nBJHl|f3IRu<l~!}GiPS*eWcv1Oj9J^{l4>Y=A6&}Ir-bqzy12lZzq5HeDd+~?(XDacJlY1|M}N{J-+ey^4Fh#`^PW;etiA;<o(s{>hZ7Ki*G*t_|xTws~;|}Pi7}?Z`LQXg?Rh!{c81b@Q1tA>fPhp>-Ve6`;*!0(c3?)u5Uh^%;wvVf4seU_v!8Z?i*(h5C5I*_2=sC_n$uQo-`ly?eoccb$9=ztsib~@85rUwS8;!Vt*j+R@c|Nr_Rl%Za*-5>h`b0LAknq_tWFx-+$VS9@h?a5JYn}KcO{YH!Sueb7KG=y7|g!|DKP3ebAcSlq-`zerx#b@mybDzFloca_<qcZ`wn}EAX&yhx=oHa5v5PeNFxTTaW+$aKGI%`a6*)zr7p};HWK+Lv?w-x*ffGe(3H~qh_Fy9i2tnMhsiNy1X-<9{T0o56WTMK4Sag?&gy-T=EIZLf^J{`@?OAYrH0!kD6Elvi-_4pI+o9e%D?!W0gUZ$Isv}D2>);)iBdM8-6-5UTCq&&Dmz)#s^`C5hT`|d<R@3nRSPTFLN$z-WjxW_m1_b+yj)s+Wu+u$Yc+8?G-=#^dj)P=%c{A0$+Pxh0JHIi#BjWqL1EOU$5TY|MczZ_WtVn>MvhLt#ucsXwTTl10Q`p&;Dq7x#^Lu^2bM^N4s%i22(Iw+U{(?-`sp)3H{B;P7i(C_7iG0Km0c9l;L$Bvk`g?Q=|=Ym>PJlEeA=u;=D~H&c4{A?GfJDw{9Dh0Y*(|HN-n7$!nl8z=1JRhB)A9c3;EN{b)77gC&qKJIC&G(#xCr$puq8a&;x{rPwjs;1bGQJw4W8?lvx*efblw%T<y--h%gr_Z;^qOB`Sw@7~ae`3Jdu)24>ZJ(?z6V`2CIYx+vo<ruvvxf)D9Wt@GB+uE~UUP|nT3CG3x!ER>yteF>RM^_7Xk`ZEme|h`o_?<O2@ztpPrYY$-iDE_u#{^mLyWbusGBS6c5lAjgn_O1g$x2V07O!_h?S&cC&Zv@qt95{P=b+E4t+s+?Gn}m55AMAipFcTQAj9ZeCaFWNl<3(yNiz4!tY|7nVJ_`tcIEknGNZ*`v=TQ}6J&F#EzZ6y1J5jx7Q(#0ms#-{(&ygM_?T1s*zc~s>tz1ZJFJnfS&5qw2cl)_bc~XP#_Xwqu_4pik%J<&aH-hQ`<ng6sa(yMmcuG}f>U^X5%0r3_79rE0@m_zq_6@hl41^PXV9fGXjBR;6W;{xN88YF*^Bm<G2t?YXQ+jH)@q76+6QASXEK#l!>+Z-Wvy>+9{-uYLjK6_gZ5}mzAKa;Y`mDe``gR)H>=y*A0MCj#>99m9x^VQV$h7dF1C&$aYri^1~P0YU2FM*K3Nt-uz1{Nqg@iaD%%yn=ksQS9;Z|Q%z>x-_6P2I@aYZxH3K=$jnK2dH`ronlTm<vwI_3>7LgmtUN=e=LU;(22~Eu-u-lYaIF6K~i=@}W(pm&cf{Z~;FE?qlfU1^VTP2cz^yFL|RCCHN$7diMr(oWKoz+m*$ht+s)7JpC<cwEf_BtAHN|Awf*qiyoq<OA3OPx_;nA}}pyj{wlDLF;Aq1t@9jR-i_#(vZOiVpoik(#uc;8?fVdij7HsQ&3Td&tv~g*Gr<SVJjVt^t@5@9*eqt=guP@~BgGASeuW^yUFyPWmLkV_7E3g|)=l`2&y8-uLC^*)nDOIFm(nvb-u=uPiTUY0!}7IXk27ZL42<MZ^(;AmH<_;)x7X&11`2DWgx=Q(|#Q`xu}Xx>`%y7sxL66ONm87%+@f1V}B;uhp5Z*m7w(Yr}QHn|Z|gaOQ?t9P0=)$*o+OQD7zXgw1!<n6I{nBjy0%UOLBwJ3zAe5NgJQpeX3!-T_3H`ogUsELyW%IW{c#6y|?g%{3@U$y^n*7B&SIWMx2_{4QnR{cv^t{f5nFL>lwji1eR_t-x5geC`LPP2vjP@Z0PD+_6>1(5e}GVaf|k+K#&YS|h$e2LyG@*$pWMh+%-1G-T_cv7Mn}+`tTKvUPaawSLVs!&HEIa|uBxeZ-!Y8)na5x-_#+Hl95*64XlOmrl+qRqh2uvZO>+ch4=E{j?dLT^A*jaNBRi>Cm{8c$Z7|d-p7U^366Ry9u(zR6P;jNw92t*!B`eu6uSldmmMDgLO;9A+zWvd75n>_66)as{*OEKWD5~`CNsesm<I<^K}ppkWtJMZiY9WYw^<Hlk$f9WDf$sp9|?BoK_tH)+1N|0L`4E2#qplKKTX9B3EjH6xFBZT;#k5ru&H+(4aSwXay>PBfSY57}Fz)&0307?75ywMnj~QBSz{>8@OWn;OMPkm{X~5CTnG>AS!6BQ-9VA$%9Y~Yi5)gj^RR3g!Zjgz{TNsQwtuTvXj<$^8~h0dNcvfMzy2yq6}}Irt1J)D=3i^JPjH(Ut1yivQ@SpcC9R)<6O%Z51I6VHsC1M;J0wWk1fpnXk+*8_U0ppoYu{~p`n%@R~pA9R=4!T(4e;+Y5;GrU5o8_Z(oS{K?A*5Mh5z{O`DMq`qYi++BmHY^MGz6*Ji(tAuyycQW0w4c13{pwHZ@2-Nz*PqHc3xT-*BcRO<pG$fXF0!;z`_VZHwrBUaExVc~3s&p)hOTAVh(w840X@<+cSXXapbjR3QY51cQ}m6t-*4FyofZ!XMF#`<poTLF}%08e)Dd`s=kh54q^MI3dJX%K*@DS`*3=m4&9aS%OJM&OX(L@~LbS`Gj!8T7tp3`eGqgG6qpRFRK}&!2}SXCdZo!%sel(#{gG;CWaV(FRp0k(V+pN|gZxmYx|xB4%jWX!jX!Q+g+Mz=&Cm!Bxz|l~GtEblBh^84C4M7=|Jc$VLW%0#^*nVefP$!CfHICiWtjHaJOMg-~`iDgj=4=Pvs0TqQjoT$eMB(XmvcjUs4DX(g!KK?s$=<v)5>Y;S5msHEpn7JW6<Le2C~lcpM754*!Bgc%4gxe^#y_9NmL)29kp!0oxfqGJ#Gm0o0Bdl%bCpnFcrpb5HUEL2%*vA4d=p~<zrwmrPk&JL?<vMmy-7;U-{+Qs2YfiydUqJ+|hp_o`T!7vzhp%)J@fp_Hq*4k!+5!#T{0e{yv-b+xMh;eN<!2=IuT6WsX>UA0!u1C%1pFAwHjuN5@4)ROPE-{EiUvi-nwbFnBeM}heV4*UB^;IGO76XQhCW}#owNp7OM#smtv?;c<k0rqOUaKH=h62jtmUQWq2$}~l=h2>A(X8V5Qqjmj7~Br~!f0ATzd##L?MzD6Iiqr0Zvq41swCly6~GmiubS5{5n~cQK&HMq_r%to-2YWUf=oj1!xUbB1;~WM_&>3#Go%};IYY~b0K3>OtN<H|DnbeBwi;Wh94<SZ2o;zzm3#z44CTS0Th__Nq$z1>W|^?t2T3=B1Ku16nsEm)on2#oL}JayaS<%|!9HPXyTCT>5Z4dO3BZr`gu4K8RRTCbAumYEm{c3jPD?(+i!P<si$69MIliROs%Oub{P3E3ta>&$%$cPhDbR%~lqqPF%HK?S34D}-B;(2>KqwHXbE)gI%T=2^J6Z^N9##a}BjB;x`6d|zm)qI%ch_y@>15&vS1h`92i5kl-B%_1eE+$<U%v7=5~g>pmD-U&wZ?S8iz&hZp7Vcx7<PhbGmje{vqd|Hn#nFUb(ups#e%#>#7pj)Q*3Ge2Z(d~WD`Bp-pD4}KKZoXY5)cvF})(rs7yI>vgFM&*3s1!@Yd4erIm$-gC`*C*`Rbblb_@W4BBQVO?!EIcSs)hEs(kh_aI9p*fgeZ3@h{EJx1}o1_jC+MzB;AK$e$-q~;KZUzN6o=3ksqu?s-6oWnVE3;uY}*O}*hvgyx_Jm;Hk>}wNNtPkjyzt+5GGq|U2Do|vgEpnWZTp}=@iQ?U2(v!sV;nY*3Jm-<1{@{|WjXz^wQEq6L3|plTIPEE7zoU72Q`*gxC)s|mTP=1%A*FwoGXmQS3WvlOd?TLW$kJ8Lf+lHV#%c5%CAhxBujtGr0rOCnU9kLhMO5ae<nJI3)Q7ZY${uSx6p)FI;xcHHlcX|{YL-gL{z;1Zz%Ey~fn`F7y|xhRHb{fD-RUTyB~zD51uLLOD_9A@1=1So<uqf7)>0-jNh;ULX+Eyjl(LkQ;+Z#Y@%*Sg`>aEMe0f#n8$$L}{mVK23kQNeoi=ByHuu!<NBB~uZkb+0=Y|xUk0l?B+W&&H#{2WR`TqW@YL?b*pKTt%^UbC+!0}^CQm;7<@}cYMP2H5)ZDosq24<My4we<i$VMn~UJ_nNu#~g=A50Cit-xpaie#+Z>&KV4{QKUk?2053_uBd7Zh5ecl;fb}3PX}ed5I7G<z7oAQ{<~0O7$>fcBN2K%Lpk=gBD03NhKUm5$u+y3MMaA8q$4<NXIB%*8w(WwsV2J9p(1Qu!$k}0kGnMR43zZQWA74iC(EKh!!o+aVjwlYt_OkR}{LSr$tgshqjo%YF9meR7eXGCI5mVHp~kv9pFV_79C2_DYkv$R*ov(14D3l;A2|qHtn;WU7guv_%6UG5(3!C1`|GQfXWzqctJY+uE8PYh3Cj}#e<f&RY0=y@t`hdJ;ZW|;b{~zrKHi;1XWOMO5(c%?%;UB-ag=aQdZYV204Z*xJiz%=sqfQkZ>W}R@;NYM?@@+YGA04x#4DTK}{joTsz6>^=%(``YtGsC{G1I#__aQikcnP>l~^*F>FT0fB=jS$|NCmoRVC-%g+X&Fv{>V_hcE5Cu0hB(@+2mRa^5CEePzQ0+W%pCJHBzd>F~t5m$~6@HhyeQ;KR4jfeq0#(Ur0@AFqR8u+?WA+m+?NR&NsPBU(>fAZ-vj(Z`7vxCJ-K)h#R^l0%CC;}j&fZ-<1212p~<>dzV<u2!%*N23l1+^F1>|<s<$GPWHXZlg1EBCY>-HJe?Go<Oz_eKdp4pNmXy~_GMB)@y-r5oOkoHv=Jkr#^?sl~M+1=K^vm7K8aU9i#vOdUc}X;1AwMThOow(B`SU<h-K!72%THvP>G$@tmWaaOf03jiW2$q<EHX5U79YsDGnDqM`TeI>>Q$tRF&rL;5Pd&)b+1-2+L8tD)@xGo@Q{p1(CF<hYVwW9bWBU5?4*C_<s01z6`l~c=`d#K<wr2nnmCJ0|rL=UL&ea7=2E#_h~YNBI>G4aC_idVk()~@X2D5>$yMLg`}>C5EwLxEcWWk}TlbD#y?&;oh5sEgUMUW7@3HgB=Ks&pq$T0_v-IlR*jQ@ClAI~ab9cA(6vm5DQ@YT9WuemfL{xNcSGju$}5!A`ZV!JJIVCCwMOa9alpp<;A@3M~*Rb4iL_Q%5fF%~L_hGztP!#wZQ}!U&`$Y2E<%kgBa9UD!4=l)yrOat!ErVoXYbBZI<5WVa1I3Y5IQH!q5bdG-)MQZQg2SW6k5he+^9@tk42Ar6DXqxwu}7YHo{Y(QmEBgBLru=5F+HiM|nKB#s?Vh<#kiW}S+yEBo-flt;-3qGR7j?geUzg*3!D^J$Y2pr;yF;7F@uqw&Q6w1gdolfmaGXM7*vMQ6uIC9uB>~gxSA|GBFkH^u4S!{|6o8Lns8Nx&#It)+y(isoOn4k94NTg7PNG*szdn%PGAr6gZE$+mH%7l3Wn27bNMZzAWxpyD&i!O5%6K2L2CMY|zP$p}`VcI4_9e`4MVd9Q{iUurH3grt4k@i4FIIwNq7HEMpJ?hJ|SumRLjH{Q0-zaYo8#J^68N$tK&3=144`PNU^W7-c-5BPhpf7T+8dHxRm@+St-avN+VxIV8D!{xDCi93>=5&B7IrtU0rqv(JAsHb=CucdeTC=F=B0{c<$$XT`B?N(_XmemNcmMo1f1^}sD6b#s_$RrKQOFdgtrYH%1UgFfRIF&rOjp;5%p3UhK>z1Cc5BBEbw_@6ee*$62Fx&LY0*<9C_^s4?EvojCdSs?yX8(Z!mbkRWL;-8wa<!SV9FIripDD0)Z|i?{a2!dILDGv+VzltD8lEm*x=dJVvfjyF|~W1;8x30EDr^NQL*3}a6GlHA=~V|g@l^T7lt_N-k2?q9gwz%p?oFUzxetPX`puAN({#-juR?K1U(s7_tKESCc@Dg;)<w2)iB0On5CGl#wpL3rqZktFDuK&<M=}*=e~`|spos@_8IC|GgO-gkMcJSU<EY1Zye5JOp{CnUev<_{Q|WNZTvM|D6QzSK~xl8cwLx$$OT6t+AybQ3b6w*UOZHdL*7apR00sSG%+R&fQ{Dy&XYwo-Z~n#P`XsHo#PPksYe+|lEz%bxcC%ub5WW~S$dF<Kv{0*fx2xiK!G7{a*r#(NnQ<6j<pq#&FKj80%N9i8FR)7f)cI%3OJmcR8y0dL5^NbzY=DHx$r$uWuMCjI|w!qp^z?pW?bbJp$xFyh#;CRR=&8;(87ECRNN#6eB1uy(|ENd3kvZmku*Yl5m|sP`3*q`WCw(nMm%VOSkHc+nvgpmGZ~PLh(k=HK`7kWK}eQizfrQrgaQUG%t#gE+Gl17b|G`chvcqoumnb@K}K4t)knbO8g)9f?uSGO^0KpK+9f@x1p$>*G3B)7gC1=RNjC)7aYmt=!=2@neQ>1KPc2VdI7o1>vHQ+&pc5;w#RiL$LZNb{btHRkeWp>QW8F}Sor4ADq?EEGJYFarQ_66hycLOOuYKUy;DR>M;f}1k2<Bw?bl>bikTq>bwOL891GKCd&N;;p8JR^!GK_h^Q9890RJ|%JFem<|+^8^LkwxM)T5S^WsXG0Di<^VSDKQYofJ(5<6Vyp+LdscNF~pDmp#tJu;pTP@0uZKPU`sL0t`ZS=RZEQeP$pd2TULyjlMd2j!(iGQ875o2yoypsfNX&xi7zi2he#ADk?^dJ+5EhxkQpiDkn2vvg3)M$Il1;})y|?+O%>kqDP^AY?!UYGE>r;97d2AXfAT8|QL@~N%uO5I$dI-_&!=z7X{#WshsD9sDtc0S`dCb*cE~(;?)hK&t>?ca%xgQw2zKX+^yF|~164QG>6GL<I*5&Sz)_y%c{Z>v9S%5}`OZOdo22WJw85Eb*OUN*C+DW$Q9Rl&P=zidLEz$)m?MYf+dGRu&Cxz&Y1Tj6!Q8r}ty4Lf@{%VSmWh>igBiw_$5jDv>lhi*g5~w>)U73N8ZykDWB-@5a*EZhfNGR24EPYB*s6+CH_<~z1(wn`NQQ4Se!HPlrHIoyeausdgd1Hvgy@SIJ--p;i4^4Cu0{O~pHGWFOO=_VHyLE7WBLh@{MMgRwIVpejSqZJpNMALwF2s~BLtL{s-QLqwLnUHin>A;dn|`PraP$nLsXm1n76-&T&;(Me#9Fc&v(qFoBMcO)foR85P(rSx}^*832F#lbkq=J&SJ9PbGnm#bq7JaHS;IJb9ZQQLJt4OhylMC2}5{G;Ud%Z3Kp3jf!1NzLhu=&4y}vmLCQQvI<5OLwez}=;wloCaY|#sj}evU6R9l5rQOQ}c7ErXxK-x(aN%ekJ~AN4R$+kj91-S7cTyw)q&w(|#gt{&)YfUbsG}pv^rPJ`S`LmRhJytLJO&6Qo|Rwrp|b$}R$%7~Rck{z3x%!AyBsvoE6H4d_D4j1LFSS)W;M+p(F7uyNM495)fue}W=JXUQ*s7Ki4ouaD1yXHknV4vJ!JSGZJ%)-I<grOMM{??G*ikUW?Ol7WZNqRmXXczNa|TVp54d;0BS*TP-v}&$1wI5#77eG7lPFQwO=W4wGR$+NQ!-sfo)I*j-q@}ij)jTEf%Q|-G*81l>!m8&XE@trCYwt2pkiNW9TKc;M&<k7tv2fWjNaWu9~0Nb!gM#yyhpCVI*}j*%00#B|l-fi{po*%($xLCoV{H;&LtOS|`-|)C~n6gL*WwpI*w6Ls2qljss|YDkp7%yRQ<23vC<+ezIm<S$}&=XQsY25SH8D3^7Gw;6>A`o*ikl!UGw3(B$MAw;?)&kbrv-xy=Xcb}*79zo$`Ohhi-w>K~bE=Jh?W;wB1;A$5b;iPB8Mfn)S{h#WEnu5R!eT|!>91y^#NB<s^C>YQi-<U`iz+H%3r94Q;d#6a?`_<i20u#Ir>W5MxO4U^bFsv~jaQ>z9m*o;tX^FXH8GDtE%Gs+I<7snnYNwLizksjv~t7AeGlKq1wM4~?tnTCGW+PU!RP7JcP=}IM!T0Rph79a|T40BUNA2USS!@!}AU+j{^21l6D4yRg4MGPBBxwX`&q{tuG_*Nn!npB;{NHQ;P-jejHpOPdsA<&l-bJV8fw<;bPU2_Qnphm?JuG2&^|C1=cByAC3{c<bHD^yBOC^ZISBx%+nA?>=x?7Bs<seD1>dKi^I0$GS)NBP`MNJdkIhlGL~ijnOB3Q%;Jfutz;xWLkoqpk!5V1=UcSOPi`)$HV*P6kKAP){)cjxppW*J35!qHVqqah6%2RUK4Ny%i(HavlE(r3G_=icFlws?XY>Tok_evlpcnxcusB&a^b)ir_|d0WyA8<+(0+6xmt!(HhKlG{}42U48H{{U{3(Vw3|c-o`gIA8R?7M4`v<#ft$3wD6|YF67urS)M8Ly=Vxvu3JcF@=*$rdB>n`=`L@G=FrRXM+>%^RnldH9bTOk;DBI)3lr4U(QN0O@>^7cGvtSBK6G3s6blPr2vFuAL9rZ#A)I4MgryCAjt3<!A^|h8jpS(Pdh8_WLxOOfbf`STFaz{?R6msgh&T(`=Pu78Oi)3gesTkR6oMw@Re1qY$~L%m?l`I_g}7iuhX>CGl1}CHArkZRj4ZX-3kFK{&d54OK^g~+6ur{rHL<HCB#%}gb_xd33ZM!a(E%g!{229z_984&q;6-n$~RS2DYv0gdTdkuM^&*M;RBQ|iQxnlCMGXNt$YP)E3C!tvZ94Vc~p!Z48*Wd$4Sviz}{7j3_kndMg&dSe#Z;oI(Eu>=7oPiG(c4O@S|?!XKR9%ol|Q(4n;=r>R4qL+0v~-Hx8hrXt*{9sJcq1B?5NINdysBWZ_g`^L3Ci^oqIQ-<wo5(7J?F@m8tsB3VhqdRrhi7g~`>oW+-NAOw6vrgT{I4~87T@tJH@7!fA}UyPb!E((wotdyB>9HsZnT7~c2wq0cQ9VAFcAC4915D4j+19M3YhinQFkSF53sG&w=tp#^TO!N%6VEx)b`hC5d(FHwn3~gYg+)M<>v(IzU8v4;+%q>!U#Gl;g(no)D&&p&Ri{axxM7zM1kZg``e5(2J>`+0?xHUz58yGIkmkga7!WM`bDP*3M@FEiOXhE@Du8=2#PH|Viv)Tf10xpdhF^r)WN^)A0dLW%9*DpEpBk<{JMbA%0l9CLaPcr4LG{A!g26#s^ZS&nysFv=K;UbNl1agCMXTYC|@?l8cGg$VT5HeLF;ar0-hw{qn322hk(ZiQB$#DyXN@MzXmXd@Qu+!QMTdM2>nU~{wVM|U);(>EN7A>2x26=g$#g<t<zay_D0$<^ooL@Amr<7?#Nz2N0a{O`6g&B2-P@S{{g*+@Wpc5Un-h~&O>YL@^e?UVC3;\')).decode("utf-8"))\n__version__ = "adaptive-preempt-3x2x1"\n\n_PRICE_FLOOR = 1\n_DEMAND_ALPHA = 0.25\n_MARKET_PARAMS = {\n    "WHEAT": (25, 10000, 400, "sqrt", 0.8, "log", 0.2),\n    "CARROT": (35, 10000, 450, "log", 0.2, "sqrt", 0.7),\n    "TOMATO": (60, 10000, 200, "linear", 0.4, "sqrt", 0.6),\n    "STRAWBERRY": (120, 10000, 100, "sqrt", 0.7, "linear", 1.6),\n    "MELON": (250, 10000, 300, "log", 0.2, "sq", 3.6),\n    "EGG": (50, 10000, 332, "linear", 0.4, "log", 0.2),\n    "MILK": (160, 10000, 122, "sqrt", 0.6, "linear", 1.6),\n    "WOOL": (200, 10000, 105, "log", 0.2, "sq", 3.2),\n    "FERTILIZER": (100, 10000, 200, "linear", 0.4, "linear", 0.4),\n}\n_SHOP_PRODUCTS = {\n    "BAKERY": ("EGG", "WHEAT"),\n    "PIZZA_SHOP": ("MILK", "TOMATO", "WHEAT"),\n    "BRUNCH_SPOT": ("EGG", "WHEAT", "STRAWBERRY"),\n    "YARN_STORE": ("WOOL",),\n    "ICE_CREAM_SHOP": ("STRAWBERRY", "MILK", "WHEAT"),\n    "PET_CAFE": ("CARROT",),\n    "SMOOTHIE_SHOP": ("STRAWBERRY", "MILK"),\n    "FARMERS_MARKET": ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY"),\n}\n_SELLABLE = tuple(_MARKET_PARAMS)\n_LIQUIDATION_ORDER = (\n    "CARROT", "EGG", "FERTILIZER", "MELON", "MILK",\n    "STRAWBERRY", "TOMATO", "WHEAT", "WOOL",\n)\n_WEED_STATE = {0: {}, 1: {}}\n_WEED_REPLAY_STEPS = 8\n_SHIFT_STATE = {\n    0: {"last_step": -1, "due_step": -1, "due": {}},\n    1: {"last_step": -1, "due_step": -1, "due": {}},\n}\n_PREEMPT_ENABLED = True\n_PREEMPT_FRACTION = 2.0\n_PREEMPT_MAX_BATCH = 30\n_PREEMPT_MAX_CLONE_DISTANCE = 6\n_PREEMPT_MIN_PRICE_RATIO = 0.0\n_PREEMPT_MIN_FUTURE_QUANTITY = 4\n_PREEMPT_START = 120\n_PREEMPT_STOP = 680\n_PREMIUM = ("STRAWBERRY", "MELON", "MILK", "WOOL")\n\n\ndef _get(value, key, default=None):\n    if isinstance(value, dict):\n        return value.get(key, default)\n    getter = getattr(value, "get", None)\n    if callable(getter):\n        return getter(key, default)\n    return getattr(value, key, default)\n\n\ndef _copy_action(action):\n    action = copy.deepcopy(action or {})\n    return {\n        "farmer": list(action.get("farmer") or ["PASS"]),\n        "hands": [list(order or ["PASS"]) for order in (action.get("hands") or [])],\n        "market": [list(order) for order in (action.get("market") or [])],\n    }\n\n\ndef _seat(obs):\n    return 1 if int(_get(obs, "player", 0) or 0) == 1 else 0\n\n\ndef _farm(obs, seat):\n    farms = list(_get(obs, "farms", []) or [])\n    return farms[seat] if seat < len(farms) else {}\n\n\ndef _align_hands(action, obs):\n    action = _copy_action(action)\n    expected = len(_get(_farm(obs, _seat(obs)), "hands", []) or [])\n    hands = list(action.get("hands") or [])\n    if len(hands) < expected:\n        hands.extend([["PASS"] for _ in range(expected - len(hands))])\n    action["hands"] = [list(order or ["PASS"]) for order in hands[:expected]]\n    return action\n\n\ndef _shed_access(size):\n    half = size // 2\n    return {\n        (half - 1, half - 1), (half, half - 1),\n        (half - 1, half), (half, half),\n    }\n\n\ndef _projected_shed(obs, action):\n    farm = _farm(obs, _seat(obs))\n    private = _get(obs, "private", {}) or {}\n    projected = {\n        key: max(0, int(value or 0))\n        for key, value in dict(_get(private, "shed", {}) or {}).items()\n    }\n    inventories = list(_get(private, "inventories", []) or [])\n    positions = [_get(farm, "farmer", [0, 0]), *list(_get(farm, "hands", []) or [])]\n    unit_actions = [action.get("farmer", ["PASS"]), *list(action.get("hands") or [])]\n    tiles = list(_get(farm, "tiles", []) or [])\n    access = _shed_access(len(tiles) or 10)\n    for index, unit_action in enumerate(unit_actions):\n        if index >= len(positions) or index >= len(inventories):\n            continue\n        position = positions[index]\n        if not isinstance(position, (list, tuple)) or len(position) < 2:\n            continue\n        x, y = int(position[0]), int(position[1])\n        if (x, y) not in access or not (0 <= y < len(tiles) and 0 <= x < len(tiles[y])):\n            continue\n        inventory = {key: max(0, int(value or 0)) for key, value in dict(inventories[index] or {}).items()}\n        if unit_action and unit_action[0] == "DROP":\n            deposits = inventory.items()\n        elif unit_action and unit_action[0] == "PLACE" and len(unit_action) >= 2:\n            item = unit_action[1]\n            tile = tiles[y][x]\n            structure = {"COW": "PASTURE", "SHEEP": "PASTURE", "GOOSE": "COOP"}.get(item)\n            if structure and isinstance(tile, dict) and tile.get("kind") == structure and not tile.get("animal"):\n                continue\n            try:\n                requested = int(unit_action[2]) if len(unit_action) >= 3 else 1\n            except (TypeError, ValueError):\n                continue\n            deposits = ((item, min(max(0, requested), inventory.get(item, 0))),)\n        else:\n            continue\n        for item, quantity in deposits:\n            room = max(0, 100 - sum(projected.values()))\n            amount = min(max(0, int(quantity or 0)), room)\n            if amount:\n                projected[item] = projected.get(item, 0) + amount\n    return projected\n\n\ndef _public_signature(farm):\n    keys = (\n        "WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON",\n        "COW", "SHEEP", "GOOSE", "PASTURE", "COOP", "WEED",\n    )\n    counts = {key: 0 for key in keys}\n    for row in (_get(farm, "tiles", []) or []):\n        for tile in row if isinstance(row, list) else [row]:\n            if not isinstance(tile, dict):\n                continue\n            for field in ("crop", "animal", "kind"):\n                value = str(tile.get(field, "")).upper()\n                if value in counts:\n                    counts[value] += 1\n                    break\n    return (\n        len(_get(farm, "hands", []) or []),\n        len(_get(farm, "unlocked_quadrants", []) or []),\n        tuple(counts[key] for key in sorted(counts)),\n    )\n\n\ndef _clone_distance(obs):\n    farms = list(_get(obs, "farms", []) or [])\n    if len(farms) < 2:\n        return 10**9\n    left, right = _public_signature(farms[0]), _public_signature(farms[1])\n    return (\n        abs(left[0] - right[0])\n        + 3 * abs(left[1] - right[1])\n        + sum(abs(a - b) for a, b in zip(left[2], right[2]))\n    )\n\n\ndef _shift_state(obs, step):\n    seat = _seat(obs)\n    state = _SHIFT_STATE[seat]\n    if step == 0 or step < int(state.get("last_step", -1)):\n        state = {"last_step": step, "due_step": -1, "due": {}}\n        _SHIFT_STATE[seat] = state\n    state["last_step"] = step\n    return state\n\n\ndef _repay_shift(obs, action, step):\n    if not _PREEMPT_ENABLED:\n        return action\n    state = _shift_state(obs, step)\n    if int(state.get("due_step", -1)) != step:\n        if int(state.get("due_step", -1)) < step:\n            state["due_step"], state["due"] = -1, {}\n        return action\n    due = {item: max(0, int(quantity)) for item, quantity in dict(state.get("due") or {}).items()}\n    market = []\n    for raw in action.get("market", []) or []:\n        order = list(raw)\n        if len(order) >= 3 and order[0] == "SELL" and due.get(order[1], 0) > 0:\n            item = order[1]\n            requested = max(0, int(order[2]))\n            reduction = min(requested, due[item])\n            requested -= reduction\n            due[item] -= reduction\n            if requested <= 0:\n                continue\n            order[2] = requested\n        market.append(order)\n    action["market"] = market\n    state["due_step"], state["due"] = -1, {}\n    return action\n\n\ndef _future_sells_at(step, horizon):\n    if step + horizon >= len(_ACTIONS):\n        return {}\n    result = {}\n    for raw in (_ACTIONS[step + horizon].get("market") or []):\n        if len(raw) >= 3 and raw[0] == "SELL" and raw[1] in _PREMIUM:\n            result[raw[1]] = result.get(raw[1], 0) + max(0, int(raw[2]))\n    return result\n\n\ndef _preempt_shift(obs, action, step):\n    if not _PREEMPT_ENABLED or not (_PREEMPT_START <= step < _PREEMPT_STOP):\n        return action\n    state = _shift_state(obs, step)\n    if state.get("due") or _clone_distance(obs) > _PREEMPT_MAX_CLONE_DISTANCE:\n        return action\n    market = list(action.get("market") or [])\n    if len(market) >= 10:\n        return action\n    remaining = _projected_shed(obs, action)\n    for raw in market:\n        if len(raw) >= 3 and raw[0] == "SELL":\n            item = raw[1]\n            remaining[item] = max(0, int(remaining.get(item, 0) or 0) - max(0, int(raw[2])))\n    prices = _get(_get(obs, "market", {}) or {}, "prices", {}) or {}\n\n    # Near-clone routes often expose their next premium sale through public\n    # state. Prefer a three-turn horizon against public-route competition; fall back to\n    # two and one turn when the longer shift is not safe.\n    for horizon in (3, 2, 1):\n        future = _future_sells_at(step, horizon)\n        if not future:\n            continue\n        shifted = {}\n        trial_market = list(market)\n        trial_remaining = dict(remaining)\n        for item in _PREMIUM:\n            future_quantity = max(0, int(future.get(item, 0) or 0))\n            if future_quantity < _PREEMPT_MIN_FUTURE_QUANTITY:\n                continue\n            base_price = float(_MARKET_PARAMS[item][0])\n            current_price = float(_get(prices, item, 0) or 0)\n            # At the $1 floor, SELL does not add market inventory, so moving\n            # that unit earlier cannot create queue pressure on the clone.\n            if current_price <= _PRICE_FLOOR:\n                continue\n            if current_price < base_price * _PREEMPT_MIN_PRICE_RATIO:\n                continue\n            target = min(\n                max(0, int(trial_remaining.get(item, 0) or 0)),\n                future_quantity,\n                _PREEMPT_MAX_BATCH,\n                max(1, int(round(future_quantity * _PREEMPT_FRACTION))),\n            )\n            if target <= 0 or len(trial_market) >= 10:\n                continue\n            trial_market.append(["SELL", item, target])\n            trial_remaining[item] = max(0, int(trial_remaining.get(item, 0) or 0) - target)\n            shifted[item] = target\n        if shifted:\n            action["market"] = trial_market[:10]\n            state["due_step"] = step + horizon\n            state["due"] = shifted\n            return action\n    return action\n\ndef _tile_at(farm, position):\n    try:\n        x, y = int(position[0]), int(position[1])\n        return (_get(farm, "tiles", []) or [])[y][x]\n    except (IndexError, TypeError, ValueError):\n        return "LOCKED"\n\n\ndef _trace_actor_action(step, actor):\n    trace = _ACTIONS[min(max(int(step), 0), len(_ACTIONS) - 1)] or {}\n    if actor == "farmer":\n        return list(trace.get("farmer") or ["PASS"])\n    hands = trace.get("hands", []) or []\n    return list(hands[actor] if actor < len(hands) else ["PASS"])\n\n\ndef _weed_repair_action(obs, action, step):\n    action = _align_hands(action, obs)\n    seat = _seat(obs)\n    game = _WEED_STATE[seat]\n    if step == 0 or step < game.get("last_step", -1):\n        game = {"last_step": step, "active": {}}\n        _WEED_STATE[seat] = game\n    game["last_step"] = step\n    farm = _farm(obs, seat)\n    positions = [_get(farm, "farmer"), *list(_get(farm, "hands", []) or [])]\n    unit_actions = [action.get("farmer", ["PASS"]), *list(action.get("hands") or [])]\n    active = game["active"]\n\n    for actor, transaction in list(active.items()):\n        index = 0 if actor == "farmer" else int(actor) + 1\n        if index >= len(unit_actions):\n            active.pop(actor, None)\n            continue\n        age = step - transaction["start"]\n        if age == 1:\n            unit_actions[index] = list(transaction["intended"])\n        elif 2 <= age <= 1 + _WEED_REPLAY_STEPS:\n            unit_actions[index] = _trace_actor_action(step - 1, actor)\n        else:\n            active.pop(actor, None)\n\n    for index, (position, intended) in enumerate(zip(positions, unit_actions)):\n        actor = "farmer" if index == 0 else index - 1\n        if actor in active or not isinstance(intended, list) or not intended:\n            continue\n        if intended[0] not in ("BUILD_PASTURE", "PLANT"):\n            continue\n        tile = _tile_at(farm, position)\n        if not isinstance(tile, dict) or tile.get("kind") != "WEED":\n            continue\n        active[actor] = {"start": step, "intended": list(intended)}\n        unit_actions[index] = ["DIG"]\n\n    action["farmer"] = unit_actions[0] if unit_actions else ["PASS"]\n    action["hands"] = unit_actions[1:]\n    return _align_hands(action, obs)\n\n\ndef _shape(name, value):\n    value = max(0.0, float(value))\n    if name == "linear":\n        return value\n    if name == "sq":\n        return value * value\n    if name == "sqrt":\n        return math.sqrt(value)\n    if name == "log":\n        return math.log1p(value)\n    if name == "log10":\n        return math.log10(1.0 + value)\n    raise ValueError(name)\n\n\ndef _market_price(item, inventory):\n    base, equilibrium, scale, below_func, below_target, above_func, above_target = _MARKET_PARAMS[item]\n    if inventory < equilibrium:\n        amplitude = below_target * base / _shape(below_func, scale)\n        price = base + amplitude * _shape(below_func, equilibrium - inventory)\n    else:\n        amplitude = above_target * base / _shape(above_func, scale)\n        price = base - amplitude * _shape(above_func, inventory - equilibrium)\n    return max(_PRICE_FLOOR, int(round(price)))\n\n\ndef _is_sell(order):\n    return (\n        isinstance(order, (list, tuple))\n        and len(order) >= 3\n        and order[0] == "SELL"\n        and order[1] in _MARKET_PARAMS\n    )\n\n\ndef _impact_score(obs, order):\n    if not _is_sell(order):\n        return float("-inf")\n    item = str(order[1])\n    try:\n        quantity = max(0, int(order[2]))\n    except (TypeError, ValueError):\n        return 0.0\n    market = _get(obs, "market", {}) or {}\n    inventory = _get(market, "inventory", {}) or {}\n    prices = _get(market, "prices", {}) or {}\n    current_inventory = int(_get(inventory, item, 10000) or 0)\n    current_quote = float(_get(prices, item, _market_price(item, current_inventory)) or 0)\n    later_quote = float(_market_price(item, current_inventory + quantity))\n    return float(quantity) * max(0.0, current_quote - later_quote)\n\n\ndef _demand_per_day(obs, configuration, item):\n    town = _get(obs, "town", {}) or {}\n    shops = list(_get(town, "unlocked_shops", []) or [])\n    turns_per_day = int(_get(configuration, "turnsPerDay", 24) or 24)\n    shop_interval = max(1, int(_get(configuration, "townShopSellInterval", 4) or 4))\n    demand = 0.0\n    for shop in shops:\n        products = _SHOP_PRODUCTS.get(shop, ())\n        if item in products:\n            demand += (turns_per_day / shop_interval) * (2 if len(products) == 1 else 1)\n    if item != "FERTILIZER":\n        center_interval = max(1, int(_get(configuration, "townCenterSellInterval", 24) or 24))\n        demand += turns_per_day / center_interval\n    return demand\n\n\ndef _order_score(obs, configuration, order):\n    score = _impact_score(obs, order)\n    if score <= 0 or not _is_sell(order):\n        return score\n    item = str(order[1])\n    quantity = max(0, int(order[2]))\n    market = _get(obs, "market", {}) or {}\n    inventory = _get(market, "inventory", {}) or {}\n    current_inventory = int(_get(inventory, item, 10000) or 0)\n    demand = max(0.25, _demand_per_day(obs, configuration, item))\n    excess = max(0.0, current_inventory + quantity - 10000)\n    urgency = min(1.0, (excess / demand) / 10.0)\n    return score * (1.0 + _DEMAND_ALPHA * urgency)\n\n\ndef _rank_sell_slots(obs, action, configuration):\n    action = _copy_action(action)\n    market = list(action.get("market") or [])\n    rows = [\n        (_order_score(obs, configuration, order), -index, list(order))\n        for index, order in enumerate(market)\n        if _is_sell(order)\n    ]\n    if len(rows) < 2:\n        return action\n    rows.sort(reverse=True)\n    ranked = iter(row[2] for row in rows)\n    action["market"] = [next(ranked) if _is_sell(order) else order for order in market]\n    return action\n\n\ndef _terminal_liquidation(obs, action, step):\n    if step < 716:\n        return action\n    action = _copy_action(action)\n    shed = _get(_get(obs, "private", {}) or {}, "shed", {}) or {}\n    planned = {item: 0 for item in _SELLABLE}\n    for order in action.get("market", []):\n        if _is_sell(order):\n            planned[str(order[1])] += max(0, int(order[2]))\n    for item in _LIQUIDATION_ORDER:\n        available = max(0, int(_get(shed, item, 0) or 0))\n        extra = available if step >= 718 else max(0, available - planned[item])\n        if extra and len(action["market"]) < 10:\n            action["market"].append(["SELL", item, extra])\n    return action\n\n\ndef agent(obs):\n    try:\n        step = min(max(0, int(_get(obs, "step", 0) or 0)), len(_ACTIONS) - 1)\n        action = _weed_repair_action(obs, _copy_action(_ACTIONS[step]), step)\n        action = _repay_shift(obs, action, step)\n        action = _rank_sell_slots(obs, action, None)\n        action = _preempt_shift(obs, action, step)\n        action = _terminal_liquidation(obs, action, step)\n        return _align_hands(action, obs)\n    except Exception:\n        farm = _farm(obs, _seat(obs))\n        return {\n            "farmer": ["PASS"],\n            "hands": [["PASS"] for _ in (_get(farm, "hands", []) or [])],\n            "market": [],\n        }\n\n\ndef _kaggle_submission_entrypoint(obs):\n    return agent(obs)\n'
+_top_agent_path = Path("_top_replay_agent.py").resolve()
+_top_agent_path.write_text(_TOP_AGENT_SOURCE, encoding="utf-8")
+assert hashlib.sha256(_top_agent_path.read_bytes()).hexdigest() == TOP_REPLAY_AGENT_SHA256
+
+def show_farm_motion(env, seat=0, stride=6, duration=18):
+    frames = list(range(0, len(env.steps), stride))
+    if frames[-1] != len(env.steps)-1:
+        frames.append(len(env.steps)-1)
+    observations = [env.steps[idx][seat].observation for idx in frames]
+    player_id = int(observations[0].player)
+    farms = [obs.farms[player_id] for obs in observations]
+    rows, cols = len(farms[0]['tiles']), len(farms[0]['tiles'][0])
+
+    colors = {
+        'LOCKED':'#212d35','EMPTY':'#e6ebee','WHEAT':'#e37d50','STRAWBERRY':'#d86d5c',
+        'MELON':'#6491b5','PASTURE':'#4f8ba1','WEED':'#b16f81','OTHER':'#a9aeb8'
+    }
+    def category(tile):
+        if tile == 'LOCKED': return 'LOCKED'
+        if tile is None: return 'EMPTY'
+        if isinstance(tile, dict):
+            kind = tile.get('kind')
+            if kind == 'PLANT': return tile.get('crop','OTHER')
+            if kind == 'PASTURE': return 'PASTURE'
+            if kind == 'WEED': return 'WEED'
+        return 'OTHER'
+
+    cell=27; gap=2; map_x=34; map_y=74
+    map_w=cols*cell; map_h=rows*cell
+    width=960; height=405
+    parts=[]
+    parts.append(f'<div style="background:#fff;border:1px solid #d6dde2;border-radius:24px;padding:14px 14px 10px;box-shadow:0 10px 28px rgba(26,50,66,.07);margin:14px 0 16px;overflow-x:auto;color:#182732">')
+    parts.append(f'<svg viewBox="0 0 {width} {height}" width="100%" style="min-width:760px;max-width:1040px;display:block;margin:auto" xmlns="http://www.w3.org/2000/svg">')
+    parts.append('<rect x="8" y="8" width="944" height="389" rx="22" fill="#f7f9fa" stroke="#d6dde2"/>')
+    parts.append('<text x="34" y="34" font-size="17" font-weight="800" fill="#182732">Farm topology in motion</text>')
+    parts.append('<text x="34" y="54" font-size="11.5" fill="#5e6673">A compressed replay of the full 720-turn season · tiles + farmer + hired hands</text>')
+
+    # phase rail
+    phase_x=495; phase_y=35; phase_w=410
+    phases=[(0,.17,'BUILD','#2e6286'),(.17,.67,'SCALE','#1d7493'),(.67,.93,'PROTECT','#ad6477'),(.93,1.0,'CLOSE','#b54614')]
+    for a,b,label,color in phases:
+        x=phase_x+a*phase_w; w=(b-a)*phase_w
+        parts.append(f'<rect x="{x:.1f}" y="{phase_y}" width="{w:.1f}" height="7" rx="3.5" fill="{color}" opacity=".72"/>')
+        if w>45:
+            parts.append(f'<text x="{x+w/2:.1f}" y="{phase_y+22}" text-anchor="middle" font-size="9" font-weight="800" fill="{color}">{label}</text>')
+    parts.append(f'<circle cx="{phase_x}" cy="{phase_y+3.5}" r="6" fill="#FFFFFF" stroke="#182732" stroke-width="2"><animate attributeName="cx" values="{phase_x};{phase_x+phase_w}" dur="{duration}s" repeatCount="indefinite"/></circle>')
+
+    # map background and grid
+    parts.append(f'<rect x="{map_x-8}" y="{map_y-8}" width="{map_w+16}" height="{map_h+16}" rx="18" fill="#FFFFFF" stroke="#d6dde2"/>')
+    nframes=len(frames)
+    for r in range(rows):
+        for c in range(cols):
+            vals=[colors[category(f['tiles'][r][c])] for f in farms]
+            x=map_x+c*cell; y=map_y+r*cell
+            parts.append(f'<rect x="{x}" y="{y}" width="{cell-gap}" height="{cell-gap}" rx="4" fill="{vals[0]}"><animate attributeName="fill" values="{";".join(vals)}" dur="{duration}s" calcMode="discrete" repeatCount="indefinite"/></rect>')
+
+    # moving farmer
+    fx=[]; fy=[]
+    for farm in farms:
+        rr,cc=farm['farmer']
+        fx.append(map_x+cc*cell+(cell-gap)/2); fy.append(map_y+rr*cell+(cell-gap)/2)
+    parts.append(f'<circle cx="{fx[0]:.1f}" cy="{fy[0]:.1f}" r="8.8" fill="#FFFFFF" stroke="#182732" stroke-width="3"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in fx)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in fy)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/></circle>')
+    parts.append(f'<circle cx="{fx[0]:.1f}" cy="{fy[0]:.1f}" r="3.2" fill="#2e6286"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in fx)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in fy)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/></circle>')
+
+    # hired hands
+    max_hands=max(len(f['hands']) for f in farms)
+    offsets=[(-5,-5),(5,-5),(-5,5),(5,5),(0,-7),(0,7),(-7,0),(7,0)]
+    for h in range(max_hands):
+        xs=[]; ys=[]; op=[]
+        dx,dy=offsets[h%len(offsets)]
+        for f in farms:
+            if h < len(f['hands']):
+                rr,cc=f['hands'][h]
+                xs.append(map_x+cc*cell+(cell-gap)/2+dx*.55); ys.append(map_y+rr*cell+(cell-gap)/2+dy*.55); op.append('0.9')
+            else:
+                xs.append(map_x); ys.append(map_y); op.append('0')
+        parts.append(f'<circle cx="{xs[0]:.1f}" cy="{ys[0]:.1f}" r="3.3" fill="#d9eef5" stroke="#1d7493" stroke-width="1.4" opacity="{op[0]}"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in xs)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in ys)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="opacity" values="{";".join(op)}" dur="{duration}s" calcMode="discrete" repeatCount="indefinite"/></circle>')
+
+    # right-side legend / readout
+    sx=350
+    parts.append(f'<text x="{sx}" y="88" font-size="11" font-weight="800" letter-spacing="1.3" fill="#5e6673">WHAT TO WATCH</text>')
+    notes=[('Capacity expands','More cells become productive before the closeout.','#2e6286'),('Labor circulates','White/teal markers reveal routing and service pressure.','#1d7493'),('Weeds are local shocks','Purple cells appear stochastically; repair should stay local.','#b16f81'),('Deadline changes behavior','The final phase converts operating value back to cash.','#b54614')]
+    yy=108
+    for title,desc,col in notes:
+        parts.append(f'<circle cx="{sx+4}" cy="{yy+3}" r="4" fill="{col}"/><text x="{sx+17}" y="{yy+6}" font-size="12.5" font-weight="800" fill="#182732">{html.escape(title)}</text><text x="{sx+17}" y="{yy+24}" font-size="10.5" fill="#5e6673">{html.escape(desc)}</text>')
+        yy+=52
+
+    # legend
+    parts.append(f'<text x="{sx}" y="317" font-size="10" font-weight="800" letter-spacing="1.2" fill="#5e6673">TILES</text>')
+    legend=[('Empty','EMPTY'),('Wheat','WHEAT'),('Strawberry','STRAWBERRY'),('Melon','MELON'),('Pasture','PASTURE'),('Weed','WEED'),('Locked','LOCKED')]
+    lx=sx; ly=331
+    for i,(label,key) in enumerate(legend):
+        col=i%4; row=i//4; x=lx+col*112; y=ly+row*27
+        parts.append(f'<rect x="{x}" y="{y-10}" width="13" height="13" rx="3" fill="{colors[key]}"/><text x="{x+19}" y="{y+1}" font-size="10" fill="#546068">{label}</text>')
+    parts.append(f'<circle cx="{sx+4}" cy="389" r="6" fill="#fff" stroke="#182732" stroke-width="2"/><text x="{sx+17}" y="393" font-size="10" fill="#546068">Farmer</text><circle cx="{sx+99}" cy="389" r="3.3" fill="#d9eef5" stroke="#1d7493" stroke-width="1.3"/><text x="{sx+111}" y="393" font-size="10" fill="#546068">Hands</text>')
+    parts.append('</svg></div>')
+    display(HTML(''.join(parts)))
+
+# This is the same direct call used in the diagnostic section: build a live env,
+# run the actual agent, then render the replay from env.steps.
+TOP_REPLAY_SEED = 70117
+env = make(
+    "kaggriculture",
+    configuration={"episodeSteps": 720, "seed": TOP_REPLAY_SEED},
+    debug=False,
+)
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    env.run([str(_top_agent_path), str(_top_agent_path)])
+show_farm_motion(env, seat=0, stride=6, duration=18)
+
+try:
+    _top_agent_path.unlink()
+except OSError:
+    pass
+
+
+===== CELL 5 [markdown] =====
+## Notebook map
+
+<div class="kg-roadmap">
+  <div class="kg-road"><span class="n">01</span><span class="t">Understand the economy</span><span class="d">Review the win condition, the 720-turn horizon, shared-market pricing, and why raw quotes are only the first clue.</span></div>
+  <div class="kg-road ice"><span class="n">02</span><span class="t">See the controller</span><span class="d">Follow the layered design: season planning, local repair, market protection, and final cash conversion.</span></div>
+  <div class="kg-road ember"><span class="n">03</span><span class="t">Audit the behavior</span><span class="d">Use compact EDA and diagnostic plots to connect mechanism, capital flow, prices, and action mix.</span></div>
+  <div class="kg-road crimson"><span class="n">04</span><span class="t">Ship the submission</span><span class="d">Write <code>main.py</code>, validate a full 720-turn run, package the archive, and rerun the packaged code.</span></div>
+</div>
+<div class="kg-note ice"><div class="title">Reader promise</div><div class="body">This notebook is intentionally concise on math and focused on operational intuition. Every figure and callout is here to explain a decision, not just decorate the page.</div></div>
+
+
+===== CELL 6 [markdown] =====
+## 1. The game in one minute
+
+<div class="kg-prose"><div class="lead">Kaggriculture is a <b>two-player farming economy</b>. One season is <b>30 days × 24 turns = 720 turns</b>. The player with the higher terminal bank wins. Coin margin is useful for diagnosis, but strategy promotion is decided by <b>wins, losses, and ties</b>.</div></div>
+
+<div class="kg-strip">
+  <div class="kg-mini"><b>Capital</b><small>land · animals · seeds</small></div>
+  <div class="kg-mini"><b>Operations</b><small>workers · routes · timing</small></div>
+  <div class="kg-mini"><b>Biology</b><small>growth · water · fertilizer</small></div>
+  <div class="kg-mini"><b>Market</b><small>shared prices · town demand</small></div>
+  <div class="kg-mini"><b>Finish</b><small>cash in the bank at turn 720</small></div>
+</div>
+
+<div class="kg-note ember"><div class="title">The key operating insight</div><div class="body">A high spot price can still be a bad decision if the crop takes too long, consumes scarce labor, or crashes after repeated sales. Good play is about <b>economic timing</b>, not just expensive items.</div></div>
+
+
+<div class="kg-note ice"><div class="title">Current town-demand regime</div><div class="body">The Town Center now removes one of each non-fertilizer product <b>once per day at a flat rate</b>. Shops unlock <b>with replacement</b>, so duplicate shop instances can concentrate demand on a small set of products. The controller therefore reads the live shop list instead of assuming a balanced town.</div></div>
+
+
+===== CELL 7 [markdown] =====
+## 2. Imports and visual helpers
+
+<div class="kg-prose"><div class="lead">The Kaggle runtime already provides the environment and analysis libraries used below. The public notebook contains no installation, extraction, path modification, or version-check cell.</div><div class="micro">The plotting canvas is deliberately self-contained, so charts stay legible in both Kaggle Light and Dark themes.</div></div>
+
+===== CELL 8 [code] =====
+from pathlib import Path
+from collections import Counter
+from cycler import cycler
+import contextlib
+import gzip
+import html
+import hashlib
+import io
+import math
+import py_compile
+import tarfile
+import tempfile
+
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+import numpy as np
+import pandas as pd
+from IPython.display import HTML, Image, display
+
+# Silence only optional environment import chatter.
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    from kaggle_environments import make
+
+# Figures use a light, self-contained canvas so the saved outputs remain readable
+# in both Kaggle light and dark themes.
+CANVAS = "#f7f9fa"
+PANEL = "#FFFFFF"
+GRID = "#d6dde2"
+TEXT = "#182732"
+MUTED = "#5e6673"
+# Discrete accents sampled from seaborn's `icefire` diverging map: ice on the
+# cold end, ember on the warm end, deep indigo through the middle.
+PALETTE = ["#55a3cd", "#377ad0", "#4954b0", "#9c2f45", "#c93f3a", "#e96f36"]
+ICE = "#377ad0"       # cold accent  — supply, capacity, plans
+EMBER = "#e96f36"     # warm accent  — price, pressure, realised money
+INDIGO = "#3a3550"    # neutral accent for secondary series
+
+ICEFIRE = ListedColormap([
+    "#bde7db", "#84c1cf", "#4c9ccd", "#4167c7", "#454386", "#2a293d",
+    "#1f1e1e", "#3f2228", "#722c3d", "#b93540", "#e15c33", "#f49d63", "#ffd4ac",
+], name="icefire")
+
+plt.rcParams.update({
+    "figure.dpi": 92,
+    "savefig.dpi": 92,
+    "font.size": 10,
+    "figure.facecolor": CANVAS,
+    "axes.facecolor": PANEL,
+    "axes.edgecolor": GRID,
+    "axes.labelcolor": TEXT,
+    "axes.titlecolor": TEXT,
+    "xtick.color": MUTED,
+    "ytick.color": MUTED,
+    "text.color": TEXT,
+    "grid.color": GRID,
+    "axes.prop_cycle": cycler(color=PALETTE),
+})
+
+def ice_axes(ax, title=None, xlabel=None, ylabel=None):
+    ax.set_facecolor(PANEL)
+    for spine in ax.spines.values():
+        spine.set_color(GRID)
+    ax.tick_params(colors=MUTED)
+    ax.grid(alpha=.55)
+    if title:
+        ax.set_title(title, color=TEXT, fontsize=14, fontweight="bold", pad=12)
+    if xlabel:
+        ax.set_xlabel(xlabel, color=TEXT)
+    if ylabel:
+        ax.set_ylabel(ylabel, color=TEXT)
+    return ax
+
+def show_ice_figure(fig, quality=84):
+    fig.patch.set_facecolor(CANVAS)
+    buffer = io.BytesIO()
+    fig.savefig(
+        buffer,
+        format="jpeg",
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor(),
+        pil_kwargs={"quality": quality, "optimize": True},
+    )
+    plt.close(fig)
+    display(Image(data=buffer.getvalue(), format="jpeg"))
+
+def show_ice_table(frame, caption=None, formats=None):
+    """Theme-independent compact table for precise audit data."""
+    table = frame.copy()
+    if formats:
+        for column, formatter in formats.items():
+            if column in table:
+                table[column] = table[column].map(formatter)
+    caption_html = f'<div style="font-size:12px;letter-spacing:.10em;text-transform:uppercase;font-weight:800;color:#1a4968;margin:0 0 9px">{caption}</div>' if caption else ""
+    html = table.to_html(index=False, border=0, classes="ice-table", escape=False)
+    style = ("<style>.ice-table{border-collapse:collapse;width:100%;color:#182732;font-size:13.5px}"
+             ".ice-table th{background:#eef3f6;color:#283c4a;text-align:left;padding:10px 11px;border-bottom:1px solid #ccd6dd;font-size:12px;letter-spacing:.02em}"
+             ".ice-table td{padding:9px 11px;border-bottom:1px solid #e1e7eb;color:#2a3943}"
+             ".ice-table tr:nth-child(even){background:#f8fafb}.ice-table tr:nth-child(odd){background:#fff}"
+             ".ice-table tbody tr:last-child td{border-bottom:0}</style>")
+    wrapper = '<div style="background:#fff;border:1px solid #d4dbe0;border-radius:17px;padding:15px 16px;overflow-x:auto;box-shadow:0 5px 16px rgba(26,50,66,.05);color:#182732">'
+    display(HTML(wrapper + caption_html + style + html + "</div>"))
+
+
+def show_kpi_cards(items, eyebrow="Observed in this run"):
+    cards = []
+    for label, value, note, accent in items:
+        cards.append(
+            f'<div style="background:#fff;border:1px solid #d6dde2;border-top:4px solid {accent};border-radius:16px;padding:14px 15px;color:#182732;box-shadow:0 4px 14px rgba(26,50,66,.04)">'
+            f'<div style="font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:800;color:#636b79">{label}</div>'
+            f'<div style="font-size:23px;font-weight:850;letter-spacing:-.02em;margin:3px 0 2px;color:#182732">{value}</div>'
+            f'<div style="font-size:12px;color:#656e7c;line-height:1.35">{note}</div></div>'
+        )
+    display(HTML(
+        f'<div style="font-size:12px;letter-spacing:.10em;text-transform:uppercase;font-weight:800;color:#1a4968;margin:18px 0 8px">{eyebrow}</div>'
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:0 0 12px">' + ''.join(cards) + '</div>'
+    ))
+
+
+def show_insight(title, body, accent="#2e6286", tag="INSIGHT"):
+    display(HTML(
+        f'<div style="background:#fff;border:1px solid #d6dde2;border-left:5px solid {accent};border-radius:15px;padding:14px 16px;margin:12px 0;color:#182732;box-shadow:0 4px 14px rgba(26,50,66,.04)">'
+        f'<div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:{accent};margin-bottom:4px">{tag}</div>'
+        f'<div style="font-weight:800;margin-bottom:4px;color:#182732">{title}</div>'
+        f'<div style="color:#546068;line-height:1.55;font-size:13.5px">{body}</div></div>'
+    ))
+
+def shade_season_phases(ax):
+    """Light phase bands that connect diagnostics to the 30-day strategy atlas."""
+    phases = [
+        (1, 5, "BUILD", "#2e6286"),
+        (5, 20, "SCALE", "#1d7493"),
+        (20, 28, "PROTECT", "#ad6477"),
+        (28, 30, "CLOSE", "#b54614"),
+    ]
+    for start, end, label, color in phases:
+        ax.axvspan(start, end, color=color, alpha=.055, lw=0, zorder=0)
+        ax.text(
+            (start + end) / 2,
+            .965,
+            label,
+            transform=ax.get_xaxis_transform(),
+            ha="center",
+            va="top",
+            fontsize=8,
+            fontweight="bold",
+            color=color,
+            alpha=.82,
+        )
+    return ax
+
+
+def show_market_motion(prices, item="STRAWBERRY", probe_quantity=20):
+    """A tiny SVG animation: no GIF, no base64, and only a few KB of notebook output."""
+    prices = np.asarray(prices, dtype=float)
+    revenue = np.cumsum(prices)
+    if len(prices) < 3:
+        return
+
+    width, height = 960, 370
+    left = (62, 86, 360, 205)
+    right = (540, 86, 360, 205)
+
+    def path_for(values, box):
+        x0, y0, w, h = box
+        values = np.asarray(values, dtype=float)
+        lo, hi = float(values.min()), float(values.max())
+        span = max(hi - lo, 1.0)
+        pts = []
+        for i, value in enumerate(values):
+            x = x0 + (w * i / max(len(values) - 1, 1))
+            y = y0 + h - h * (float(value) - lo) / span
+            pts.append((x, y))
+        return "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in pts), lo, hi
+
+    price_path, p_lo, p_hi = path_for(prices, left)
+    rev_path, r_lo, r_hi = path_for(revenue, right)
+    q = min(int(probe_quantity), max(1, len(prices) // 3))
+    impact_score = float(q * max(0, prices[0] - prices[min(q, len(prices)-1)]))
+
+    def money(v):
+        return f"${v:,.0f}"
+
+    svg = f'''<div style="background:#fff;border:1px solid #d6dde2;border-radius:22px;padding:16px 16px 12px;box-shadow:0 8px 24px rgba(26,50,66,.06);margin:12px 0 16px;overflow-x:auto;color:#182732">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">
+      <div style="flex:1;min-width:145px;background:#f2f7fa;border:1px solid #d9e1e7;border-radius:14px;padding:10px 12px"><div style="font-size:10px;letter-spacing:.11em;font-weight:800;color:#5e6673">OPENING QUOTE</div><div style="font-size:21px;font-weight:850;color:#182732">{money(prices[0])}</div></div>
+      <div style="flex:1;min-width:145px;background:#eff7f9;border:1px solid #d6e3e8;border-radius:14px;padding:10px 12px"><div style="font-size:10px;letter-spacing:.11em;font-weight:800;color:#5e6673">AFTER {len(prices)} UNITS</div><div style="font-size:21px;font-weight:850;color:#182732">{money(prices[-1])}</div></div>
+      <div style="flex:1;min-width:145px;background:#faf2f4;border:1px solid #ebdadf;border-radius:14px;padding:10px 12px"><div style="font-size:10px;letter-spacing:.11em;font-weight:800;color:#5e6673">{q}-UNIT IMPACT SCORE</div><div style="font-size:21px;font-weight:850;color:#182732">{money(impact_score)}</div></div>
+      <div style="flex:1;min-width:145px;background:#fdf1eb;border:1px solid #eecebf;border-radius:14px;padding:10px 12px"><div style="font-size:10px;letter-spacing:.11em;font-weight:800;color:#5e6673">TOTAL REVENUE</div><div style="font-size:21px;font-weight:850;color:#182732">{money(revenue[-1])}</div></div>
+    </div>
+    <svg viewBox="0 0 {width} {height}" width="100%" style="min-width:760px;max-width:980px;display:block;margin:auto" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="Animated market price erosion and cumulative revenue">
+      <defs>
+        <linearGradient id="kgPriceGrad" x1="0" x2="1"><stop offset="0" stop-color="#275d82"/><stop offset="1" stop-color="#1d7493"/></linearGradient>
+        <linearGradient id="kgRevGrad" x1="0" x2="1"><stop offset="0" stop-color="#1d7493"/><stop offset="1" stop-color="#ad6477"/></linearGradient>
+        <filter id="kgGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect x="18" y="14" width="924" height="334" rx="22" fill="#f7f9fa" stroke="#d6dde2"/>
+      <text x="62" y="48" fill="#182732" font-size="17" font-weight="800">Market pressure in motion · {item.title()}</text>
+      <text x="62" y="68" fill="#5e6673" font-size="12">The same sale becomes less valuable as shared inventory moves before it.</text>
+
+      <rect x="44" y="78" width="396" height="232" rx="16" fill="#fff" stroke="#d6dde2"/>
+      <rect x="522" y="78" width="396" height="232" rx="16" fill="#fff" stroke="#d6dde2"/>
+      <text x="62" y="105" fill="#182732" font-size="13" font-weight="800">SELL PRICE</text>
+      <text x="540" y="105" fill="#182732" font-size="13" font-weight="800">CUMULATIVE REVENUE</text>
+      <text x="62" y="299" fill="#5e6673" font-size="11">units added to shared market inventory →</text>
+      <text x="540" y="299" fill="#5e6673" font-size="11">units sold →</text>
+      <text x="404" y="126" text-anchor="end" fill="#5e6673" font-size="10">{money(p_hi)}</text>
+      <text x="404" y="282" text-anchor="end" fill="#5e6673" font-size="10">{money(p_lo)}</text>
+      <text x="882" y="126" text-anchor="end" fill="#5e6673" font-size="10">{money(r_hi)}</text>
+      <text x="882" y="282" text-anchor="end" fill="#5e6673" font-size="10">{money(r_lo)}</text>
+
+      <path d="{price_path}" fill="none" stroke="#c0ccd5" stroke-width="4" opacity=".5"/>
+      <path id="kgPricePath" d="{price_path}" pathLength="1" fill="none" stroke="url(#kgPriceGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="1">
+        <animate attributeName="stroke-dashoffset" values="1;0;0;1" keyTimes="0;.76;.92;1" dur="7s" repeatCount="indefinite"/>
+      </path>
+      <circle r="6" fill="#275d82" stroke="#fff" stroke-width="2" filter="url(#kgGlow)">
+        <animateMotion dur="7s" repeatCount="indefinite" keyPoints="0;1;1;0" keyTimes="0;.76;.92;1" calcMode="linear"><mpath xlink:href="#kgPricePath"/></animateMotion>
+      </circle>
+
+      <path d="{rev_path}" fill="none" stroke="#cadae0" stroke-width="4" opacity=".5"/>
+      <path id="kgRevPath" d="{rev_path}" pathLength="1" fill="none" stroke="url(#kgRevGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="1">
+        <animate attributeName="stroke-dashoffset" values="1;0;0;1" keyTimes="0;.76;.92;1" dur="7s" repeatCount="indefinite"/>
+      </path>
+      <circle r="6" fill="#ad6477" stroke="#fff" stroke-width="2" filter="url(#kgGlow)">
+        <animateMotion dur="7s" repeatCount="indefinite" keyPoints="0;1;1;0" keyTimes="0;.76;.92;1" calcMode="linear"><mpath xlink:href="#kgRevPath"/></animateMotion>
+      </circle>
+
+      <text x="480" y="338" text-anchor="middle" fill="#546068" font-size="12">SVG animation: lightweight, vector-sharp, and free of embedded GIF/base64 payloads.</text>
+    </svg></div>'''
+    display(HTML(svg))
+
+
+
+def show_farm_motion(env, seat=0, stride=6, duration=18):
+    frames = list(range(0, len(env.steps), stride))
+    if frames[-1] != len(env.steps)-1:
+        frames.append(len(env.steps)-1)
+    observations = [env.steps[idx][seat].observation for idx in frames]
+    player_id = int(observations[0].player)
+    farms = [obs.farms[player_id] for obs in observations]
+    rows, cols = len(farms[0]['tiles']), len(farms[0]['tiles'][0])
+
+    colors = {
+        'LOCKED':'#212d35','EMPTY':'#e6ebee','WHEAT':'#e37d50','STRAWBERRY':'#d86d5c',
+        'MELON':'#6491b5','PASTURE':'#4f8ba1','WEED':'#b16f81','OTHER':'#a9aeb8'
+    }
+    def category(tile):
+        if tile == 'LOCKED': return 'LOCKED'
+        if tile is None: return 'EMPTY'
+        if isinstance(tile, dict):
+            kind = tile.get('kind')
+            if kind == 'PLANT': return tile.get('crop','OTHER')
+            if kind == 'PASTURE': return 'PASTURE'
+            if kind == 'WEED': return 'WEED'
+        return 'OTHER'
+
+    cell=27; gap=2; map_x=34; map_y=74
+    map_w=cols*cell; map_h=rows*cell
+    width=960; height=405
+    parts=[]
+    parts.append(f'<div style="background:#fff;border:1px solid #d6dde2;border-radius:24px;padding:14px 14px 10px;box-shadow:0 10px 28px rgba(26,50,66,.07);margin:14px 0 16px;overflow-x:auto;color:#182732">')
+    parts.append(f'<svg viewBox="0 0 {width} {height}" width="100%" style="min-width:760px;max-width:1040px;display:block;margin:auto" xmlns="http://www.w3.org/2000/svg">')
+    parts.append('<rect x="8" y="8" width="944" height="389" rx="22" fill="#f7f9fa" stroke="#d6dde2"/>')
+    parts.append('<text x="34" y="34" font-size="17" font-weight="800" fill="#182732">Farm topology in motion</text>')
+    parts.append('<text x="34" y="54" font-size="11.5" fill="#5e6673">A compressed replay of the full 720-turn season · tiles + farmer + hired hands</text>')
+
+    # phase rail
+    phase_x=495; phase_y=35; phase_w=410
+    phases=[(0,.17,'BUILD','#2e6286'),(.17,.67,'SCALE','#1d7493'),(.67,.93,'PROTECT','#ad6477'),(.93,1.0,'CLOSE','#b54614')]
+    for a,b,label,color in phases:
+        x=phase_x+a*phase_w; w=(b-a)*phase_w
+        parts.append(f'<rect x="{x:.1f}" y="{phase_y}" width="{w:.1f}" height="7" rx="3.5" fill="{color}" opacity=".72"/>')
+        if w>45:
+            parts.append(f'<text x="{x+w/2:.1f}" y="{phase_y+22}" text-anchor="middle" font-size="9" font-weight="800" fill="{color}">{label}</text>')
+    parts.append(f'<circle cx="{phase_x}" cy="{phase_y+3.5}" r="6" fill="#FFFFFF" stroke="#182732" stroke-width="2"><animate attributeName="cx" values="{phase_x};{phase_x+phase_w}" dur="{duration}s" repeatCount="indefinite"/></circle>')
+
+    # map background and grid
+    parts.append(f'<rect x="{map_x-8}" y="{map_y-8}" width="{map_w+16}" height="{map_h+16}" rx="18" fill="#FFFFFF" stroke="#d6dde2"/>')
+    nframes=len(frames)
+    for r in range(rows):
+        for c in range(cols):
+            vals=[colors[category(f['tiles'][r][c])] for f in farms]
+            x=map_x+c*cell; y=map_y+r*cell
+            parts.append(f'<rect x="{x}" y="{y}" width="{cell-gap}" height="{cell-gap}" rx="4" fill="{vals[0]}"><animate attributeName="fill" values="{";".join(vals)}" dur="{duration}s" calcMode="discrete" repeatCount="indefinite"/></rect>')
+
+    # moving farmer
+    fx=[]; fy=[]
+    for farm in farms:
+        rr,cc=farm['farmer']
+        fx.append(map_x+cc*cell+(cell-gap)/2); fy.append(map_y+rr*cell+(cell-gap)/2)
+    parts.append(f'<circle cx="{fx[0]:.1f}" cy="{fy[0]:.1f}" r="8.8" fill="#FFFFFF" stroke="#182732" stroke-width="3"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in fx)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in fy)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/></circle>')
+    parts.append(f'<circle cx="{fx[0]:.1f}" cy="{fy[0]:.1f}" r="3.2" fill="#2e6286"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in fx)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in fy)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/></circle>')
+
+    # hired hands
+    max_hands=max(len(f['hands']) for f in farms)
+    offsets=[(-5,-5),(5,-5),(-5,5),(5,5),(0,-7),(0,7),(-7,0),(7,0)]
+    for h in range(max_hands):
+        xs=[]; ys=[]; op=[]
+        dx,dy=offsets[h%len(offsets)]
+        for f in farms:
+            if h < len(f['hands']):
+                rr,cc=f['hands'][h]
+                xs.append(map_x+cc*cell+(cell-gap)/2+dx*.55); ys.append(map_y+rr*cell+(cell-gap)/2+dy*.55); op.append('0.9')
+            else:
+                xs.append(map_x); ys.append(map_y); op.append('0')
+        parts.append(f'<circle cx="{xs[0]:.1f}" cy="{ys[0]:.1f}" r="3.3" fill="#d9eef5" stroke="#1d7493" stroke-width="1.4" opacity="{op[0]}"><animate attributeName="cx" values="{";".join(f"{v:.1f}" for v in xs)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="cy" values="{";".join(f"{v:.1f}" for v in ys)}" dur="{duration}s" calcMode="linear" repeatCount="indefinite"/><animate attributeName="opacity" values="{";".join(op)}" dur="{duration}s" calcMode="discrete" repeatCount="indefinite"/></circle>')
+
+    # right-side legend / readout
+    sx=350
+    parts.append(f'<text x="{sx}" y="88" font-size="11" font-weight="800" letter-spacing="1.3" fill="#5e6673">WHAT TO WATCH</text>')
+    notes=[('Capacity expands','More cells become productive before the closeout.','#2e6286'),('Labor circulates','White/teal markers reveal routing and service pressure.','#1d7493'),('Weeds are local shocks','Purple cells appear stochastically; repair should stay local.','#b16f81'),('Deadline changes behavior','The final phase converts operating value back to cash.','#b54614')]
+    yy=108
+    for title,desc,col in notes:
+        parts.append(f'<circle cx="{sx+4}" cy="{yy+3}" r="4" fill="{col}"/><text x="{sx+17}" y="{yy+6}" font-size="12.5" font-weight="800" fill="#182732">{html.escape(title)}</text><text x="{sx+17}" y="{yy+24}" font-size="10.5" fill="#5e6673">{html.escape(desc)}</text>')
+        yy+=52
+
+    # legend
+    parts.append(f'<text x="{sx}" y="317" font-size="10" font-weight="800" letter-spacing="1.2" fill="#5e6673">TILES</text>')
+    legend=[('Empty','EMPTY'),('Wheat','WHEAT'),('Strawberry','STRAWBERRY'),('Melon','MELON'),('Pasture','PASTURE'),('Weed','WEED'),('Locked','LOCKED')]
+    lx=sx; ly=331
+    for i,(label,key) in enumerate(legend):
+        col=i%4; row=i//4; x=lx+col*112; y=ly+row*27
+        parts.append(f'<rect x="{x}" y="{y-10}" width="13" height="13" rx="3" fill="{colors[key]}"/><text x="{x+19}" y="{y+1}" font-size="10" fill="#546068">{label}</text>')
+    parts.append(f'<circle cx="{sx+4}" cy="389" r="6" fill="#fff" stroke="#182732" stroke-width="2"/><text x="{sx+17}" y="393" font-size="10" fill="#546068">Farmer</text><circle cx="{sx+99}" cy="389" r="3.3" fill="#d9eef5" stroke="#1d7493" stroke-width="1.3"/><text x="{sx+111}" y="393" font-size="10" fill="#546068">Hands</text>')
+    parts.append('</svg></div>')
+    display(HTML(''.join(parts)))
+
+
+
+
+
+===== CELL 9 [markdown] =====
+## 3. Opening economy EDA
+
+<div class="kg-prose"><div class="lead">A high opening price is only a clue. The real decision must combine price, growth time, worker travel, feed, storage, and the price erosion caused by selling into a shared market.</div></div>
+
+<div class="kg-insight-row">
+  <div class="kg-insight"><div class="num">Insight 01</div><b>Price is stateful</b><span>A quote is not a fixed reward. Selling changes future inventory and therefore later prices.</span></div>
+  <div class="kg-insight"><div class="num">Insight 02</div><b>Throughput beats headline value</b><span>A premium crop only matters if the farm can repeatedly water, harvest, transport, and sell it before the deadline.</span></div>
+  <div class="kg-insight"><div class="num">Insight 03</div><b>Cash timing matters</b><span>One dollar earned early can finance labor or land; the same dollar earned on turn 719 cannot compound.</span></div>
+</div>
+
+
+<div class="kg-takeaway">
+  <div class="label">Takeaway · Section 3</div>
+  <ul>
+    <li><b>A quote is a state, not a reward.</b> Every unit sold moves the next unit's price, so the headline number on the board is the <i>best</i> case you will get, never the average.</li>
+    <li><b>Throughput beats sticker value.</b> A premium crop only counts if labour can water, harvest, carry and sell it repeatedly before turn 720.</li>
+    <li><b>Early money compounds; terminal money does not.</b> A coin banked on day 8 buys hands, land and livestock. The same coin on turn 719 buys nothing.</li>
+  </ul>
+  <div class="verdict"><b>So what:</b> rank crops by coins per <i>action</i> against the price you will actually realise — not by the price printed at inventory 10 000.</div>
+</div>
+
+
+===== CELL 10 [code] =====
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    preview_env = make(
+        "kaggriculture",
+        configuration={"episodeSteps": 720, "seed": 70117},
+        debug=False,
+    )
+opening = preview_env.steps[0][0].observation
+opening_prices = dict(opening.market["prices"])
+opening_inventory = dict(opening.market["inventory"])
+
+contract = pd.DataFrame([
+    ("Season", "30 days × 24 turns", "Every investment has a hard liquidation deadline"),
+    ("Players", "2", "Both farms affect the same market"),
+    ("Starting bank", f"{float(opening.farms[0]['money']):,.0f}", "Early cash must become productive capacity"),
+    ("Market products", str(len(opening_prices)), "Sales compete for price and queue position"),
+    ("Orders / turn", "10", "Order selection and order sequence both matter"),
+], columns=["Mechanic", "Observed value", "Why it matters"])
+show_ice_table(contract, "Environment contract used by the controller")
+
+price_frame = pd.DataFrame({"product": list(opening_prices), "opening_price": list(opening_prices.values())}).sort_values("opening_price")
+fig, ax = plt.subplots(figsize=(9.2, 4.1))
+ax.barh(price_frame["product"], price_frame["opening_price"], color=PALETTE[0], alpha=.9)
+ice_axes(ax, "Opening quotes: useful, but not a profit ranking", "Coins per unit", "")
+ax.grid(axis="x", alpha=.25); ax.grid(axis="y", alpha=0)
+for i, v in enumerate(price_frame["opening_price"]):
+    ax.text(v + max(price_frame["opening_price"])*.015, i, f"{v:,.0f}", va="center", color=TEXT, fontsize=9)
+show_ice_figure(fig)
+
+highest_product = price_frame.iloc[-1]["product"]
+highest_price = float(price_frame.iloc[-1]["opening_price"])
+lowest_price = float(price_frame.iloc[0]["opening_price"])
+show_insight(
+    "Opening price is a state variable, not a crop ranking",
+    f"The opening snapshot ranges from {lowest_price:,.0f} to {highest_price:,.0f} coins per unit, with {highest_product.title()} highest at this instant. The controller does not equate that quote with profit: growth time, labor travel, repeatability, inventory timing, and later price erosion still decide whether the asset is worth funding.",
+    accent="#1d7493",
+    tag="EDA READ"
+)
+
+
+===== CELL 11 [markdown] =====
+## 4. Architecture: preserve the route, improve the decision edge
+
+<div class="kg-prose"><div class="lead">The controller separates <b>season-scale planning</b> from <b>turn-scale correction</b>. A complete route owns production, labor, purchases, and planned sales. Runtime logic touches only narrow failure modes: a local WEED obstruction, the order in which planned SELL slots reach the shared market, and the predictable timing of a near-clone's premium sale. The route itself remains the economic backbone.</div></div>
+
+<div class="kg-svg-wrap">
+<svg width="1040" height="285" viewBox="0 0 1040 285" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Controller architecture">
+  <rect x="24" y="72" width="205" height="145" rx="22" fill="#f2f7fa" stroke="#bdccd7"/>
+  <text x="126" y="112" text-anchor="middle" fill="#1a4968" font-size="12" font-weight="800">SEASON SCALE</text>
+  <text x="126" y="145" text-anchor="middle" fill="#182732" font-size="18" font-weight="800">Complete route</text>
+  <text x="126" y="171" text-anchor="middle" fill="#5e6673" font-size="12">capital · labor · logistics</text>
+  <text x="126" y="192" text-anchor="middle" fill="#5e6673" font-size="12">production · planned sales</text>
+  <path d="M231 144 H275" stroke="#7f929f" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="278" y="72" width="205" height="145" rx="22" fill="#fdf1eb" stroke="#e9c0ae"/>
+  <text x="380" y="112" text-anchor="middle" fill="#88350f" font-size="12" font-weight="800">LOCAL EXECUTION</text>
+  <text x="380" y="145" text-anchor="middle" fill="#182732" font-size="18" font-weight="800">WEED repair</text>
+  <text x="380" y="171" text-anchor="middle" fill="#785444" font-size="12">DIG · retry · short replay</text>
+  <text x="380" y="192" text-anchor="middle" fill="#785444" font-size="12">then rejoin the route</text>
+  <path d="M485 144 H529" stroke="#7f929f" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="532" y="72" width="205" height="145" rx="22" fill="#faf2f4" stroke="#e7ced5"/>
+  <text x="634" y="112" text-anchor="middle" fill="#975567" font-size="12" font-weight="800">SHARED MARKET</text>
+  <text x="634" y="145" text-anchor="middle" fill="#182732" font-size="18" font-weight="800">Queue + preemption</text>
+  <text x="634" y="171" text-anchor="middle" fill="#7d666c" font-size="12">demand-aware SELL ranking</text>
+  <text x="634" y="192" text-anchor="middle" fill="#7d666c" font-size="12">3 → 2 → 1 turn lookahead</text>
+  <path d="M739 144 H783" stroke="#7f929f" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="786" y="72" width="230" height="145" rx="22" fill="#f0f7f9" stroke="#c1d9e1"/>
+  <text x="901" y="112" text-anchor="middle" fill="#16607a" font-size="12" font-weight="800">QUANTITY CONSERVATION</text>
+  <text x="901" y="145" text-anchor="middle" fill="#182732" font-size="18" font-weight="800">Shift, then repay</text>
+  <text x="901" y="171" text-anchor="middle" fill="#546970" font-size="12">future premium quantity moves early</text>
+  <text x="901" y="192" text-anchor="middle" fill="#546970" font-size="12">same quantity removed when due</text>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7f929f"/></marker></defs>
+</svg>
+</div>
+
+<div class="kg-note"><div class="title">Small blast radius, by design</div><div class="body">Ordinary turns do not invent purchases or re-plan workers globally. Preemption activates only when the two public farm states are extremely close. A shifted premium quantity is recorded as a debt and removed from the corresponding future SELL, so the overlay changes <b>timing</b>, not intended production volume.</div></div>
+
+
+<div class="kg-takeaway">
+  <div class="label">Takeaway · Section 4</div>
+  <ul>
+    <li><b>Two clocks, two controllers.</b> Season-scale capital and logistics belong to the route; turn-scale correction belongs to runtime. Mixing them is what makes agents brittle.</li>
+    <li><b>Small blast radius is a feature.</b> Ordinary turns invent no purchases and re-plan no workers, so a runtime bug can cost a turn but cannot corrupt the season.</li>
+    <li><b>Only three things justify overriding the plan:</b> a physical obstruction, the order of orders in a shared queue, and a rival reaching the same premium sale first.</li>
+  </ul>
+  <div class="verdict"><b>So what:</b> when adding logic, ask what it can break. If the answer is "the whole season", put it in the route instead.</div>
+</div>
+
+
+===== CELL 12 [markdown] =====
+## 5. A 30-day strategy atlas
+
+<div class="kg-prose"><div class="lead">Think in phases. Early turns should create productive loops, middle turns should compound them, and late turns should stop behaving like an infinite-horizon farm and start behaving like a liquidation problem.</div></div>
+
+<div class="kg-svg-wrap">
+<svg width="1000" height="185" viewBox="0 0 1000 185" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Season timeline">
+  <text x="500" y="27" text-anchor="middle" fill="#182732" font-size="20" font-weight="700">Build productive loops early; finish as bank balance</text>
+  <rect x="45" y="65" width="145" height="60" rx="12" fill="#ebf5f8" stroke="#528ca1"/><text x="117" y="91" text-anchor="middle" fill="#182732" font-size="15" font-weight="700">BOOTSTRAP</text><text x="117" y="112" text-anchor="middle" fill="#5d7178" font-size="12">first labor · animals</text>
+  <rect x="190" y="65" width="175" height="60" rx="0" fill="#edf3f8" stroke="#5c87a6"/><text x="277" y="91" text-anchor="middle" fill="#182732" font-size="15" font-weight="700">EXPAND</text><text x="277" y="112" text-anchor="middle" fill="#5b676f" font-size="12">land · routes · crops</text>
+  <rect x="365" y="65" width="290" height="60" rx="0" fill="#eff7fa" stroke="#699bad"/><text x="510" y="91" text-anchor="middle" fill="#182732" font-size="15" font-weight="700">ROTATE &amp; COMPOUND</text><text x="510" y="112" text-anchor="middle" fill="#617279" font-size="12">harvest · care · reinvest</text>
+  <rect x="655" y="65" width="220" height="60" rx="0" fill="#faf1f3" stroke="#b87e8d"/><text x="765" y="91" text-anchor="middle" fill="#182732" font-size="15" font-weight="700">PROTECT VALUE</text><text x="765" y="112" text-anchor="middle" fill="#7b656b" font-size="12">flow guard · sale order</text>
+  <rect x="875" y="65" width="80" height="60" rx="12" fill="#fdf0ea" stroke="#c3653a"/><text x="915" y="91" text-anchor="middle" fill="#182732" font-size="14" font-weight="700">CASH</text><text x="915" y="112" text-anchor="middle" fill="#785444" font-size="11">closeout</text>
+  <line x1="45" y1="145" x2="955" y2="145" stroke="#93a1ab" stroke-width="2"/>
+  <g fill="#5e6673" font-size="12"><text x="45" y="166">Day 0</text><text x="180" y="166">Day 4</text><text x="350" y="166">Day 9</text><text x="640" y="166">Day 20</text><text x="860" y="166">Day 28</text><text x="935" y="166">Day 30</text></g>
+</svg></div>
+
+<div class="kg-note ice"><div class="title">Read the season as a pipeline, not 720 isolated moves</div><div class="body">Early turns create capacity, middle turns compound it, and late turns protect realizable value. The useful question is not “What action pays most now?” but “Which action improves the amount of cash that can still reach the bank before turn 720?”</div></div>
+
+===== CELL 13 [markdown] =====
+## 6. Four practical control layers
+
+<div class="kg-grid">
+  <div class="kg-card indigo"><div class="eyebrow">A · Complete season route</div><b>Let the long plan do the heavy lifting.</b><br><span>A compact full-season trajectory coordinates labor, crops, livestock, logistics, and planned market activity across the 720-turn episode.</span></div>
+  <div class="kg-card ember"><div class="eyebrow">B · Actor-local repair</div><b>Fix a blocked action without inventing a new strategy.</b><br><span>If a WEED blocks an intended PLANT or BUILD_PASTURE action, that actor digs, retries the intended work, and briefly replays its route before rejoining.</span></div>
+  <div class="kg-card crimson"><div class="eyebrow">C · Demand-aware SELL ordering</div><b>Protect the most fragile queue position first.</b><br><span>Existing SELL orders are ranked by modeled quote damage, with a small urgency adjustment from the live town demand. Duplicate shop instances are counted independently.</span></div>
+  <div class="kg-card ice"><div class="eyebrow">D · Multi-horizon clone preemption</div><b>Reach a predictable premium sale before a near clone does.</b><br><span>When public farm states are almost identical, the controller prefers a safe sale three turns ahead; if that shift is unavailable, it falls back to two turns and then one. The moved quantity is subtracted exactly when the original sale becomes due.</span></div>
+</div>
+
+<div class="kg-prose"><div class="lead">The market layer has two jobs. First, it ranks existing SELL slots by nonlinear price damage and observed demand. Second, only under a tight near-clone gate, it changes <b>timing</b>: move future premium quantity earlier, record the amount, and repay it later. At the $1 price floor the preemption is skipped because that sale cannot add further supply pressure.</div></div>
+
+<div class="kg-note ice"><div class="title">Why three, then two, then one?</div><div class="body">A public route can make both one-turn and two-turn responses predictable. The controller therefore checks three turns first, then falls back to two and one. The longer horizon is still tightly gated by public-state similarity, inventory availability, price floor, and exact quantity repayment.</div></div>
+
+
+<div class="kg-takeaway">
+  <div class="label">Takeaway · Section 6</div>
+  <ul>
+    <li><b>A</b> carries the economics, <b>B</b> keeps execution physically possible, <b>C</b> defends queue position, <b>D</b> defends timing against a near-clone.</li>
+    <li><b>Each layer is separately falsifiable.</b> Disable one and the season still runs — which is exactly what makes their contributions measurable.</li>
+    <li><b>Layer D repays what it borrows.</b> Shifting a premium sale earlier removes the same quantity when it came due, so timing adaptation never quietly becomes a production change.</li>
+  </ul>
+  <div class="verdict"><b>So what:</b> layers that can be switched off one at a time can also be <i>attributed</i> one at a time. Design for the ablation you will want later.</div>
+</div>
+
+
+===== CELL 14 [markdown] =====
+## 7. Write the exact submission agent
+
+<div class="kg-prose"><div class="lead">The complete controller is embedded below. The generated <code>main.py</code> is the <b>same file</b> compiled, executed for 720 turns, hashed, archived, extracted, and executed again.</div><div class="micro">That identity check matters: validating one source and accidentally submitting another is an avoidable simulation-competition failure mode.</div></div>
+
+===== CELL 15 [code] =====
+%%writefile main.py
+"""Adaptive replay controller for Kaggriculture.
+
+A complete season route handles capital, labor, farming, and planned sales.
+Runtime logic stays narrow: actor-local WEED repair, demand-aware SELL-slot
+ranking, near-clone premium preemption with exact quantity repayment, and
+terminal liquidation. When a near clone is detected, the controller searches
+three turns ahead first, then falls back to two turns and one while repaying
+exactly the shifted quantity on its original due turn.
+"""
+import base64
+import copy
+import json
+import math
+import zlib
+
+
+_ACTIONS = json.loads(zlib.decompress(base64.b85decode('c-rk<O>bM*5&bV(b74}HEO)2aOe{pP3`s7L8bT1DDGC(nBJHl|f3IRu<l~!}GiPS*eWcv1Oj9J^{l4>Y=A6&}Ir-bqzy12lZzq5HeDd+~?(XDacJlY1|M}N{J-+ey^4Fh#`^PW;etiA;<o(s{>hZ7Ki*G*t_|xTws~;|}Pi7}?Z`LQXg?Rh!{c81b@Q1tA>fPhp>-Ve6`;*!0(c3?)u5Uh^%;wvVf4seU_v!8Z?i*(h5C5I*_2=sC_n$uQo-`ly?eoccb$9=ztsib~@85rUwS8;!Vt*j+R@c|Nr_Rl%Za*-5>h`b0LAknq_tWFx-+$VS9@h?a5JYn}KcO{YH!Sueb7KG=y7|g!|DKP3ebAcSlq-`zerx#b@mybDzFloca_<qcZ`wn}EAX&yhx=oHa5v5PeNFxTTaW+$aKGI%`a6*)zr7p};HWK+Lv?w-x*ffGe(3H~qh_Fy9i2tnMhsiNy1X-<9{T0o56WTMK4Sag?&gy-T=EIZLf^J{`@?OAYrH0!kD6Elvi-_4pI+o9e%D?!W0gUZ$Isv}D2>);)iBdM8-6-5UTCq&&Dmz)#s^`C5hT`|d<R@3nRSPTFLN$z-WjxW_m1_b+yj)s+Wu+u$Yc+8?G-=#^dj)P=%c{A0$+Pxh0JHIi#BjWqL1EOU$5TY|MczZ_WtVn>MvhLt#ucsXwTTl10Q`p&;Dq7x#^Lu^2bM^N4s%i22(Iw+U{(?-`sp)3H{B;P7i(C_7iG0Km0c9l;L$Bvk`g?Q=|=Ym>PJlEeA=u;=D~H&c4{A?GfJDw{9Dh0Y*(|HN-n7$!nl8z=1JRhB)A9c3;EN{b)77gC&qKJIC&G(#xCr$puq8a&;x{rPwjs;1bGQJw4W8?lvx*efblw%T<y--h%gr_Z;^qOB`Sw@7~ae`3Jdu)24>ZJ(?z6V`2CIYx+vo<ruvvxf)D9Wt@GB+uE~UUP|nT3CG3x!ER>yteF>RM^_7Xk`ZEme|h`o_?<O2@ztpPrYY$-iDE_u#{^mLyWbusGBS6c5lAjgn_O1g$x2V07O!_h?S&cC&Zv@qt95{P=b+E4t+s+?Gn}m55AMAipFcTQAj9ZeCaFWNl<3(yNiz4!tY|7nVJ_`tcIEknGNZ*`v=TQ}6J&F#EzZ6y1J5jx7Q(#0ms#-{(&ygM_?T1s*zc~s>tz1ZJFJnfS&5qw2cl)_bc~XP#_Xwqu_4pik%J<&aH-hQ`<ng6sa(yMmcuG}f>U^X5%0r3_79rE0@m_zq_6@hl41^PXV9fGXjBR;6W;{xN88YF*^Bm<G2t?YXQ+jH)@q76+6QASXEK#l!>+Z-Wvy>+9{-uYLjK6_gZ5}mzAKa;Y`mDe``gR)H>=y*A0MCj#>99m9x^VQV$h7dF1C&$aYri^1~P0YU2FM*K3Nt-uz1{Nqg@iaD%%yn=ksQS9;Z|Q%z>x-_6P2I@aYZxH3K=$jnK2dH`ronlTm<vwI_3>7LgmtUN=e=LU;(22~Eu-u-lYaIF6K~i=@}W(pm&cf{Z~;FE?qlfU1^VTP2cz^yFL|RCCHN$7diMr(oWKoz+m*$ht+s)7JpC<cwEf_BtAHN|Awf*qiyoq<OA3OPx_;nA}}pyj{wlDLF;Aq1t@9jR-i_#(vZOiVpoik(#uc;8?fVdij7HsQ&3Td&tv~g*Gr<SVJjVt^t@5@9*eqt=guP@~BgGASeuW^yUFyPWmLkV_7E3g|)=l`2&y8-uLC^*)nDOIFm(nvb-u=uPiTUY0!}7IXk27ZL42<MZ^(;AmH<_;)x7X&11`2DWgx=Q(|#Q`xu}Xx>`%y7sxL66ONm87%+@f1V}B;uhp5Z*m7w(Yr}QHn|Z|gaOQ?t9P0=)$*o+OQD7zXgw1!<n6I{nBjy0%UOLBwJ3zAe5NgJQpeX3!-T_3H`ogUsELyW%IW{c#6y|?g%{3@U$y^n*7B&SIWMx2_{4QnR{cv^t{f5nFL>lwji1eR_t-x5geC`LPP2vjP@Z0PD+_6>1(5e}GVaf|k+K#&YS|h$e2LyG@*$pWMh+%-1G-T_cv7Mn}+`tTKvUPaawSLVs!&HEIa|uBxeZ-!Y8)na5x-_#+Hl95*64XlOmrl+qRqh2uvZO>+ch4=E{j?dLT^A*jaNBRi>Cm{8c$Z7|d-p7U^366Ry9u(zR6P;jNw92t*!B`eu6uSldmmMDgLO;9A+zWvd75n>_66)as{*OEKWD5~`CNsesm<I<^K}ppkWtJMZiY9WYw^<Hlk$f9WDf$sp9|?BoK_tH)+1N|0L`4E2#qplKKTX9B3EjH6xFBZT;#k5ru&H+(4aSwXay>PBfSY57}Fz)&0307?75ywMnj~QBSz{>8@OWn;OMPkm{X~5CTnG>AS!6BQ-9VA$%9Y~Yi5)gj^RR3g!Zjgz{TNsQwtuTvXj<$^8~h0dNcvfMzy2yq6}}Irt1J)D=3i^JPjH(Ut1yivQ@SpcC9R)<6O%Z51I6VHsC1M;J0wWk1fpnXk+*8_U0ppoYu{~p`n%@R~pA9R=4!T(4e;+Y5;GrU5o8_Z(oS{K?A*5Mh5z{O`DMq`qYi++BmHY^MGz6*Ji(tAuyycQW0w4c13{pwHZ@2-Nz*PqHc3xT-*BcRO<pG$fXF0!;z`_VZHwrBUaExVc~3s&p)hOTAVh(w840X@<+cSXXapbjR3QY51cQ}m6t-*4FyofZ!XMF#`<poTLF}%08e)Dd`s=kh54q^MI3dJX%K*@DS`*3=m4&9aS%OJM&OX(L@~LbS`Gj!8T7tp3`eGqgG6qpRFRK}&!2}SXCdZo!%sel(#{gG;CWaV(FRp0k(V+pN|gZxmYx|xB4%jWX!jX!Q+g+Mz=&Cm!Bxz|l~GtEblBh^84C4M7=|Jc$VLW%0#^*nVefP$!CfHICiWtjHaJOMg-~`iDgj=4=Pvs0TqQjoT$eMB(XmvcjUs4DX(g!KK?s$=<v)5>Y;S5msHEpn7JW6<Le2C~lcpM754*!Bgc%4gxe^#y_9NmL)29kp!0oxfqGJ#Gm0o0Bdl%bCpnFcrpb5HUEL2%*vA4d=p~<zrwmrPk&JL?<vMmy-7;U-{+Qs2YfiydUqJ+|hp_o`T!7vzhp%)J@fp_Hq*4k!+5!#T{0e{yv-b+xMh;eN<!2=IuT6WsX>UA0!u1C%1pFAwHjuN5@4)ROPE-{EiUvi-nwbFnBeM}heV4*UB^;IGO76XQhCW}#owNp7OM#smtv?;c<k0rqOUaKH=h62jtmUQWq2$}~l=h2>A(X8V5Qqjmj7~Br~!f0ATzd##L?MzD6Iiqr0Zvq41swCly6~GmiubS5{5n~cQK&HMq_r%to-2YWUf=oj1!xUbB1;~WM_&>3#Go%};IYY~b0K3>OtN<H|DnbeBwi;Wh94<SZ2o;zzm3#z44CTS0Th__Nq$z1>W|^?t2T3=B1Ku16nsEm)on2#oL}JayaS<%|!9HPXyTCT>5Z4dO3BZr`gu4K8RRTCbAumYEm{c3jPD?(+i!P<si$69MIliROs%Oub{P3E3ta>&$%$cPhDbR%~lqqPF%HK?S34D}-B;(2>KqwHXbE)gI%T=2^J6Z^N9##a}BjB;x`6d|zm)qI%ch_y@>15&vS1h`92i5kl-B%_1eE+$<U%v7=5~g>pmD-U&wZ?S8iz&hZp7Vcx7<PhbGmje{vqd|Hn#nFUb(ups#e%#>#7pj)Q*3Ge2Z(d~WD`Bp-pD4}KKZoXY5)cvF})(rs7yI>vgFM&*3s1!@Yd4erIm$-gC`*C*`Rbblb_@W4BBQVO?!EIcSs)hEs(kh_aI9p*fgeZ3@h{EJx1}o1_jC+MzB;AK$e$-q~;KZUzN6o=3ksqu?s-6oWnVE3;uY}*O}*hvgyx_Jm;Hk>}wNNtPkjyzt+5GGq|U2Do|vgEpnWZTp}=@iQ?U2(v!sV;nY*3Jm-<1{@{|WjXz^wQEq6L3|plTIPEE7zoU72Q`*gxC)s|mTP=1%A*FwoGXmQS3WvlOd?TLW$kJ8Lf+lHV#%c5%CAhxBujtGr0rOCnU9kLhMO5ae<nJI3)Q7ZY${uSx6p)FI;xcHHlcX|{YL-gL{z;1Zz%Ey~fn`F7y|xhRHb{fD-RUTyB~zD51uLLOD_9A@1=1So<uqf7)>0-jNh;ULX+Eyjl(LkQ;+Z#Y@%*Sg`>aEMe0f#n8$$L}{mVK23kQNeoi=ByHuu!<NBB~uZkb+0=Y|xUk0l?B+W&&H#{2WR`TqW@YL?b*pKTt%^UbC+!0}^CQm;7<@}cYMP2H5)ZDosq24<My4we<i$VMn~UJ_nNu#~g=A50Cit-xpaie#+Z>&KV4{QKUk?2053_uBd7Zh5ecl;fb}3PX}ed5I7G<z7oAQ{<~0O7$>fcBN2K%Lpk=gBD03NhKUm5$u+y3MMaA8q$4<NXIB%*8w(WwsV2J9p(1Qu!$k}0kGnMR43zZQWA74iC(EKh!!o+aVjwlYt_OkR}{LSr$tgshqjo%YF9meR7eXGCI5mVHp~kv9pFV_79C2_DYkv$R*ov(14D3l;A2|qHtn;WU7guv_%6UG5(3!C1`|GQfXWzqctJY+uE8PYh3Cj}#e<f&RY0=y@t`hdJ;ZW|;b{~zrKHi;1XWOMO5(c%?%;UB-ag=aQdZYV204Z*xJiz%=sqfQkZ>W}R@;NYM?@@+YGA04x#4DTK}{joTsz6>^=%(``YtGsC{G1I#__aQikcnP>l~^*F>FT0fB=jS$|NCmoRVC-%g+X&Fv{>V_hcE5Cu0hB(@+2mRa^5CEePzQ0+W%pCJHBzd>F~t5m$~6@HhyeQ;KR4jfeq0#(Ur0@AFqR8u+?WA+m+?NR&NsPBU(>fAZ-vj(Z`7vxCJ-K)h#R^l0%CC;}j&fZ-<1212p~<>dzV<u2!%*N23l1+^F1>|<s<$GPWHXZlg1EBCY>-HJe?Go<Oz_eKdp4pNmXy~_GMB)@y-r5oOkoHv=Jkr#^?sl~M+1=K^vm7K8aU9i#vOdUc}X;1AwMThOow(B`SU<h-K!72%THvP>G$@tmWaaOf03jiW2$q<EHX5U79YsDGnDqM`TeI>>Q$tRF&rL;5Pd&)b+1-2+L8tD)@xGo@Q{p1(CF<hYVwW9bWBU5?4*C_<s01z6`l~c=`d#K<wr2nnmCJ0|rL=UL&ea7=2E#_h~YNBI>G4aC_idVk()~@X2D5>$yMLg`}>C5EwLxEcWWk}TlbD#y?&;oh5sEgUMUW7@3HgB=Ks&pq$T0_v-IlR*jQ@ClAI~ab9cA(6vm5DQ@YT9WuemfL{xNcSGju$}5!A`ZV!JJIVCCwMOa9alpp<;A@3M~*Rb4iL_Q%5fF%~L_hGztP!#wZQ}!U&`$Y2E<%kgBa9UD!4=l)yrOat!ErVoXYbBZI<5WVa1I3Y5IQH!q5bdG-)MQZQg2SW6k5he+^9@tk42Ar6DXqxwu}7YHo{Y(QmEBgBLru=5F+HiM|nKB#s?Vh<#kiW}S+yEBo-flt;-3qGR7j?geUzg*3!D^J$Y2pr;yF;7F@uqw&Q6w1gdolfmaGXM7*vMQ6uIC9uB>~gxSA|GBFkH^u4S!{|6o8Lns8Nx&#It)+y(isoOn4k94NTg7PNG*szdn%PGAr6gZE$+mH%7l3Wn27bNMZzAWxpyD&i!O5%6K2L2CMY|zP$p}`VcI4_9e`4MVd9Q{iUurH3grt4k@i4FIIwNq7HEMpJ?hJ|SumRLjH{Q0-zaYo8#J^68N$tK&3=144`PNU^W7-c-5BPhpf7T+8dHxRm@+St-avN+VxIV8D!{xDCi93>=5&B7IrtU0rqv(JAsHb=CucdeTC=F=B0{c<$$XT`B?N(_XmemNcmMo1f1^}sD6b#s_$RrKQOFdgtrYH%1UgFfRIF&rOjp;5%p3UhK>z1Cc5BBEbw_@6ee*$62Fx&LY0*<9C_^s4?EvojCdSs?yX8(Z!mbkRWL;-8wa<!SV9FIripDD0)Z|i?{a2!dILDGv+VzltD8lEm*x=dJVvfjyF|~W1;8x30EDr^NQL*3}a6GlHA=~V|g@l^T7lt_N-k2?q9gwz%p?oFUzxetPX`puAN({#-juR?K1U(s7_tKESCc@Dg;)<w2)iB0On5CGl#wpL3rqZktFDuK&<M=}*=e~`|spos@_8IC|GgO-gkMcJSU<EY1Zye5JOp{CnUev<_{Q|WNZTvM|D6QzSK~xl8cwLx$$OT6t+AybQ3b6w*UOZHdL*7apR00sSG%+R&fQ{Dy&XYwo-Z~n#P`XsHo#PPksYe+|lEz%bxcC%ub5WW~S$dF<Kv{0*fx2xiK!G7{a*r#(NnQ<6j<pq#&FKj80%N9i8FR)7f)cI%3OJmcR8y0dL5^NbzY=DHx$r$uWuMCjI|w!qp^z?pW?bbJp$xFyh#;CRR=&8;(87ECRNN#6eB1uy(|ENd3kvZmku*Yl5m|sP`3*q`WCw(nMm%VOSkHc+nvgpmGZ~PLh(k=HK`7kWK}eQizfrQrgaQUG%t#gE+Gl17b|G`chvcqoumnb@K}K4t)knbO8g)9f?uSGO^0KpK+9f@x1p$>*G3B)7gC1=RNjC)7aYmt=!=2@neQ>1KPc2VdI7o1>vHQ+&pc5;w#RiL$LZNb{btHRkeWp>QW8F}Sor4ADq?EEGJYFarQ_66hycLOOuYKUy;DR>M;f}1k2<Bw?bl>bikTq>bwOL891GKCd&N;;p8JR^!GK_h^Q9890RJ|%JFem<|+^8^LkwxM)T5S^WsXG0Di<^VSDKQYofJ(5<6Vyp+LdscNF~pDmp#tJu;pTP@0uZKPU`sL0t`ZS=RZEQeP$pd2TULyjlMd2j!(iGQ875o2yoypsfNX&xi7zi2he#ADk?^dJ+5EhxkQpiDkn2vvg3)M$Il1;})y|?+O%>kqDP^AY?!UYGE>r;97d2AXfAT8|QL@~N%uO5I$dI-_&!=z7X{#WshsD9sDtc0S`dCb*cE~(;?)hK&t>?ca%xgQw2zKX+^yF|~164QG>6GL<I*5&Sz)_y%c{Z>v9S%5}`OZOdo22WJw85Eb*OUN*C+DW$Q9Rl&P=zidLEz$)m?MYf+dGRu&Cxz&Y1Tj6!Q8r}ty4Lf@{%VSmWh>igBiw_$5jDv>lhi*g5~w>)U73N8ZykDWB-@5a*EZhfNGR24EPYB*s6+CH_<~z1(wn`NQQ4Se!HPlrHIoyeausdgd1Hvgy@SIJ--p;i4^4Cu0{O~pHGWFOO=_VHyLE7WBLh@{MMgRwIVpejSqZJpNMALwF2s~BLtL{s-QLqwLnUHin>A;dn|`PraP$nLsXm1n76-&T&;(Me#9Fc&v(qFoBMcO)foR85P(rSx}^*832F#lbkq=J&SJ9PbGnm#bq7JaHS;IJb9ZQQLJt4OhylMC2}5{G;Ud%Z3Kp3jf!1NzLhu=&4y}vmLCQQvI<5OLwez}=;wloCaY|#sj}evU6R9l5rQOQ}c7ErXxK-x(aN%ekJ~AN4R$+kj91-S7cTyw)q&w(|#gt{&)YfUbsG}pv^rPJ`S`LmRhJytLJO&6Qo|Rwrp|b$}R$%7~Rck{z3x%!AyBsvoE6H4d_D4j1LFSS)W;M+p(F7uyNM495)fue}W=JXUQ*s7Ki4ouaD1yXHknV4vJ!JSGZJ%)-I<grOMM{??G*ikUW?Ol7WZNqRmXXczNa|TVp54d;0BS*TP-v}&$1wI5#77eG7lPFQwO=W4wGR$+NQ!-sfo)I*j-q@}ij)jTEf%Q|-G*81l>!m8&XE@trCYwt2pkiNW9TKc;M&<k7tv2fWjNaWu9~0Nb!gM#yyhpCVI*}j*%00#B|l-fi{po*%($xLCoV{H;&LtOS|`-|)C~n6gL*WwpI*w6Ls2qljss|YDkp7%yRQ<23vC<+ezIm<S$}&=XQsY25SH8D3^7Gw;6>A`o*ikl!UGw3(B$MAw;?)&kbrv-xy=Xcb}*79zo$`Ohhi-w>K~bE=Jh?W;wB1;A$5b;iPB8Mfn)S{h#WEnu5R!eT|!>91y^#NB<s^C>YQi-<U`iz+H%3r94Q;d#6a?`_<i20u#Ir>W5MxO4U^bFsv~jaQ>z9m*o;tX^FXH8GDtE%Gs+I<7snnYNwLizksjv~t7AeGlKq1wM4~?tnTCGW+PU!RP7JcP=}IM!T0Rph79a|T40BUNA2USS!@!}AU+j{^21l6D4yRg4MGPBBxwX`&q{tuG_*Nn!npB;{NHQ;P-jejHpOPdsA<&l-bJV8fw<;bPU2_Qnphm?JuG2&^|C1=cByAC3{c<bHD^yBOC^ZISBx%+nA?>=x?7Bs<seD1>dKi^I0$GS)NBP`MNJdkIhlGL~ijnOB3Q%;Jfutz;xWLkoqpk!5V1=UcSOPi`)$HV*P6kKAP){)cjxppW*J35!qHVqqah6%2RUK4Ny%i(HavlE(r3G_=icFlws?XY>Tok_evlpcnxcusB&a^b)ir_|d0WyA8<+(0+6xmt!(HhKlG{}42U48H{{U{3(Vw3|c-o`gIA8R?7M4`v<#ft$3wD6|YF67urS)M8Ly=Vxvu3JcF@=*$rdB>n`=`L@G=FrRXM+>%^RnldH9bTOk;DBI)3lr4U(QN0O@>^7cGvtSBK6G3s6blPr2vFuAL9rZ#A)I4MgryCAjt3<!A^|h8jpS(Pdh8_WLxOOfbf`STFaz{?R6msgh&T(`=Pu78Oi)3gesTkR6oMw@Re1qY$~L%m?l`I_g}7iuhX>CGl1}CHArkZRj4ZX-3kFK{&d54OK^g~+6ur{rHL<HCB#%}gb_xd33ZM!a(E%g!{229z_984&q;6-n$~RS2DYv0gdTdkuM^&*M;RBQ|iQxnlCMGXNt$YP)E3C!tvZ94Vc~p!Z48*Wd$4Sviz}{7j3_kndMg&dSe#Z;oI(Eu>=7oPiG(c4O@S|?!XKR9%ol|Q(4n;=r>R4qL+0v~-Hx8hrXt*{9sJcq1B?5NINdysBWZ_g`^L3Ci^oqIQ-<wo5(7J?F@m8tsB3VhqdRrhi7g~`>oW+-NAOw6vrgT{I4~87T@tJH@7!fA}UyPb!E((wotdyB>9HsZnT7~c2wq0cQ9VAFcAC4915D4j+19M3YhinQFkSF53sG&w=tp#^TO!N%6VEx)b`hC5d(FHwn3~gYg+)M<>v(IzU8v4;+%q>!U#Gl;g(no)D&&p&Ri{axxM7zM1kZg``e5(2J>`+0?xHUz58yGIkmkga7!WM`bDP*3M@FEiOXhE@Du8=2#PH|Viv)Tf10xpdhF^r)WN^)A0dLW%9*DpEpBk<{JMbA%0l9CLaPcr4LG{A!g26#s^ZS&nysFv=K;UbNl1agCMXTYC|@?l8cGg$VT5HeLF;ar0-hw{qn322hk(ZiQB$#DyXN@MzXmXd@Qu+!QMTdM2>nU~{wVM|U);(>EN7A>2x26=g$#g<t<zay_D0$<^ooL@Amr<7?#Nz2N0a{O`6g&B2-P@S{{g*+@Wpc5Un-h~&O>YL@^e?UVC3;')).decode("utf-8"))
+__version__ = "adaptive-preempt-3x2x1"
+
+_PRICE_FLOOR = 1
+_DEMAND_ALPHA = 0.25
+_MARKET_PARAMS = {
+    "WHEAT": (25, 10000, 400, "sqrt", 0.8, "log", 0.2),
+    "CARROT": (35, 10000, 450, "log", 0.2, "sqrt", 0.7),
+    "TOMATO": (60, 10000, 200, "linear", 0.4, "sqrt", 0.6),
+    "STRAWBERRY": (120, 10000, 100, "sqrt", 0.7, "linear", 1.6),
+    "MELON": (250, 10000, 300, "log", 0.2, "sq", 3.6),
+    "EGG": (50, 10000, 332, "linear", 0.4, "log", 0.2),
+    "MILK": (160, 10000, 122, "sqrt", 0.6, "linear", 1.6),
+    "WOOL": (200, 10000, 105, "log", 0.2, "sq", 3.2),
+    "FERTILIZER": (100, 10000, 200, "linear", 0.4, "linear", 0.4),
+}
+_SHOP_PRODUCTS = {
+    "BAKERY": ("EGG", "WHEAT"),
+    "PIZZA_SHOP": ("MILK", "TOMATO", "WHEAT"),
+    "BRUNCH_SPOT": ("EGG", "WHEAT", "STRAWBERRY"),
+    "YARN_STORE": ("WOOL",),
+    "ICE_CREAM_SHOP": ("STRAWBERRY", "MILK", "WHEAT"),
+    "PET_CAFE": ("CARROT",),
+    "SMOOTHIE_SHOP": ("STRAWBERRY", "MILK"),
+    "FARMERS_MARKET": ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY"),
+}
+_SELLABLE = tuple(_MARKET_PARAMS)
+_LIQUIDATION_ORDER = (
+    "CARROT", "EGG", "FERTILIZER", "MELON", "MILK",
+    "STRAWBERRY", "TOMATO", "WHEAT", "WOOL",
+)
+_WEED_STATE = {0: {}, 1: {}}
+_WEED_REPLAY_STEPS = 8
+_SHIFT_STATE = {
+    0: {"last_step": -1, "due_step": -1, "due": {}},
+    1: {"last_step": -1, "due_step": -1, "due": {}},
+}
+_PREEMPT_ENABLED = True
+_PREEMPT_FRACTION = 2.0
+_PREEMPT_MAX_BATCH = 30
+_PREEMPT_MAX_CLONE_DISTANCE = 6
+_PREEMPT_MIN_PRICE_RATIO = 0.0
+_PREEMPT_MIN_FUTURE_QUANTITY = 4
+_PREEMPT_START = 120
+_PREEMPT_STOP = 680
+_PREMIUM = ("STRAWBERRY", "MELON", "MILK", "WOOL")
+
+
+def _get(value, key, default=None):
+    if isinstance(value, dict):
+        return value.get(key, default)
+    getter = getattr(value, "get", None)
+    if callable(getter):
+        return getter(key, default)
+    return getattr(value, key, default)
+
+
+def _copy_action(action):
+    action = copy.deepcopy(action or {})
+    return {
+        "farmer": list(action.get("farmer") or ["PASS"]),
+        "hands": [list(order or ["PASS"]) for order in (action.get("hands") or [])],
+        "market": [list(order) for order in (action.get("market") or [])],
+    }
+
+
+def _seat(obs):
+    return 1 if int(_get(obs, "player", 0) or 0) == 1 else 0
+
+
+def _farm(obs, seat):
+    farms = list(_get(obs, "farms", []) or [])
+    return farms[seat] if seat < len(farms) else {}
+
+
+def _align_hands(action, obs):
+    action = _copy_action(action)
+    expected = len(_get(_farm(obs, _seat(obs)), "hands", []) or [])
+    hands = list(action.get("hands") or [])
+    if len(hands) < expected:
+        hands.extend([["PASS"] for _ in range(expected - len(hands))])
+    action["hands"] = [list(order or ["PASS"]) for order in hands[:expected]]
+    return action
+
+
+def _shed_access(size):
+    half = size // 2
+    return {
+        (half - 1, half - 1), (half, half - 1),
+        (half - 1, half), (half, half),
+    }
+
+
+def _projected_shed(obs, action):
+    farm = _farm(obs, _seat(obs))
+    private = _get(obs, "private", {}) or {}
+    projected = {
+        key: max(0, int(value or 0))
+        for key, value in dict(_get(private, "shed", {}) or {}).items()
+    }
+    inventories = list(_get(private, "inventories", []) or [])
+    positions = [_get(farm, "farmer", [0, 0]), *list(_get(farm, "hands", []) or [])]
+    unit_actions = [action.get("farmer", ["PASS"]), *list(action.get("hands") or [])]
+    tiles = list(_get(farm, "tiles", []) or [])
+    access = _shed_access(len(tiles) or 10)
+    for index, unit_action in enumerate(unit_actions):
+        if index >= len(positions) or index >= len(inventories):
+            continue
+        position = positions[index]
+        if not isinstance(position, (list, tuple)) or len(position) < 2:
+            continue
+        x, y = int(position[0]), int(position[1])
+        if (x, y) not in access or not (0 <= y < len(tiles) and 0 <= x < len(tiles[y])):
+            continue
+        inventory = {key: max(0, int(value or 0)) for key, value in dict(inventories[index] or {}).items()}
+        if unit_action and unit_action[0] == "DROP":
+            deposits = inventory.items()
+        elif unit_action and unit_action[0] == "PLACE" and len(unit_action) >= 2:
+            item = unit_action[1]
+            tile = tiles[y][x]
+            structure = {"COW": "PASTURE", "SHEEP": "PASTURE", "GOOSE": "COOP"}.get(item)
+            if structure and isinstance(tile, dict) and tile.get("kind") == structure and not tile.get("animal"):
+                continue
+            try:
+                requested = int(unit_action[2]) if len(unit_action) >= 3 else 1
+            except (TypeError, ValueError):
+                continue
+            deposits = ((item, min(max(0, requested), inventory.get(item, 0))),)
+        else:
+            continue
+        for item, quantity in deposits:
+            room = max(0, 100 - sum(projected.values()))
+            amount = min(max(0, int(quantity or 0)), room)
+            if amount:
+                projected[item] = projected.get(item, 0) + amount
+    return projected
+
+
+def _public_signature(farm):
+    keys = (
+        "WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON",
+        "COW", "SHEEP", "GOOSE", "PASTURE", "COOP", "WEED",
+    )
+    counts = {key: 0 for key in keys}
+    for row in (_get(farm, "tiles", []) or []):
+        for tile in row if isinstance(row, list) else [row]:
+            if not isinstance(tile, dict):
+                continue
+            for field in ("crop", "animal", "kind"):
+                value = str(tile.get(field, "")).upper()
+                if value in counts:
+                    counts[value] += 1
+                    break
+    return (
+        len(_get(farm, "hands", []) or []),
+        len(_get(farm, "unlocked_quadrants", []) or []),
+        tuple(counts[key] for key in sorted(counts)),
+    )
+
+
+def _clone_distance(obs):
+    farms = list(_get(obs, "farms", []) or [])
+    if len(farms) < 2:
+        return 10**9
+    left, right = _public_signature(farms[0]), _public_signature(farms[1])
+    return (
+        abs(left[0] - right[0])
+        + 3 * abs(left[1] - right[1])
+        + sum(abs(a - b) for a, b in zip(left[2], right[2]))
+    )
+
+
+def _shift_state(obs, step):
+    seat = _seat(obs)
+    state = _SHIFT_STATE[seat]
+    if step == 0 or step < int(state.get("last_step", -1)):
+        state = {"last_step": step, "due_step": -1, "due": {}}
+        _SHIFT_STATE[seat] = state
+    state["last_step"] = step
+    return state
+
+
+def _repay_shift(obs, action, step):
+    if not _PREEMPT_ENABLED:
+        return action
+    state = _shift_state(obs, step)
+    if int(state.get("due_step", -1)) != step:
+        if int(state.get("due_step", -1)) < step:
+            state["due_step"], state["due"] = -1, {}
+        return action
+    due = {item: max(0, int(quantity)) for item, quantity in dict(state.get("due") or {}).items()}
+    market = []
+    for raw in action.get("market", []) or []:
+        order = list(raw)
+        if len(order) >= 3 and order[0] == "SELL" and due.get(order[1], 0) > 0:
+            item = order[1]
+            requested = max(0, int(order[2]))
+            reduction = min(requested, due[item])
+            requested -= reduction
+            due[item] -= reduction
+            if requested <= 0:
+                continue
+            order[2] = requested
+        market.append(order)
+    action["market"] = market
+    state["due_step"], state["due"] = -1, {}
+    return action
+
+
+def _future_sells_at(step, horizon):
+    if step + horizon >= len(_ACTIONS):
+        return {}
+    result = {}
+    for raw in (_ACTIONS[step + horizon].get("market") or []):
+        if len(raw) >= 3 and raw[0] == "SELL" and raw[1] in _PREMIUM:
+            result[raw[1]] = result.get(raw[1], 0) + max(0, int(raw[2]))
+    return result
+
+
+def _preempt_shift(obs, action, step):
+    if not _PREEMPT_ENABLED or not (_PREEMPT_START <= step < _PREEMPT_STOP):
+        return action
+    state = _shift_state(obs, step)
+    if state.get("due") or _clone_distance(obs) > _PREEMPT_MAX_CLONE_DISTANCE:
+        return action
+    market = list(action.get("market") or [])
+    if len(market) >= 10:
+        return action
+    remaining = _projected_shed(obs, action)
+    for raw in market:
+        if len(raw) >= 3 and raw[0] == "SELL":
+            item = raw[1]
+            remaining[item] = max(0, int(remaining.get(item, 0) or 0) - max(0, int(raw[2])))
+    prices = _get(_get(obs, "market", {}) or {}, "prices", {}) or {}
+
+    # Near-clone routes often expose their next premium sale through public
+    # state. Prefer a three-turn horizon against public-route competition; fall back to
+    # two and one turn when the longer shift is not safe.
+    for horizon in (3, 2, 1):
+        future = _future_sells_at(step, horizon)
+        if not future:
+            continue
+        shifted = {}
+        trial_market = list(market)
+        trial_remaining = dict(remaining)
+        for item in _PREMIUM:
+            future_quantity = max(0, int(future.get(item, 0) or 0))
+            if future_quantity < _PREEMPT_MIN_FUTURE_QUANTITY:
+                continue
+            base_price = float(_MARKET_PARAMS[item][0])
+            current_price = float(_get(prices, item, 0) or 0)
+            # At the $1 floor, SELL does not add market inventory, so moving
+            # that unit earlier cannot create queue pressure on the clone.
+            if current_price <= _PRICE_FLOOR:
+                continue
+            if current_price < base_price * _PREEMPT_MIN_PRICE_RATIO:
+                continue
+            target = min(
+                max(0, int(trial_remaining.get(item, 0) or 0)),
+                future_quantity,
+                _PREEMPT_MAX_BATCH,
+                max(1, int(round(future_quantity * _PREEMPT_FRACTION))),
+            )
+            if target <= 0 or len(trial_market) >= 10:
+                continue
+            trial_market.append(["SELL", item, target])
+            trial_remaining[item] = max(0, int(trial_remaining.get(item, 0) or 0) - target)
+            shifted[item] = target
+        if shifted:
+            action["market"] = trial_market[:10]
+            state["due_step"] = step + horizon
+            state["due"] = shifted
+            return action
+    return action
+
+def _tile_at(farm, position):
+    try:
+        x, y = int(position[0]), int(position[1])
+        return (_get(farm, "tiles", []) or [])[y][x]
+    except (IndexError, TypeError, ValueError):
+        return "LOCKED"
+
+
+def _trace_actor_action(step, actor):
+    trace = _ACTIONS[min(max(int(step), 0), len(_ACTIONS) - 1)] or {}
+    if actor == "farmer":
+        return list(trace.get("farmer") or ["PASS"])
+    hands = trace.get("hands", []) or []
+    return list(hands[actor] if actor < len(hands) else ["PASS"])
+
+
+def _weed_repair_action(obs, action, step):
+    action = _align_hands(action, obs)
+    seat = _seat(obs)
+    game = _WEED_STATE[seat]
+    if step == 0 or step < game.get("last_step", -1):
+        game = {"last_step": step, "active": {}}
+        _WEED_STATE[seat] = game
+    game["last_step"] = step
+    farm = _farm(obs, seat)
+    positions = [_get(farm, "farmer"), *list(_get(farm, "hands", []) or [])]
+    unit_actions = [action.get("farmer", ["PASS"]), *list(action.get("hands") or [])]
+    active = game["active"]
+
+    for actor, transaction in list(active.items()):
+        index = 0 if actor == "farmer" else int(actor) + 1
+        if index >= len(unit_actions):
+            active.pop(actor, None)
+            continue
+        age = step - transaction["start"]
+        if age == 1:
+            unit_actions[index] = list(transaction["intended"])
+        elif 2 <= age <= 1 + _WEED_REPLAY_STEPS:
+            unit_actions[index] = _trace_actor_action(step - 1, actor)
+        else:
+            active.pop(actor, None)
+
+    for index, (position, intended) in enumerate(zip(positions, unit_actions)):
+        actor = "farmer" if index == 0 else index - 1
+        if actor in active or not isinstance(intended, list) or not intended:
+            continue
+        if intended[0] not in ("BUILD_PASTURE", "PLANT"):
+            continue
+        tile = _tile_at(farm, position)
+        if not isinstance(tile, dict) or tile.get("kind") != "WEED":
+            continue
+        active[actor] = {"start": step, "intended": list(intended)}
+        unit_actions[index] = ["DIG"]
+
+    action["farmer"] = unit_actions[0] if unit_actions else ["PASS"]
+    action["hands"] = unit_actions[1:]
+    return _align_hands(action, obs)
+
+
+def _shape(name, value):
+    value = max(0.0, float(value))
+    if name == "linear":
+        return value
+    if name == "sq":
+        return value * value
+    if name == "sqrt":
+        return math.sqrt(value)
+    if name == "log":
+        return math.log1p(value)
+    if name == "log10":
+        return math.log10(1.0 + value)
+    raise ValueError(name)
+
+
+def _market_price(item, inventory):
+    base, equilibrium, scale, below_func, below_target, above_func, above_target = _MARKET_PARAMS[item]
+    if inventory < equilibrium:
+        amplitude = below_target * base / _shape(below_func, scale)
+        price = base + amplitude * _shape(below_func, equilibrium - inventory)
+    else:
+        amplitude = above_target * base / _shape(above_func, scale)
+        price = base - amplitude * _shape(above_func, inventory - equilibrium)
+    return max(_PRICE_FLOOR, int(round(price)))
+
+
+def _is_sell(order):
+    return (
+        isinstance(order, (list, tuple))
+        and len(order) >= 3
+        and order[0] == "SELL"
+        and order[1] in _MARKET_PARAMS
+    )
+
+
+def _impact_score(obs, order):
+    if not _is_sell(order):
+        return float("-inf")
+    item = str(order[1])
+    try:
+        quantity = max(0, int(order[2]))
+    except (TypeError, ValueError):
+        return 0.0
+    market = _get(obs, "market", {}) or {}
+    inventory = _get(market, "inventory", {}) or {}
+    prices = _get(market, "prices", {}) or {}
+    current_inventory = int(_get(inventory, item, 10000) or 0)
+    current_quote = float(_get(prices, item, _market_price(item, current_inventory)) or 0)
+    later_quote = float(_market_price(item, current_inventory + quantity))
+    return float(quantity) * max(0.0, current_quote - later_quote)
+
+
+def _demand_per_day(obs, configuration, item):
+    town = _get(obs, "town", {}) or {}
+    shops = list(_get(town, "unlocked_shops", []) or [])
+    turns_per_day = int(_get(configuration, "turnsPerDay", 24) or 24)
+    shop_interval = max(1, int(_get(configuration, "townShopSellInterval", 4) or 4))
+    demand = 0.0
+    for shop in shops:
+        products = _SHOP_PRODUCTS.get(shop, ())
+        if item in products:
+            demand += (turns_per_day / shop_interval) * (2 if len(products) == 1 else 1)
+    if item != "FERTILIZER":
+        center_interval = max(1, int(_get(configuration, "townCenterSellInterval", 24) or 24))
+        demand += turns_per_day / center_interval
+    return demand
+
+
+def _order_score(obs, configuration, order):
+    score = _impact_score(obs, order)
+    if score <= 0 or not _is_sell(order):
+        return score
+    item = str(order[1])
+    quantity = max(0, int(order[2]))
+    market = _get(obs, "market", {}) or {}
+    inventory = _get(market, "inventory", {}) or {}
+    current_inventory = int(_get(inventory, item, 10000) or 0)
+    demand = max(0.25, _demand_per_day(obs, configuration, item))
+    excess = max(0.0, current_inventory + quantity - 10000)
+    urgency = min(1.0, (excess / demand) / 10.0)
+    return score * (1.0 + _DEMAND_ALPHA * urgency)
+
+
+def _rank_sell_slots(obs, action, configuration):
+    action = _copy_action(action)
+    market = list(action.get("market") or [])
+    rows = [
+        (_order_score(obs, configuration, order), -index, list(order))
+        for index, order in enumerate(market)
+        if _is_sell(order)
+    ]
+    if len(rows) < 2:
+        return action
+    rows.sort(reverse=True)
+    ranked = iter(row[2] for row in rows)
+    action["market"] = [next(ranked) if _is_sell(order) else order for order in market]
+    return action
+
+
+def _terminal_liquidation(obs, action, step):
+    if step < 716:
+        return action
+    action = _copy_action(action)
+    shed = _get(_get(obs, "private", {}) or {}, "shed", {}) or {}
+    planned = {item: 0 for item in _SELLABLE}
+    for order in action.get("market", []):
+        if _is_sell(order):
+            planned[str(order[1])] += max(0, int(order[2]))
+    for item in _LIQUIDATION_ORDER:
+        available = max(0, int(_get(shed, item, 0) or 0))
+        extra = available if step >= 718 else max(0, available - planned[item])
+        if extra and len(action["market"]) < 10:
+            action["market"].append(["SELL", item, extra])
+    return action
+
+
+def agent(obs):
+    try:
+        step = min(max(0, int(_get(obs, "step", 0) or 0)), len(_ACTIONS) - 1)
+        action = _weed_repair_action(obs, _copy_action(_ACTIONS[step]), step)
+        action = _repay_shift(obs, action, step)
+        action = _rank_sell_slots(obs, action, None)
+        action = _preempt_shift(obs, action, step)
+        action = _terminal_liquidation(obs, action, step)
+        return _align_hands(action, obs)
+    except Exception:
+        farm = _farm(obs, _seat(obs))
+        return {
+            "farmer": ["PASS"],
+            "hands": [["PASS"] for _ in (_get(farm, "hands", []) or [])],
+            "market": [],
+        }
+
+
+def _kaggle_submission_entrypoint(obs):
+    return agent(obs)
+
+
+===== CELL 16 [code] =====
+agent_path = Path("main.py").resolve()
+py_compile.compile(str(agent_path), doraise=True)
+source_bytes = agent_path.read_bytes()
+source_sha256 = hashlib.sha256(source_bytes).hexdigest()
+assert source_sha256 == TOP_REPLAY_AGENT_SHA256
+
+source_check = pd.DataFrame([{
+    "file": agent_path.name,
+    "python_syntax": "PASS",
+    "bytes": len(source_bytes),
+    "sha256": source_sha256,
+}])
+show_ice_table(source_check, "Exact source written by this notebook")
+
+
+===== CELL 17 [markdown] =====
+### Market pressure in motion
+
+<div class="kg-prose"><div class="lead">The queue layer exists because shared-market price is not constant. Selling increases market inventory, which can push later units onto a lower part of the price curve. Under the current town rules, recovery is weaker and shop demand can be highly concentrated, so the controller combines price impact with the <b>live duplicated shop list</b>.</div></div>
+
+<div class="kg-note crimson"><div class="title">What to watch</div><div class="body">The left curve shows the modeled quote as more units reach the market; the right curve shows cumulative revenue. Normal turns rank the SELL slots already in the route. Only when the public farms look nearly cloned does the preemption layer move a bounded premium quantity from the earliest safe horizon in a 3 → 2 → 1 search—and then remove exactly that quantity from its original future sale.</div></div>
+
+===== CELL 18 [code] =====
+import importlib.util
+
+# Load the exact generated agent only for its market and demand model.
+# This does not modify the submitted source or the validated route.
+spec = importlib.util.spec_from_file_location("_kg_agent_visual", agent_path)
+_agent_visual = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(_agent_visual)
+
+opening_inventory = dict(opening.market["inventory"])
+PROBE_Q = 20
+motion_item = "STRAWBERRY"
+motion_n = 120
+motion_inventory = int(opening_inventory[motion_item])
+motion_prices = [
+    _agent_visual._market_price(motion_item, motion_inventory + k)
+    for k in range(motion_n)
+]
+show_market_motion(motion_prices, motion_item, probe_quantity=PROBE_Q)
+
+# Use a real late-season observation from the replay shown at the top.
+# This seed contains duplicated shops, making the new with-replacement rule visible.
+probe_step = min(24 * 24, len(env.steps) - 1)
+probe_obs = env.steps[probe_step][0].observation
+shop_counts = Counter(list(probe_obs.town["unlocked_shops"]))
+shop_frame = pd.DataFrame(
+    [(name.replace("_", " ").title(), count) for name, count in sorted(shop_counts.items())],
+    columns=["shop", "instances"],
+).sort_values(["instances", "shop"], ascending=[False, True])
+show_ice_table(shop_frame, "Observed town composition at Day 24")
+
+# Cross-product view: the exact live ranking score used for existing SELL slots.
+impact_rows = []
+for item in _agent_visual._MARKET_PARAMS:
+    order = ["SELL", item, PROBE_Q]
+    raw_impact = _agent_visual._impact_score(probe_obs, order)
+    live_score = _agent_visual._order_score(probe_obs, None, order)
+    demand = _agent_visual._demand_per_day(probe_obs, None, item)
+    impact_rows.append((item.title(), raw_impact, live_score, demand))
+impact_frame = pd.DataFrame(
+    impact_rows, columns=["product", "price_impact", "queue_score", "town_units_per_day"]
+).sort_values("queue_score")
+
+fig, ax = plt.subplots(figsize=(9.4, 4.25))
+bar_colors = ["#ad6477" if name.upper() == motion_item else "#9eafbb" for name in impact_frame["product"]]
+ax.barh(impact_frame["product"], impact_frame["queue_score"], color=bar_colors, alpha=.92)
+ice_axes(ax, f"Demand-aware queue priority for a {PROBE_Q}-unit sale · Day 24", "Live queue score", "")
+ax.grid(axis="x", alpha=.25); ax.grid(axis="y", alpha=0)
+for i, value in enumerate(impact_frame["queue_score"]):
+    ax.text(value + max(impact_frame["queue_score"]) * .015, i, f"{value:,.0f}", va="center", color=TEXT, fontsize=9)
+show_ice_figure(fig)
+
+worst = impact_frame.iloc[-1]
+duplicate_summary = ", ".join(
+    f"{row.shop} ×{int(row.instances)}" for row in shop_frame.itertuples() if int(row.instances) > 1
+) or "no duplicate shop in this snapshot"
+show_insight(
+    "Queue position depends on both price curvature and town composition",
+    f"At this Day-24 snapshot the town contains {duplicate_summary}. For the same {PROBE_Q}-unit probe, {worst['product']} receives the largest live queue score. Duplicate shops are counted independently, so demand adapts to the actual town rather than assuming one copy of each shop.",
+    accent="#ad6477",
+    tag="CURRENT MARKET MECHANIC",
+)
+
+===== CELL 19 [markdown] =====
+## 8. Full 720-turn runtime validation
+
+<div class="kg-prose"><div class="lead">A simulation agent is only useful if the exact file intended for submission completes the entire season. The check below runs <code>main.py</code> for both seats through all 720 turns, verifies terminal money, and records whether the controller actually exercised farm and market actions.</div></div>
+
+<div class="kg-grid">
+  <div class="kg-card indigo"><div class="eyebrow">What this proves</div><b>The packaged controller runs end to end.</b><br><span>We require 720 turns, two <code>DONE</code> states, finite positive terminal banks, active farm work, and market orders.</span></div>
+  <div class="kg-card crimson"><div class="eyebrow">What this does not prove</div><b>Self-play is not a leaderboard estimate.</b><br><span>It is a runtime and symmetry check. Competitive selection should use multiple seeds, both seats, and diverse opponents outside this public presentation.</span></div>
+</div>
+
+<div class="kg-note"><div class="title">Validation discipline</div><div class="body">The public notebook validates the exact source that is later archived. Development experiments were screened separately; candidate overlays were promoted only after fixed tuning seeds, untouched holdout seeds, both seats, and diverse regression opponents were checked in the current environment. This second controller intentionally uses a different preemption horizon from the companion submission rather than duplicating the same timing policy.</div></div>
+
+<div class="kg-prose"><div class="micro">The environment receives the absolute path of the generated <code>main.py</code> for both seats, matching the file-based agent workflow used by the competition.</div></div>
+
+
+<div class="kg-takeaway">
+  <div class="label">Takeaway · Section 8</div>
+  <ul>
+    <li><b>What this proves:</b> the exact archived file survives 720 turns on both seats, ends <code>DONE</code>, and genuinely issues farm and market actions rather than passing.</li>
+    <li><b>What it does not prove:</b> anything about the leaderboard. Self-play is a runtime and symmetry check, and two identical agents tie by construction.</li>
+    <li><b>Validate the artifact, not a draft.</b> The file that runs here is the file that is archived — no re-edit between validation and packaging.</li>
+  </ul>
+  <div class="verdict"><b>So what:</b> treat a green run as a licence to <i>start</i> evaluating, on multiple seeds, both seats, and opponents outside this notebook.</div>
+</div>
+
+
+===== CELL 20 [code] =====
+VALIDATION_SEED = 70117
+
+# Use the exact generated file path, matching the official Python-agent workflow.
+env = make(
+    "kaggriculture",
+    configuration={"episodeSteps": 720, "seed": VALIDATION_SEED},
+    debug=False,
+)
+env.run([str(agent_path), str(agent_path)])
+final = env.steps[-1]
+public_farms = final[0].observation.farms
+
+# Count visible non-pass work to prove the submitted agent actually acted.
+def count_active_actions(steps, seat):
+    active = 0
+    market_orders = 0
+    for states in steps:
+        action = states[seat].action or {}
+        units = [action.get("farmer")] + list(action.get("hands", []) or [])
+        active += sum(1 for item in units if item and item[0] != "PASS")
+        market_orders += len(action.get("market", []) or [])
+    return active, market_orders
+
+terminal_banks = []
+for seat in (0, 1):
+    player_id = int(final[seat].observation.player)
+    terminal_banks.append(float(public_farms[player_id]["money"]))
+
+if math.isclose(terminal_banks[0], terminal_banks[1], rel_tol=0.0, abs_tol=1e-9):
+    outcomes = ["TIE", "TIE"]
+else:
+    winner = int(np.argmax(terminal_banks))
+    outcomes = ["WIN" if seat == winner else "LOSS" for seat in (0, 1)]
+
+rows = []
+for seat in (0, 1):
+    player_id = int(final[seat].observation.player)
+    reward = float(final[seat].reward)
+    public_money = float(public_farms[player_id]["money"])
+    active_actions, market_orders = count_active_actions(env.steps, seat)
+    rows.append({
+        "seed": env.info.get("seed", VALIDATION_SEED),
+        "seat": seat,
+        "turns": len(env.steps),
+        "status": str(final[seat].status),
+        "outcome": outcomes[seat],
+        "terminal_bank": public_money,
+        "final_reward": reward,
+        "active_farm_actions": active_actions,
+        "market_orders": market_orders,
+        "runtime_check": "PASS",
+    })
+
+validation = pd.DataFrame(rows)
+assert len(env.steps) == 720
+assert validation["status"].eq("DONE").all()
+assert validation["terminal_bank"].map(math.isfinite).all()
+assert validation["final_reward"].map(math.isfinite).all()
+assert (validation["terminal_bank"] > 0).all()
+assert (validation["active_farm_actions"] > 0).all()
+assert (validation["market_orders"] > 0).all()
+assert np.allclose(validation["terminal_bank"], validation["final_reward"])
+assert sorted(validation["outcome"].tolist()) in (["LOSS", "WIN"], ["TIE", "TIE"])
+
+show_kpi_cards([
+    ("Episode", f"{len(env.steps)} turns", "complete season", "#1d7493"),
+    ("Runtime", "DONE × 2", "both seats finished", "#2e6286"),
+    ("Farm work", f"{int(validation['active_farm_actions'].sum()):,}", "non-pass unit actions", "#b54614"),
+    ("Market", f"{int(validation['market_orders'].sum()):,}", "orders issued", "#ad6477"),
+    ("Bank gap", f"{abs(terminal_banks[0]-terminal_banks[1]):,.0f}", "self-play seat difference", "#c75f4f"),
+], eyebrow="Full-season validation")
+
+show_insight(
+    "Self-play validates mechanics, not competitive strength",
+    "Both copies complete all 720 turns and exercise the farm and market. The near-symmetric terminal banks are useful for catching seat-sensitive runtime bugs, but this single self-play episode is deliberately not presented as a leaderboard estimate.",
+    accent="#975567",
+    tag="HOW TO READ THIS"
+)
+
+show_ice_table(
+    validation,
+    "Full-season runtime and outcome card",
+    formats={
+        "terminal_bank": lambda x: f"{x:,.0f}",
+        "final_reward": lambda x: f"{x:,.0f}",
+        "active_farm_actions": lambda x: f"{x:,}",
+        "market_orders": lambda x: f"{x:,}",
+    },
+)
+
+# Compact traces reused by the visual diagnostics.
+days = list(range(1, 31))
+daily_bank = {0: [], 1: []}
+daily_prices = {name: [] for name in ["MELON", "STRAWBERRY", "MILK", "WOOL", "WHEAT"]}
+daily_assets = {"Hands": [], "Plants": [], "Animals": [], "Shed units": []}
+for day in range(30):
+    step = min((day + 1) * 24 - 1, len(env.steps) - 1)
+    states = env.steps[step]
+    canonical = states[0].observation
+    for seat in (0, 1):
+        daily_bank[seat].append(float(canonical.farms[seat]["money"]))
+    for product in daily_prices:
+        daily_prices[product].append(float(canonical.market["prices"][product]))
+    farm = canonical.farms[0]
+    private = states[0].observation.private
+    tiles = farm.get("tiles", [])
+    daily_assets["Hands"].append(len(farm.get("hands", [])))
+    daily_assets["Plants"].append(sum(1 for row in tiles for tile in row if isinstance(tile, dict) and tile.get("kind") == "PLANT"))
+    daily_assets["Animals"].append(sum(1 for row in tiles for tile in row if isinstance(tile, dict) and tile.get("kind") in {"COOP", "PASTURE"} and tile.get("animal")))
+    daily_assets["Shed units"].append(sum(private.get("shed", {}).values()))
+
+===== CELL 21 [markdown] =====
+## 9. Season diagnostics: does the mechanism match the story?
+
+<div class="kg-prose"><div class="lead">These plots explain the controller; they are not leaderboard claims. The faint <b>BUILD / SCALE / PROTECT / CLOSE</b> bands connect each trace back to the season atlas, so capital, market, and capacity changes can be read in the same strategic clock.</div></div>
+
+<div class="kg-grid">
+  <div class="kg-card ember"><div class="eyebrow">Capital trace</div><b>Cash has a job before the deadline.</b><br><span>A falling bank can be healthy when it becomes productive capacity early enough to earn its way back before turn 720.</span></div>
+  <div class="kg-card ice"><div class="eyebrow">Market trace</div><b>Quotes are moving state, not constants.</b><br><span>Because sales influence a shared market, “best product” is conditional on timing, inventory, and which order is placed first.</span></div>
+  <div class="kg-card indigo"><div class="eyebrow">Capacity trace</div><b>Assets matter only when operations can service them.</b><br><span>Plants, animals, and land are useful only if labor, routes, feed, water, and collection cadence keep them productive.</span></div>
+  <div class="kg-card crimson"><div class="eyebrow">Action mix</div><b>The policy is an operating system, not one trick.</b><br><span>Movement, crop work, livestock care, logistics, purchases, and sales all consume scarce turns and must fit the same seasonal clock.</span></div>
+</div>
+
+<div class="kg-note ice"><div class="title">A useful replay-reading habit</div><div class="body">Do not inspect only the final bank. Look for <b>causal sequences</b>: a land or labor purchase should be followed by more serviced production; a price collapse should change the value of later sales; an execution repair should return to the planned route rather than create a new wandering policy.</div></div>
+
+<div class="kg-note crimson"><div class="title">Replay the farm, not just four snapshots</div><div class="body">The topology panel at the top compresses all 720 turns into one moving map. Tile colors show production state while the large white marker follows the farmer and the smaller teal markers follow hired hands. Watch expansion, routing pressure, stochastic weeds, and the shift into closeout as one continuous process.</div></div>
+
+
+<div class="kg-takeaway">
+  <div class="label">Takeaway · Section 9</div>
+  <ul>
+    <li><b>A falling bank can be healthy.</b> Capital that converts into capacity early enough to earn its way back before turn 720 is working, not leaking.</li>
+    <li><b>Prices are trajectories.</b> Read the market trace together with the capital trace: the "best product" is conditional on when you sell and who sells first.</li>
+    <li><b>Capacity without labour is decoration.</b> Plants, animals and land only pay when routes, feed, water and collection cadence keep up with them.</li>
+  </ul>
+  <div class="verdict"><b>So what:</b> the four traces should tell one story. Where they disagree — assets up, output flat — is exactly where the next improvement lives.</div>
+</div>
+
+
+===== CELL 22 [code] =====
+bank_trace = np.asarray(daily_bank[0], dtype=float)
+seat_traces_match = np.allclose(daily_bank[0], daily_bank[1], rtol=0.0, atol=1e-9)
+trough_idx = int(np.argmin(bank_trace))
+terminal_idx = len(bank_trace) - 1
+
+fig, ax = plt.subplots(figsize=(9.4, 4.1))
+ax.plot(days, bank_trace, linewidth=2.6, marker="o", markersize=3.2)
+ax.fill_between(days, bank_trace, alpha=.08)
+ice_axes(ax, "Bank balance through the 30-day capital cycle", "Day", "Bank balance")
+shade_season_phases(ax)
+ax.scatter([days[trough_idx], days[terminal_idx]], [bank_trace[trough_idx], bank_trace[terminal_idx]], s=58, zorder=5)
+ax.annotate(f"capital trough\n{bank_trace[trough_idx]:,.0f}",
+            (days[trough_idx], bank_trace[trough_idx]), xytext=(10, 18),
+            textcoords="offset points", color=TEXT, fontsize=9,
+            arrowprops=dict(arrowstyle="->", alpha=.45))
+ax.annotate(f"terminal bank\n{bank_trace[terminal_idx]:,.0f}",
+            (days[terminal_idx], bank_trace[terminal_idx]), xytext=(-70, -34),
+            textcoords="offset points", color=TEXT, fontsize=9,
+            arrowprops=dict(arrowstyle="->", alpha=.45))
+if seat_traces_match:
+    ax.text(0.015, 0.96, "Seat 1 is identical on this self-play seed, so it is not drawn twice.",
+            transform=ax.transAxes, va="top", color=TEXT, fontsize=9, alpha=.82)
+ax.grid(axis="y", alpha=.22)
+show_ice_figure(fig)
+
+===== CELL 23 [code] =====
+fig, ax = plt.subplots(figsize=(9.4, 4.2))
+for product, values in daily_prices.items():
+    ax.plot(days, values, linewidth=1.9, label=product.title())
+ice_axes(ax, "Shared-market quotes remain non-stationary", "Day", "Market price")
+shade_season_phases(ax)
+ax.legend(frameon=False, labelcolor=TEXT, ncol=5, fontsize=8.5)
+show_ice_figure(fig)
+
+===== CELL 24 [code] =====
+fig, ax = plt.subplots(figsize=(9.4, 4.0))
+for label, values in daily_assets.items():
+    ax.plot(days, values, linewidth=2.0, label=label)
+ice_axes(ax, "Operating capacity grows before final liquidation", "Day", "Count / units")
+shade_season_phases(ax)
+ax.legend(frameon=False, labelcolor=TEXT, ncol=4, fontsize=9)
+show_ice_figure(fig)
+
+===== CELL 25 [code] =====
+# The live replay at the top is produced with this exact call:
+# show_farm_motion(env, seat=0, stride=6, duration=18)
+# It is not repeated here because the same animation is already the notebook opener.
+
+movement_ops = {"NORTH", "SOUTH", "EAST", "WEST"}
+crop_ops = {"PLANT", "WATER", "HARVEST", "FERTILIZE", "DIG"}
+livestock_ops = {"FEED", "CARE", "COLLECT_FERTILIZER"}
+logistics_ops = {"PICKUP", "DROP", "PLACE", "BUILD_PASTURE"}
+
+mix = Counter()
+for states in env.steps:
+    action = states[0].action or {}
+    for unit_action in [action.get("farmer")] + list(action.get("hands", []) or []):
+        if not unit_action:
+            continue
+        op = unit_action[0]
+        if op in movement_ops: mix["Movement"] += 1
+        elif op in crop_ops: mix["Crop work"] += 1
+        elif op in livestock_ops: mix["Livestock"] += 1
+        elif op in logistics_ops: mix["Logistics"] += 1
+        elif op == "PASS": mix["Pass"] += 1
+        else: mix["Other farm"] += 1
+    for order in action.get("market", []) or []:
+        if order:
+            mix["Market sales" if order[0] == "SELL" else "Investment / buying"] += 1
+
+mix_frame = pd.DataFrame(mix.items(), columns=["category", "actions"]).sort_values("actions")
+fig, ax = plt.subplots(figsize=(9.4, 4.2))
+ax.barh(mix_frame["category"], mix_frame["actions"], color=PALETTE[1], alpha=.88)
+ice_axes(ax, "What the controller spends 720 turns doing", "Action count", "")
+ax.grid(axis="x", alpha=.25); ax.grid(axis="y", alpha=0)
+for i, value in enumerate(mix_frame["actions"]):
+    ax.text(value + max(mix_frame["actions"])*.012, i, f"{value:,}", va="center", color=TEXT, fontsize=9)
+show_ice_figure(fig)
+
+min_bank_day = int(np.argmin(daily_bank[0])) + 1
+min_bank_value = float(min(daily_bank[0]))
+peak_hands = int(max(daily_assets["Hands"]))
+peak_plants = int(max(daily_assets["Plants"]))
+total_work = int(sum(mix.values()))
+show_kpi_cards([
+    ("Capital trough", f"Day {min_bank_day}", f"bank {min_bank_value:,.0f}", "#b54614"),
+    ("Peak hands", f"{peak_hands}", "labor capacity", "#1d7493"),
+    ("Peak plants", f"{peak_plants}", "crop footprint", "#2e6286"),
+    ("Observed actions", f"{total_work:,}", "farm + market events", "#ad6477"),
+], eyebrow="Trace readout")
+show_insight(
+    "The trace matches a capital-cycle strategy",
+    f"Seat 0 reaches its lowest sampled bank on day {min_bank_day}, after cash has been converted into operating capacity. The farm later reaches {peak_hands} hands and {peak_plants} simultaneous plants before terminal liquidation. This is the intended shape: invest early enough to compound, then stop treating inventory as wealth when the deadline approaches.",
+    accent="#2e6286",
+    tag="MECHANISM CHECK"
+)
+
+
+
+
+===== CELL 26 [markdown] =====
+## 10. Mental model of one turn
+
+<div class="kg-terminal">
+<span class="dim">live observation</span><br>
+&nbsp;&nbsp;↓<br>
+read the coordinated season action<br>
+&nbsp;&nbsp;↓<br>
+repair a local WEED obstruction when needed<br>
+&nbsp;&nbsp;↓<br>
+repay any premium quantity shifted from this turn<br>
+&nbsp;&nbsp;↓<br>
+rank existing SELL slots by <b>price impact + live demand urgency</b><br>
+&nbsp;&nbsp;↓<br>
+if public farms are near clones, inspect premium SELLs <b>3 turns ahead</b><br>
+&nbsp;&nbsp;↓<br>
+move a safe quantity now; otherwise fall back to 2 turns, then 1<br>
+&nbsp;&nbsp;↓<br>
+skip preemption at the $1 floor; liquidate terminal leftovers near the deadline<br>
+&nbsp;&nbsp;↓<br>
+return farmer + hands + market orders
+</div>
+
+<div class="kg-note"><div class="title">Reusable design principle</div><div class="body">A strong runtime layer should have a <b>small blast radius</b>. The route handles capital and logistics; WEED repair protects physical execution; demand-aware ranking protects the shared queue; clone preemption changes only the timing of bounded premium quantity and carries an explicit repayment debt. Outside the tight clone gate, the route remains unchanged.</div></div>
+
+===== CELL 27 [markdown] =====
+## 11. Build, inspect, and rerun the submission archive
+
+<div class="kg-prose"><div class="lead">The archive must contain exactly one root-level file: <code>main.py</code>. More importantly, the bytes inside the archive must be the bytes we already compiled and executed.</div></div>
+
+<div class="kg-terminal">
+<span class="dim">main.py source</span> → compile → 720-turn run → SHA-256<br>
+&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+deterministic <b>submission.tar.gz</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+extract exact bytes → hash match → compile again → fresh 720-turn run
+</div>
+
+<div class="kg-note ember"><div class="title">Why validate the archive twice?</div><div class="body">A notebook can execute one source file while the submission archive accidentally contains stale bytes. Byte matching plus a fresh run after extraction closes that gap and verifies the artifact that will actually be uploaded.</div></div>
+
+===== CELL 28 [code] =====
+archive_path = Path("submission.tar.gz")
+with archive_path.open("wb") as raw:
+    with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as zipped:
+        with tarfile.open(fileobj=zipped, mode="w") as archive:
+            info = tarfile.TarInfo("main.py")
+            info.size = len(source_bytes)
+            info.mode = 0o644
+            info.mtime = 0
+            info.uid = info.gid = 0
+            info.uname = info.gname = ""
+            archive.addfile(info, io.BytesIO(source_bytes))
+
+with tarfile.open(archive_path, "r:gz") as archive:
+    members = archive.getnames()
+    archived_bytes = archive.extractfile("main.py").read()
+
+assert members == ["main.py"]
+assert archived_bytes == source_bytes
+assert hashlib.sha256(archived_bytes).hexdigest() == source_sha256
+
+ARCHIVE_VALIDATION_SEED = 70123
+with tempfile.TemporaryDirectory() as temp_dir:
+    extracted_agent = Path(temp_dir) / "main.py"
+    extracted_agent.write_bytes(archived_bytes)
+    py_compile.compile(str(extracted_agent), doraise=True)
+    archive_env = make(
+        "kaggriculture",
+        configuration={"episodeSteps": 720, "seed": ARCHIVE_VALIDATION_SEED},
+        debug=False,
+    )
+    archive_env.run([str(extracted_agent), str(extracted_agent)])
+    archive_final = archive_env.steps[-1]
+    archive_rewards = [float(state.reward) for state in archive_final]
+    archive_statuses = [str(state.status) for state in archive_final]
+
+assert len(archive_env.steps) == 720
+assert archive_statuses == ["DONE", "DONE"]
+assert all(math.isfinite(value) and value > 0 for value in archive_rewards)
+
+archive_check = pd.DataFrame([{
+    "archive": archive_path.name,
+    "root_members": ", ".join(members),
+    "archive_bytes": archive_path.stat().st_size,
+    "source_bytes_match": "PASS",
+    "sha256_match": "PASS",
+    "archive_syntax": "PASS",
+    "720_turn_archive_run": "PASS",
+}])
+show_kpi_cards([
+    ("Root files", str(len(members)), "main.py only", "#2e6286"),
+    ("Archive", f"{archive_path.stat().st_size/1024:.1f} KB", "deterministic tar.gz", "#1d7493"),
+    ("Byte match", "PASS", "archived source is exact", "#b54614"),
+    ("Fresh rerun", "PASS", "720 turns from extracted bytes", "#ad6477"),
+], eyebrow="Submission integrity")
+show_insight(
+    "The file that is submitted is the file that was tested",
+    "The archive contains one root-level main.py. Its bytes match the compiled source exactly, and those extracted bytes compile and finish a separate 720-turn episode. This closes a common reproducibility gap between notebook code and submitted code.",
+    accent="#2e6286",
+    tag="PACKAGE CHECK"
+)
+show_ice_table(archive_check, "Deterministic archive audit")
+
+===== CELL 29 [markdown] =====
+## 12. Conclusions
+
+<div class="kg-prose"><div class="lead">Four findings survived the whole build. They are ordered by how much they changed the design, not by how obvious they look in hindsight.</div></div>
+
+<div class="kg-insight-row">
+  <div class="kg-insight"><div class="n">01</div><div class="t">Separation of concerns is the whole design</div><div class="d">A season route owns capital and logistics; runtime owns only what the environment can invalidate. Every attempt to blur that line made the agent less predictable without making it richer.</div></div>
+  <div class="kg-insight"><div class="n">02</div><div class="t">Price is a shared, stateful resource</div><div class="d">Both players sell into one inventory. That makes sell <i>ordering</i> a first-class decision and makes any single-agent price model an approximation the moment an opponent exists.</div></div>
+  <div class="kg-insight"><div class="n">03</div><div class="t">Timing adaptation must be repaid</div><div class="d">Preemption moves quantity earlier and removes the same quantity when it came due. Without that invariant, a timing layer silently becomes a production change and the route's economics stop holding.</div></div>
+</div>
+
+<div class="kg-takeaway">
+  <div class="label">Verdict</div>
+  <ul>
+    <li><b>What is demonstrated here:</b> the archived <code>main.py</code> completes 720 turns on both seats, exercises farm and market actions, and reproduces byte-for-byte from the packaged archive.</li>
+    <li><b>What is not demonstrated:</b> any leaderboard position. Self-play ties by construction, and none of the figures above are competitive claims.</li>
+    <li><b>Where the remaining edge probably is:</b> the opponent's farm is fully visible in <code>obs["farms"][1 - player]</code> — their tiles, crops and planting days. A large melon block planted on day 0 is a dated announcement of a sale on day 10, and almost nothing in public agents reads it.</li>
+  </ul>
+  <div class="verdict"><b>If you fork this:</b> keep the invariants — bounded blast radius, explicit quantity repayment, validate-then-archive — and evaluate on multiple seeds and both seats before believing any improvement.</div>
+</div>
+
+
+===== CELL 30 [markdown] =====
+## 13. Submit and continue improving
+
+<div class="kg-prose"><ol>
+<li>Run the notebook from top to bottom.</li>
+<li>Confirm the full-season validation shows two <code>DONE</code> rows, positive terminal banks, active farm work, and active market orders.</li>
+<li>Confirm the archive validation passes byte matching, syntax compilation, and a fresh 720-turn archive run.</li>
+<li>Submit <code>submission.tar.gz</code>.</li>
+</ol></div>
+
+<div class="kg-note crimson"><div class="title">What this notebook teaches</div><div class="body">The central lesson is separation of concerns. A strong full-season route establishes the economic trajectory; local repair protects execution; demand-aware SELL ranking handles nonlinear price erosion; and a tightly gated multi-horizon preemption layer reacts only when the opponent's public farm strongly resembles the same route. The shifted quantity is repaid explicitly, keeping timing adaptation separate from production planning. Further experiments should preserve these invariants and survive both-seat holdout evaluation.</div></div>
+

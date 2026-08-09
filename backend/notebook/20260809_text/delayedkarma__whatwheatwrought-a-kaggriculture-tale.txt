@@ -1,0 +1,160 @@
+
+===== CELL 0 [markdown] =====
+### Inspiration
+
+https://www.kaggle.com/code/bovard/kaggriculture-getting-started
+
+## Game Mechanics 
+ 
+- **Farmer**: takes one action per turn over a season with 30 days and 24 turns per day (720 total).
+- **Crops and animals**: each have their own seed cost, time to first yield, and total payout. 
+- **Daily care**: plants need watering every day or they turn to weeds, animals need feeding or they escape.
+- **Market prices**: move with supply, selling a product pushes its price down, and crops vary in how hard they crash from a glut.
+- **Town shops** unlock over the season and steadily buy products, lifting prices over time.
+- **Farm hands** can be hired for the day, with increasing costs for each hire per day. 
+- **Farm expansion**: start with one quadrant of land and can buy the other three for an escalating fee.
+- **Shed**: holds harvested goods but caps at 100 items, anything past that is discarded at end of day.
+- **Win condition**: whoever has the most money in the bank at the end of the season wins.
+
+
+### Wheat Loop
+
+
+* The agent plants wheat, waters it every day, harvests it on day 2, sells it, and immediately reinvests in another seed.
+* Wheat is chosen because it has the fastest cycle in the game — seed to cash in 2 days. Every other crop takes longer. Melon takes 10 days.
+* The agent only manages one tile at a time. It never hires help or buys more land.
+
+
+===== CELL 1 [code] =====
+%%capture
+!pip install --upgrade "kaggle-environments>=1.32.2"
+
+===== CELL 2 [code] =====
+from kaggle_environments import make
+
+===== CELL 3 [code] =====
+def agent(obs):
+    obs = dict(obs)
+    player = obs["player"]
+    farm = obs["farms"][player]
+    private = obs["private"]
+    
+    day = obs["day"]
+    fx, fy = farm["farmer"]
+    tile = farm["tiles"][fy][fx]
+    seeds = private["seeds"]
+    shed = private["shed"]
+    money = farm["money"]
+    market = []
+
+    # Sell wheat in shed
+    if shed.get("WHEAT", 0) > 0:
+        market.append(["SELL", "WHEAT", shed["WHEAT"]])
+
+    # Buy wheat seed if we have none
+    if seeds.get("WHEAT", 0) == 0 and money >= 10:
+        market.append(["BUY_SEED", "WHEAT", 1])
+
+    # Farmer logic
+    if tile is None and seeds.get("WHEAT", 0) > 0:
+        return {"farmer": ["PLANT", "WHEAT"], "hands": [], "market": market}
+
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT":
+        age = day - tile["planted_day"]
+        if age >= 2 and tile["yield_units"] > 0:
+            return {"farmer": ["HARVEST"], "hands": [], "market": market}
+        if not tile["watered_today"]:
+            return {"farmer": ["WATER"], "hands": [], "market": market}
+
+    # Move to nearest empty or plant tile
+    for y in range(10):
+        for x in range(10):
+            t = farm["tiles"][y][x]
+            if t is None or (isinstance(t, dict) and t.get("kind") == "PLANT"):
+                if x != fx:
+                    return {"farmer": ["EAST" if x > fx else "WEST"], "hands": [], "market": market}
+                if y != fy:
+                    return {"farmer": ["SOUTH" if y > fy else "NORTH"], "hands": [], "market": market}
+
+    return {"farmer": ["PASS"], "hands": [], "market": market}
+
+===== CELL 4 [code] =====
+env = make("kaggriculture", debug=True)
+env.run([agent, "random"])
+
+final = env.steps[-1]
+print(f"Our agent: {final[0].reward}")
+print(f"Opponent:  {final[1].reward}")
+
+===== CELL 5 [code] =====
+for seed in [1, 21, 42, 84, 168]:
+    env = make("kaggriculture", configuration={"seed": seed})
+    env.run([agent, "starter"])
+    final = env.steps[-1]
+    p0, p1 = final[0].reward, final[1].reward
+    result = "WIN" if p0 > p1 else ("TIE" if p0 == p1 else "LOSE")
+    print(f"seed={seed}  us={p0:.0f}  starter={p1:.0f}  {result}")
+
+===== CELL 6 [code] =====
+# Why isnt the rendering working?
+# env = make("kaggriculture", debug=True)
+# env.run([agent, "starter"])
+# env.render(mode="ipython", width=1200, height=800)
+
+===== CELL 7 [code] =====
+# Test it against the random agent
+env = make("kaggriculture", debug=True)
+env.run([agent, "random"])
+
+final = env.steps[-1]
+for i, s in enumerate(final):
+    print(f"Player {i}: reward={s.reward}, status={s.status}")
+
+# env.render(mode="ipython", width=800, height=600)
+
+===== CELL 8 [code] =====
+%%writefile submission.py
+
+def agent(obs):
+    obs = dict(obs)
+    player = obs["player"]
+    farm = obs["farms"][player]
+    private = obs["private"]
+    
+    day = obs["day"]
+    fx, fy = farm["farmer"]
+    tile = farm["tiles"][fy][fx]
+    seeds = private["seeds"]
+    shed = private["shed"]
+    money = farm["money"]
+    market = []
+
+    if shed.get("WHEAT", 0) > 0:
+        market.append(["SELL", "WHEAT", shed["WHEAT"]])
+
+    if seeds.get("WHEAT", 0) == 0 and money >= 10:
+        market.append(["BUY_SEED", "WHEAT", 1])
+
+    if tile is None and seeds.get("WHEAT", 0) > 0:
+        return {"farmer": ["PLANT", "WHEAT"], "hands": [], "market": market}
+
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT":
+        age = day - tile["planted_day"]
+        if age >= 2 and tile["yield_units"] > 0:
+            return {"farmer": ["HARVEST"], "hands": [], "market": market}
+        if not tile["watered_today"]:
+            return {"farmer": ["WATER"], "hands": [], "market": market}
+
+    for y in range(10):
+        for x in range(10):
+            t = farm["tiles"][y][x]
+            if t is None or (isinstance(t, dict) and t.get("kind") == "PLANT"):
+                if x != fx:
+                    return {"farmer": ["EAST" if x > fx else "WEST"], "hands": [], "market": market}
+                if y != fy:
+                    return {"farmer": ["SOUTH" if y > fy else "NORTH"], "hands": [], "market": market}
+
+    return {"farmer": ["PASS"], "hands": [], "market": market}
+
+===== CELL 9 [code] =====
+

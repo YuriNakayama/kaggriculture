@@ -1,0 +1,321 @@
+
+===== CELL 0 [markdown] =====
+# Kaggriculture Tutorial
+
+Farm your way to market dominance! Players harvest produce and animal products to sell in a dynamic market.
+
+## Game Mechanics 
+ 
+- **Farmer**: takes one action per turn over a season with 30 days and 24 turns per day (720 total).
+- **Crops and animals**: each have their own seed cost, time to first yield, and total payout. 
+- **Daily care**: plants need watering every day or they turn to weeds, animals need feeding or they escape.
+- **Market prices**: move with supply, selling a product pushes its price down, and crops vary in how hard they crash from a glut.
+- **Town shops** unlock over the season and steadily buy products, lifting prices over time.
+- **Farm hands** can be hired for the day, with increasing costs for each hire per day. 
+- **Farm expansion**: start with one quadrant of land and can buy the other three for an escalating fee.
+- **Shed**: holds harvested goods but caps at 100 items, anything past that is discarded at end of day.
+ - **Win condition**: whoever has the most money in the bank at the end of the season wins.
+
+===== CELL 1 [code] =====
+%%capture
+!pip install --upgrade "kaggle-environments>=1.32.2"
+
+===== CELL 2 [code] =====
+from kaggle_environments import make
+
+env = make("kaggriculture", debug=True)
+print(f"Environment: {env.name} v{env.version}")
+print(f"Players: {env.specification.agents}")
+print(f"Max steps: {env.configuration.episodeSteps}")
+
+===== CELL 3 [markdown] =====
+## Understanding the Observation
+
+Each turn your agent receives an observation with:
+
+- **`player`** — your player id (`0` or `1`).
+- **`day`** / **`hour`** — the current in-game day (0-indexed) and turn within that day (0-indexed; there are `turnsPerDay` turns per day).
+- **`farms`** — a list of both players' public farm state, indexed by player id. Each farm has:
+    - `money` — current bank balance
+    - `tiles` — a `boardSize × boardSize` grid indexed `tiles[y][x]`; each cell is `None` (empty), `"LOCKED"` (unowned quadrant), or a dict describing a `PLANT`, `WEED`, `COOP`, or `PASTURE` (see below)
+    - `farmer` — `[x, y]` position of your main farmer
+    - `hands` — `[x, y]` positions of any hired hands active today
+    - `unlocked_quadrants` — subset of `["NW", "NE", "SW", "SE"]`
+    - `hires_today` — number of hires already made today (drives the next `HIRE` price)
+- **`market`** (shared) — `inventory` and current `prices` per product (`WHEAT, CARROT, TOMATO, STRAWBERRY, MELON, EGG, MILK, WOOL, FERTILIZER`).
+- **`town`** (shared) — `unlocked_shops`, the list of shops currently generating per-tick demand.
+- **`private`** — your own hidden state (not visible to your opponent):
+  - `shed` — counts of every product and animal (`GOOSE`, `COW`, `SHEEP`) stored in your shed
+  - `seeds` — seed counts per crop
+  - `inventories` — per-unit carried inventories; `[0]` is your main farmer, `[1..]` are today's hired hands in order
+
+Tile dicts come in a few shapes:
+
+- **Plant**: `{kind: "PLANT", crop, planted_day, watered_today, consecutive_unwatered, yield_units, max_lifespan_step, fertilized_until_day}` — `consecutive_unwatered >= 2` turns the tile to a weed at end of day.
+- **Weed**: `{kind: "WEED"}` — must be `DIG`-ed before the tile is usable again.
+- **Coop / Pasture** (empty): `{kind: "COOP" | "PASTURE"}`.
+- **Coop / Pasture** (occupied): adds `animal, placed_day, yield_units, fed_today, consecutive_unfed, cared_today, fertilizer_available, pending_care_bonus`. `consecutive_unfed >= 2` means the animal escapes.
+
+Your agent returns a dict of actions for the farmer, any farm hands, and the market: `{"farmer": 'PASS', "hands": [], "market": []}`
+
+
+===== CELL 4 [code] =====
+# Run a quick game to see what the observation looks like
+env = make("kaggriculture", debug=True)
+env.run(["random", "random"])
+
+# Peek at the initial observation
+obs = env.steps[1][0].observation  # step 1 = first action step
+items = obs.market.prices.keys()
+print(f"Player: {obs.player}")
+print(f"Player {obs.player}'s Unlocked Farm Areas: {obs.farms[obs.player].unlocked_quadrants}")
+for i in items:
+    print(f"{i} Price: {obs.market.prices[i]}")
+
+===== CELL 5 [markdown] =====
+## Agent 1: Melon Maxxer
+
+Our first agent is straightforward:
+1. Whenever it runs out of melon seeds and has the cash, buy one more.
+2. Walk to the nearest open tile and plant a melon; if it's already standing on a melon plant, water it (or harvest it once it's fully grown).
+3. Once melons pile up in the shed, only sell them if the market price is above a threshold, otherwise hold and wait for a better price.
+4. Roll the proceeds back into more seeds and repeat.
+
+This demonstrates the core aspects of the game: reading observations, maintaining the farm, and watching the market.   
+
+===== CELL 6 [code] =====
+from kaggle_environments.envs.kaggriculture.kaggriculture import CROPS
+
+MELON_SEED_COST = CROPS["MELON"]["seed"]
+MELON_MAX_YIELD_DAY = CROPS["MELON"]["max_yield_day"]
+SELL_THRESHOLD = 200
+
+def _step_toward(fx, fy, tx, ty):
+    if fx > tx:
+        return "WEST"
+    if fx < tx:
+        return "EAST"
+    if fy > ty:
+        return "NORTH"
+    if fy < ty:
+        return "SOUTH"
+    return None
+
+def _find_target_tile(farm, board_size, have_seed):
+    fx, fy = farm["farmer"]
+    candidates = []
+    for y in range(board_size):
+        for x in range(board_size):
+            tile = farm["tiles"][y][x]
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile["crop"] == "MELON":
+                purpose = None
+                # Harvest if ripe.
+                age_ok = tile["yield_units"] > 0
+                if age_ok and tile.get("planted_day") is not None:
+                    purpose = "harvest"
+                if not tile["watered_today"]:
+                    purpose = "water" if purpose is None else purpose
+                if purpose:
+                    candidates.append((x, y, purpose))
+            elif tile is None and have_seed:
+                candidates.append((x, y, "plant"))
+
+    if not candidates:
+        return None
+
+    priority = {"harvest": 0, "water": 1, "plant": 2}
+    candidates.sort(key=lambda c: (priority[c[2]], abs(c[0] - fx) + abs(c[1] - fy)))
+    return candidates[0]
+
+def melon_maxxer(obs):
+    farms = obs.get("farms", [])
+    player = obs.get("player", 0)
+    private = obs.get("private", {}) or {}
+    if not farms or player >= len(farms):
+        return {"farmer": ["PASS"], "hands": [], "market": []}
+
+    farm = farms[player]
+    board_size = len(farm["tiles"])
+    fx, fy = farm["farmer"]
+    tile = farm["tiles"][fy][fx]
+    day = obs.get("day", 0)
+
+    seeds = private.get("seeds", {})
+    shed = private.get("shed", {})
+    market_prices = (obs.get("market", {}) or {}).get("prices", {})
+    melon_price = market_prices.get("MELON", 0)
+
+    market = []
+
+    # Sell melons only when the market is paying enough.
+    melons_in_shed = shed.get("MELON", 0)
+    if melons_in_shed > 0 and melon_price >= SELL_THRESHOLD:
+        market.append(["SELL", "MELON", melons_in_shed])
+
+    # Top up seed inventory so the next empty tile can be planted.
+    if seeds.get("MELON", 0) == 0 and farm["money"] >= MELON_SEED_COST:
+        market.append(["BUY_SEED", "MELON", 1])
+
+    # Decide farmer action.
+    farmer = ["PASS"]
+
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile["crop"] == "MELON":
+        age = day - tile["planted_day"]
+        if age >= MELON_MAX_YIELD_DAY and tile["yield_units"] > 0:
+            farmer = ["HARVEST"]
+        elif not tile["watered_today"]:
+            farmer = ["WATER"]
+        else:
+            target = _find_target_tile(farm, board_size, seeds.get("MELON", 0) > 0)
+            if target:
+                step = _step_toward(fx, fy, target[0], target[1])
+                if step:
+                    farmer = [step]
+    elif tile is None and seeds.get("MELON", 0) > 0:
+        farmer = ["PLANT", "MELON"]
+    else:
+        target = _find_target_tile(farm, board_size, seeds.get("MELON", 0) > 0)
+        if target:
+            step = _step_toward(fx, fy, target[0], target[1])
+            if step:
+                farmer = [step]
+
+    return {"farmer": farmer, "hands": [], "market": market}
+
+===== CELL 7 [code] =====
+# Test it against the random agent
+env = make("kaggriculture", debug=True)
+env.run([melon_maxxer, "random"])
+
+final = env.steps[-1]
+for i, s in enumerate(final):
+    print(f"Player {i}: reward={s.reward}, status={s.status}")
+
+env.render(mode="ipython", width=800, height=600)
+
+===== CELL 8 [markdown] =====
+## What's wrong with this agent?
+
+The melon agent has a few problems:
+  - It never hires farm hands or buys more land, so it's stuck with one farmer working a single quadrant.     
+  - It only grows melons, so when other crops are fetching a higher price it has nothing to sell.
+  - It never fertilizes its plants, leaving a yield bonus on the table.                           
+  - When it does sell, it dumps the entire inventory in one order, which can crash the melon price below the       
+  threshold partway through the sale.                                                                         
+                                      
+Now it's your turn to make improvements!
+
+===== CELL 9 [markdown] =====
+## Making a submission
+
+You can either submit a main.py, a tar.gz (or zip) with a main.py in it, or submit a notebook with a main.py or submission.tar.gz
+
+There are three ways to subit.
+1. using the [Submit Agent](https://www.kaggle.com/competitions/kaggriculture-gdm-internal) button on the homepage and uploading the file
+2. using the Kaggle CLI (as described in agents.py in the competition dataset)
+3. submitting a notebook with a submission.py or submission.tar.gz
+
+===== CELL 10 [code] =====
+%%writefile submission.py
+from kaggle_environments.envs.kaggriculture.kaggriculture import CROPS
+
+MELON_SEED_COST = CROPS["MELON"]["seed"]
+MELON_MAX_YIELD_DAY = CROPS["MELON"]["max_yield_day"]
+SELL_THRESHOLD = 200
+
+def _step_toward(fx, fy, tx, ty):
+    if fx > tx:
+        return "WEST"
+    if fx < tx:
+        return "EAST"
+    if fy > ty:
+        return "NORTH"
+    if fy < ty:
+        return "SOUTH"
+    return None
+
+def _find_target_tile(farm, board_size, have_seed):
+    fx, fy = farm["farmer"]
+    candidates = []
+    for y in range(board_size):
+        for x in range(board_size):
+            tile = farm["tiles"][y][x]
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile["crop"] == "MELON":
+                purpose = None
+                # Harvest if ripe.
+                age_ok = tile["yield_units"] > 0
+                if age_ok and tile.get("planted_day") is not None:
+                    purpose = "harvest"
+                if not tile["watered_today"]:
+                    purpose = "water" if purpose is None else purpose
+                if purpose:
+                    candidates.append((x, y, purpose))
+            elif tile is None and have_seed:
+                candidates.append((x, y, "plant"))
+
+    if not candidates:
+        return None
+
+    priority = {"harvest": 0, "water": 1, "plant": 2}
+    candidates.sort(key=lambda c: (priority[c[2]], abs(c[0] - fx) + abs(c[1] - fy)))
+    return candidates[0]
+
+def melon_maxxer(obs):
+    farms = obs.get("farms", [])
+    player = obs.get("player", 0)
+    private = obs.get("private", {}) or {}
+    if not farms or player >= len(farms):
+        return {"farmer": ["PASS"], "hands": [], "market": []}
+
+    farm = farms[player]
+    board_size = len(farm["tiles"])
+    fx, fy = farm["farmer"]
+    tile = farm["tiles"][fy][fx]
+    day = obs.get("day", 0)
+
+    seeds = private.get("seeds", {})
+    shed = private.get("shed", {})
+    market_prices = (obs.get("market", {}) or {}).get("prices", {})
+    melon_price = market_prices.get("MELON", 0)
+
+    market = []
+
+    # Sell melons only when the market is paying enough.
+    melons_in_shed = shed.get("MELON", 0)
+    if melons_in_shed > 0 and melon_price >= SELL_THRESHOLD:
+        market.append(["SELL", "MELON", melons_in_shed])
+
+    # Top up seed inventory so the next empty tile can be planted.
+    if seeds.get("MELON", 0) == 0 and farm["money"] >= MELON_SEED_COST:
+        market.append(["BUY_SEED", "MELON", 1])
+
+    # Decide farmer action.
+    farmer = ["PASS"]
+
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile["crop"] == "MELON":
+        age = day - tile["planted_day"]
+        if age >= MELON_MAX_YIELD_DAY and tile["yield_units"] > 0:
+            farmer = ["HARVEST"]
+        elif not tile["watered_today"]:
+            farmer = ["WATER"]
+        else:
+            target = _find_target_tile(farm, board_size, seeds.get("MELON", 0) > 0)
+            if target:
+                step = _step_toward(fx, fy, target[0], target[1])
+                if step:
+                    farmer = [step]
+    elif tile is None and seeds.get("MELON", 0) > 0:
+        farmer = ["PLANT", "MELON"]
+    else:
+        target = _find_target_tile(farm, board_size, seeds.get("MELON", 0) > 0)
+        if target:
+            step = _step_toward(fx, fy, target[0], target[1])
+            if step:
+                farmer = [step]
+
+    return {"farmer": farmer, "hands": [], "market": market}
+
+===== CELL 11 [markdown] =====
+## Submit to competition
+
+Now that we have a main.py, all you need to do is click "Submit to competition" on the right and watch your entry show up on the competition leaderboard! Best of luck!

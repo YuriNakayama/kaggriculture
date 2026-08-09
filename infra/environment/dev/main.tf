@@ -28,6 +28,11 @@ module "github_actions_oidc" {
   prefix      = var.resource_prefix
   github_repo = var.github_repo
 
+  # Required by the immutable-subject claim GitHub now issues; see the trust
+  # policy comment in the module.
+  github_owner_id = var.github_owner_id
+  github_repo_id  = var.github_repo_id
+
   # Built from the variable rather than module.dvc_remote so this module can be
   # applied with -target without dragging the bucket resources along.
   dvc_bucket_arn = "arn:aws:s3:::${var.dvc_bucket_name}"
