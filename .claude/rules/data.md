@@ -42,7 +42,14 @@ data/
 
 - Track each directory under lake / mart / output with `dvc add` at the **directory** level. Commit only the generated `*.dvc` files to git
 - S3 remote is named `s3`; the bucket is created by Terraform (`infra/module/application/dvc_remote`) and wired up per-machine via `dev/dvc setup`
-- Fetch real contents with `dev/dvc pull`
+- Fetch real contents with **`dev/dvc pull <target>.dvc`** — always name the target.
+
+> **A bare `dev/dvc pull` deletes tracked data.** DVC does not auto-discover
+> `.dvc` files under `data/` here (the tree is `.gitignore`d apart from the
+> stubs), so it concludes nothing is tracked and removes the "orphaned"
+> directory. Recovery is `dev/dvc pull data/lake/kaggle_episodes/replays.dvc
+> --force`, which re-fetches from S3 — but only because the blobs are in S3.
+> Name the target and this never comes up.
 - Kaggle replay/log scraping is automated — see `.github/workflows/scrape-kaggle.yml` and `.claude/rules/command.md`
 
 ## .gitignore behavior

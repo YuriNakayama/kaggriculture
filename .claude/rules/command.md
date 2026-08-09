@@ -61,7 +61,7 @@ directory with a symlink otherwise makes git see them as deleted — including
 | Command | What it does |
 |---|---|
 | `dev/dvc setup` | One-time per machine: shared cache dir + AWS profile into `.dvc/config.local` (gitignored) |
-| `dev/dvc pull [targets]` | Fetch real data from S3 |
+| `dev/dvc pull <target>.dvc` | Fetch real data from S3. **Always name the target** — a bare `pull` finds no tracked data and deletes the directory (see `rules/data.md`) |
 | `dev/dvc push [targets]` | Upload to S3 |
 | `dev/dvc status --cloud` | Is my local cache in sync with the remote? |
 | `dev/dvc add <path>` | Start tracking a directory |
