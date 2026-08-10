@@ -1,29 +1,42 @@
-"""Run Kaggriculture episodes locally and summarise the outcome."""
+"""Backwards-compatible façade over the evaluation modules.
+
+The original ``run_episode`` / ``run_match`` API predates the matrix runner and
+is kept so existing callers keep working. New code should prefer
+:mod:`simulate.episode` and :mod:`simulate.matrix`, which expose crash /
+timeout / invalid-action detail that this shape cannot represent.
+"""
 
 from __future__ import annotations
 
-import json
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from kaggle_environments import make
+from .agents import BUILTIN_AGENTS
+from .config import FULL_SEASON_STEPS, MatchSpec
+from .episode import EpisodeOutcome
+from .episode import run_episode as _run_episode
 
-#: Full season: 24 turns/day x 30 days.
-FULL_SEASON_STEPS = 720
-
-#: Agents the engine provides by name.
-BUILTIN_AGENTS = ("pass", "random", "starter")
+__all__ = [
+    "BUILTIN_AGENTS",
+    "FULL_SEASON_STEPS",
+    "EpisodeResult",
+    "MatchSummary",
+    "run_episode",
+    "run_match",
+]
 
 
 @dataclass(frozen=True)
 class EpisodeResult:
-    """Outcome of a single episode."""
+    """Outcome of a single episode, in player-index order."""
 
     rewards: list[float]
     statuses: list[str]
     steps: int
+    crashed: bool = False
+    timeouts: int = 0
 
     @property
     def winner(self) -> int | None:
@@ -39,8 +52,16 @@ class EpisodeResult:
 
     @property
     def ok(self) -> bool:
-        """True when neither agent errored or timed out."""
-        return all(s == "DONE" for s in self.statuses)
+        """True when neither agent crashed, timed out, or errored.
+
+        ``status`` alone is not sufficient: the engine reports ``DONE`` for both
+        crashes and timeouts, so those are tracked separately.
+        """
+        return (
+            not self.crashed
+            and self.timeouts == 0
+            and all(s == "DONE" for s in self.statuses)
+        )
 
 
 @dataclass
@@ -94,6 +115,21 @@ class MatchSummary:
         }
 
 
+def _to_result(outcome: EpisodeOutcome) -> EpisodeResult:
+    """Re-index a case-relative outcome back to player order."""
+    rewards = [0.0, 0.0]
+    rewards[outcome.spec.case_player] = outcome.case_money
+    rewards[outcome.spec.opponent_player] = outcome.opponent_money
+    statuses = list(outcome.statuses) or ["DONE", "DONE"]
+    return EpisodeResult(
+        rewards=rewards,
+        statuses=statuses,
+        steps=outcome.steps,
+        crashed=outcome.crashed,
+        timeouts=len(outcome.timeouts),
+    )
+
+
 def run_episode(
     agents: list[Any],
     *,
@@ -102,34 +138,24 @@ def run_episode(
     debug: bool = True,
     replay_path: Path | None = None,
 ) -> EpisodeResult:
-    """Run one episode and return its result.
+    """Run one episode between two agent specs and return its result.
 
-    ``agents`` entries are either callables, paths to ``main.py`` files, or the
-    name of a builtin agent (``"random"`` / ``"starter"`` / ``"pass"``).
-
-    ``debug`` defaults to True on purpose: the engine swallows agent exceptions
-    and silently substitutes a no-op, so without it a crashing agent looks like
-    a merely bad one.
+    ``debug`` is accepted for compatibility and ignored: the episode always
+    runs with the engine's debug mode on, because that is the only way a
+    crashing agent is distinguishable from a losing one.
     """
-    configuration: dict[str, Any] = {"episodeSteps": steps}
-    if seed is not None:
-        configuration["seed"] = seed
+    del debug
+    if len(agents) != 2:
+        raise ValueError(f"expected exactly 2 agents, got {len(agents)}")
 
-    env = make("kaggriculture", configuration=configuration, debug=debug)
-    env.run(agents)
-
-    final = env.steps[-1]
-    result = EpisodeResult(
-        rewards=[float(s["reward"] or 0.0) for s in final],
-        statuses=[str(s["status"]) for s in final],
-        steps=len(env.steps),
+    spec = MatchSpec(
+        case=str(agents[0]),
+        opponent=str(agents[1]),
+        seed=seed if seed is not None else 0,
+        steps=steps,
     )
-
-    if replay_path is not None:
-        replay_path.parent.mkdir(parents=True, exist_ok=True)
-        replay_path.write_text(json.dumps(env.toJSON()), encoding="utf-8")
-
-    return result
+    outcome = _run_episode(spec, validate_actions=False, replay_path=replay_path)
+    return _to_result(outcome)
 
 
 def run_match(
