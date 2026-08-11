@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { ANIMALS } from '../engine/constants';
 import { legalPickupItems, legalPlaceItems, legalPlantCrops, type UnitOpVerdicts } from '../engine/legality';
+import { OP_HELP } from './opHelp';
 import type { AnimalTile, CropId, GameState, PlantTile, Position, ShedItemId, Tile, UnitAction } from '../engine/types';
 import { LOCKED } from '../engine/types';
 import type { UnitDraft } from './useTurnDraft';
@@ -64,6 +65,7 @@ interface Props {
 export function TileActionMenu(props: Props) {
   const { state, player, unit, pos, verdicts, onSameTile, pathLength, unitsHere } = props;
   const [submenu, setSubmenu] = useState<'PLANT' | 'PICKUP' | 'PLACE' | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const tile = state.farms[player].tiles[pos[1]][pos[0]];
 
   const pick = (op: TileOp, patch: Partial<UnitDraft> = {}) => {
@@ -104,9 +106,19 @@ export function TileActionMenu(props: Props) {
         <strong>
           ({pos[0]}, {pos[1]}) {tileSummary(tile)}
         </strong>
-        <button type="button" className="tile-menu-close" onClick={props.onClose}>
-          ×
-        </button>
+        <span>
+          <button
+            type="button"
+            className="tile-menu-help-toggle"
+            onClick={() => setShowHelp((v) => !v)}
+            title="各操作の説明を表示"
+          >
+            ⓘ
+          </button>
+          <button type="button" className="tile-menu-close" onClick={props.onClose}>
+            ×
+          </button>
+        </span>
       </div>
 
       {unitsHere.length > 0 && (
@@ -145,11 +157,12 @@ export function TileActionMenu(props: Props) {
                 key={op}
                 type="button"
                 disabled={!v.legal}
-                title={v.reason}
+                title={v.legal ? OP_HELP[op] : `${v.reason ?? ''}\n${OP_HELP[op] ?? ''}`}
                 onClick={() => (needsArg ? setSubmenu(op as 'PLANT' | 'PICKUP' | 'PLACE') : pick(op))}
               >
                 {op}
                 {!v.legal && v.reason ? <span className="tile-menu-reason"> — {v.reason}</span> : null}
+                {showHelp && OP_HELP[op] ? <div className="tile-menu-desc">{OP_HELP[op]}</div> : null}
               </button>
             );
           })}

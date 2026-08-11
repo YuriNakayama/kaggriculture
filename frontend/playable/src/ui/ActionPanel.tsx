@@ -8,6 +8,7 @@ import { useId, useState } from 'react';
 import { ANIMALS, CROPS, PRODUCTS } from '../engine/constants';
 import { auditAction, legalMarket, legalUnitOps, type UnitOpName } from '../engine/legality';
 import type { AnimalId, CropId, GameState, PlayerAction, ShedItemId } from '../engine/types';
+import { MARKET_HELP, OP_HELP } from './opHelp';
 import { defaultMarket, type MarketDraft, type TurnDraft, type UnitDraft, type UnitOp } from './useTurnDraft';
 
 const MOVE_OPS = ['NORTH', 'SOUTH', 'EAST', 'WEST'] as const;
@@ -70,13 +71,22 @@ export function ActionPanel({ state, player, busy, draft, onSubmit }: Props) {
         <label className="action-label" htmlFor={opId}>
           {label}
         </label>
-        <select id={opId} value={draft.op} onChange={(e) => onChange({ ...draft, op: e.target.value as UnitOp })}>
+        <select
+          id={opId}
+          value={draft.op}
+          title={OP_HELP[draft.op]}
+          onChange={(e) => onChange({ ...draft, op: e.target.value as UnitOp })}
+        >
           {UNIT_OPS.map((op) => (
-            <option key={op} value={op} disabled={!legal[op as UnitOpName]}>
+            <option key={op} value={op} disabled={!legal[op as UnitOpName]} title={OP_HELP[op]}>
               {legal[op as UnitOpName] ? op : `${op} ✕`}
             </option>
           ))}
         </select>
+        <details className="op-help">
+          <summary title="この操作の説明">ⓘ</summary>
+          <p>{OP_HELP[draft.op]}</p>
+        </details>
         {draft.op === 'PLANT' && (
           <select value={draft.crop} onChange={(e) => onChange({ ...draft, crop: e.target.value as CropId })}>
             {CROP_IDS.map((c) => (
@@ -209,6 +219,10 @@ export function ActionPanel({ state, player, busy, draft, onSubmit }: Props) {
           })}
         </select>
       )}
+      <details className="op-help">
+        <summary title="この注文の説明">ⓘ</summary>
+        <p>{MARKET_HELP[draft.kind]}</p>
+      </details>
       {draft.kind !== 'HIRE' && draft.kind !== 'BUY_LAND' && (
         <input
           type="number"

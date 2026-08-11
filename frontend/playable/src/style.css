@@ -267,6 +267,34 @@ input, select {
 .tile-menu-ops button:disabled { opacity: 0.55; }
 .tile-menu-reason { font-size: 11px; color: #c8b48a; font-weight: normal; }
 .tile-menu-subhead { font-size: 12px; color: #d0d8d0; font-weight: 600; }
+.tile-menu-desc { font-size: 11px; color: #c9d8c9; font-weight: normal; margin-top: 2px; white-space: normal; }
+.tile-menu-help-toggle { margin-right: 6px; }
+
+/* ⓘ inline help (hover title on desktop, tap-to-open everywhere) */
+.op-help { display: inline-block; position: relative; }
+.op-help summary {
+  list-style: none;
+  cursor: pointer;
+  color: #9fc3e8;
+  padding: 2px 6px;
+  user-select: none;
+}
+.op-help summary::-webkit-details-marker { display: none; }
+.op-help[open] p {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 40;
+  width: 240px;
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  background: #1f2f1f;
+  border: 1px solid #6a806a;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #e8f0e8;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
 
 .mobile-view-toggle {
   position: absolute;
