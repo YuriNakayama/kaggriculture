@@ -253,3 +253,101 @@ pod は必ず終了させる。今回は onstart 側に watchdog（`sleep` 後�
 `dev/test` で **141 件パス**（JAX 等価性 6 件を含む）、ruff / mypy strict クリーン。
 JAX 関連テストは `tests/e2e/src/simulate/test_jaxenv_equivalence.py`
 （実エピソードを回すため `e2e` 分類）。
+
+---
+
+# 追記 (2026-08-11): フル実装への拡張と GPU 実測の再挑戦
+
+## 実装範囲を subset から全ルールへ拡張
+
+本ドキュメント上部の計測は **wheat loop が使う op のみの subset 実装**に対する
+ものだった。RL 学習用途では機能欠落が許容できないため、公式 interpreter
+(1073 行) の全ルールを port した。
+
+追加: unit op 18 種 (BUILD_COOP/PASTURE, PLACE, FEED, CARE,
+COLLECT_FERTILIZER, FERTILIZE, DROP, PICKUP)、market op 7 種 (BUY_PRODUCT,
+BUY_ANIMAL, HIRE, BUY_LAND)、家畜・雇用 hand・土地購入・肥料・町ショップ・雑草。
+
+### 等価性の担保方法を変更した
+
+subset 版はスクリプト固定のテストだったが、フル実装では**差分ファズ**にした。
+全 op を無作為に叩き、公式 engine と同一 action 列で駆動して毎ターン全状態
+(tile 8 面 / 各 unit の所持品 / shed / seeds / 家畜 / 資金 / 市場在庫 / 位置)
+を突き合わせる。seed 100 本 × 3/6/10/14/30 日で不一致ゼロ。
+
+このファズが発見した実装バグ 4 件は、いずれも「静かに低スコア化」する種類で
+スクリプト固定テストでは検出できなかった:
+
+1. tie-break の sentinel が 0 で、unit 0 以外が PLANT できない
+2. 種の atomic 事前チェックを LOCKED マスク後に評価していた
+3. **op-major に適用していた** — engine は unit-major。同ターン内で hand A の
+   DIG が空けた tile に hand B が PLANT する挙動が再現できていなかった。
+   `fori_loop` で unit-major に変更し、同時に同一 tile 衝突が構造的に消えた
+4. PLACE の shed-drop fallthrough 欠落。かつ animal 配置は LOCKED ガード後、
+   shed drop はガード前に解決する必要がある
+
+## CPU 実測 (フル実装)
+
+| batch | env-steps/s | 公式比 |
+|---|---|---|
+| 1   | 1,125 | 1.5x |
+| 64  | 3,871 | 5.0x |
+| 512 | 5,113 | 6.7x |
+
+subset 版の 707x から大きく落ちた。unit ループ 16 周と全 op の scatter が
+入ったため。**tile 環境の性能は scatter 性能で決まる**という上部の結論とは
+整合しており、CUDA なら改善が見込まれる。
+
+## GPU 実測は未達成 — RunPod のインフラ障害
+
+pod 8 台、約 3.5 時間、概算 $2〜3 を投じたが **GPU 実測に到達できなかった**。
+前回 (RTX 4090 で 42,929x) は成功しているので、今回に限った障害と思われる。
+
+### 切り分け結果: simulator は無関係
+
+simulator のコードを一切使わず `echo ALIVE; hostname` だけを実行した:
+
+| 試行 | 結果 |
+|---|---|
+| pod 起動 / SSH ポート割当 | 成功 |
+| SSH 接続 10 回 | **成功 1 / 失敗 9** |
+| 続く接続 100 回 | **成功 0** |
+
+pod は `RUNNING` を報告し続けながら接続の 87〜95% を拒否する。成功した回では
+hostname が正常に返るので pod 自体は生きている。
+
+### 失敗の内訳
+
+| # | 構成 | 失敗内容 |
+|---|---|---|
+| 1 | 4090 SECURE | sshd が接続をほぼ毎回切断 |
+| 2 | 4090 COMMUNITY | pip が 1.26MB で停止 (3 分間 0 bytes) |
+| 3 | `nvidia/jax:jax` | JAX nightly が sm_89 非対応 (`no supported devices`) |
+| 4 | `nvidia/jax:jax-2024-10-16` | 約 20GB の image pull が 30 分で未完了 |
+| 5 | 3090 COMMUNITY | **同一 host:port が複数マシンに負荷分散**され、upload したファイルが次の接続で消える |
+| 6 | 4090 SECURE | pip が 4.5MB で停止 (150 秒間 0 KB/s) |
+| 7 | 4090 SECURE (uv) | **4.5GB まで到達**したが同じく停止 |
+| 8 | 4090 SECURE (wheel 直送) | 8MB chunk すら `Broken pipe` で転送不可 |
+
+### 分かったこと
+
+- **`uv` は `pip` より大幅に強い。** pip が数 MB で諦めた所を uv は 4.5GB まで
+  到達した (並列 DL + リトライ)。pod 上の依存導入は uv を使うべき
+- **`jax[cuda12]` の 4.5GB のうち大半は NVIDIA の CUDA ライブラリ。**
+  JAX 本体 4 wheel (jax / jaxlib / jax-cuda12-plugin / jax-cuda12-pjrt) は
+  **合計 284MB** しかない。RunPod の PyTorch image は CUDA ランタイムを
+  同梱しているので、ローカルで wheel を落として転送すれば PyPI を経由せずに
+  導入できる — この方針自体は正しいが、今回は転送路が死んでいて使えなかった
+- **`setsid nohup` でも SSH 切断でジョブが死ぬことがある。** リトライループを
+  ジョブ内に持たせる必要がある
+
+### 次に試すなら
+
+1. 時間を置いて RunPod を再試行 (一時障害の可能性)
+2. Colab / Lambda Labs 等の別 CUDA 環境。bench 一式は `state.py` / `env.py` /
+   `bench.py` / `fidelity.py` の 4 ファイルで自己完結しており、CPU 側で取得した
+   状態 digest と突き合わせれば GPU 上の忠実性も確認できる
+3. ローカル (M2 Max / Metal) は**不適**。上部の通り scatter が 9.1x 遅く、
+   フル実装では subset の 0.26x より更に悪化する見込み
+
+pod は全て terminate 済み、`dev/runpod ps` で残存なしを確認。
