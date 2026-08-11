@@ -2,7 +2,6 @@
 name = "kaggriculture"
 version = "0.1.0"
 description = "Agents for the Kaggle Kaggriculture farming-sim competition"
-readme = "../README.md"
 requires-python = ">=3.13,<3.14"
 authors = [{ name = "Yuri Nakayama" }]
 dependencies = [
