@@ -4,6 +4,8 @@ import { ActionPanel } from './ActionPanel';
 import { FarmView } from './FarmView';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
+import { TileActionMenu } from './TileActionMenu';
+import { useBoardPlay } from './useBoardPlay';
 import { useGameWorker, type SetupResult } from './useGameWorker';
 import { useTurnDraft } from './useTurnDraft';
 
@@ -30,6 +32,8 @@ export function GameScreen({ setup, onExit }: Props) {
   );
 
   const draft = useTurnDraft(state, humanPlayerId);
+  const board = useBoardPlay(state, humanPlayerId, draft);
+  const [mobileFocusOwn, setMobileFocusOwn] = useState(true);
 
   const handleSubmit = (action: PlayerAction) => {
     if (humanPlayerId === null) return;
@@ -75,8 +79,46 @@ export function GameScreen({ setup, onExit }: Props) {
     <>
       <HUD state={state} busy={busy} error={error ?? (agentErrorBanner || null)} onReset={() => void reset()} onExit={onExit} />
       <div className="game-body">
-        <div className="game-main">
-          <FarmView state={state} config={setup.config} playerNames={playerNames} />
+        <div
+          className={`game-main${
+            humanPlayerId !== null && mobileFocusOwn ? ` mobile-focus-p${humanPlayerId + 1}` : ''
+          }`}
+        >
+          {humanPlayerId !== null && (
+            <button
+              type="button"
+              className="mobile-view-toggle"
+              onClick={() => setMobileFocusOwn((v) => !v)}
+              title="自分の畑だけ拡大表示 / 全体表示を切替 (モバイル)"
+            >
+              {mobileFocusOwn ? '🔍 自分の畑のみ' : '👀 全体表示'}
+            </button>
+          )}
+          <FarmView
+            state={state}
+            config={setup.config}
+            playerNames={playerNames}
+            humanPlayerId={humanPlayerId}
+            overlays={board.overlays}
+            onTileTap={board.onTileTap}
+          />
+          {humanPlayerId !== null && board.tapPos && board.tapVerdicts && (
+            <TileActionMenu
+              state={state}
+              player={humanPlayerId}
+              unit={board.selectedUnit}
+              unitLabel={board.selectedUnit === 0 ? 'Farmer' : `Hand ${board.selectedUnit}`}
+              pos={board.tapPos}
+              verdicts={board.tapVerdicts}
+              onSameTile={board.onSameTile}
+              pathLength={board.pathLength}
+              unitsHere={board.unitsHere}
+              onPick={(patch) => draft.setUnitDraft(board.selectedUnit, patch)}
+              onMoveHere={board.moveHere}
+              onSelectUnit={(u) => board.setSelectedUnit(u)}
+              onClose={board.closeMenu}
+            />
+          )}
         </div>
         {humanPlayerId !== null ? (
           <ActionPanel state={state} player={humanPlayerId} busy={busy} draft={draft} onSubmit={handleSubmit} />
