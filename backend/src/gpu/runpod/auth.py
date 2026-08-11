@@ -30,28 +30,42 @@ __all__ = [
 ]
 
 
+#: Accepted names for the RunPod key, in priority order. `.env.example`
+#: documents `RUNPOD_KEY`, while the SDK and the pod-side environment use
+#: `RUNPOD_API_KEY`; accepting both keeps an existing `.env` working either way.
+_RUNPOD_KEY_NAMES = ("RUNPOD_API_KEY", "RUNPOD_KEY")
+
+
 def load_runpod_api_key(
     *,
     env_path: Path | None = None,
 ) -> str:
-    """`backend/.env` または環境変数から RUNPOD_API_KEY を読む。
+    """`.env` または環境変数から RunPod API キーを読む。
 
-    env file → process env の順に検査し、最初に値があれば返す。
+    backend/.env → リポジトリ root の .env → process env の順に検査し、
+    最初に見つかった値を返す。キー名は RUNPOD_API_KEY / RUNPOD_KEY の両方を許容。
     """
-    if env_path is None:
-        env_path = _default_env_path()
-    if env_path.is_file():
-        values = dotenv_values(env_path)
-        api_key = values.get("RUNPOD_API_KEY")
-        if api_key:
-            return api_key.strip()
-    fallback = os.environ.get("RUNPOD_API_KEY", "").strip()
-    if fallback:
-        return fallback
+    candidates = [env_path] if env_path is not None else _env_path_candidates()
+
+    for path in candidates:
+        if path is None or not path.is_file():
+            continue
+        values = dotenv_values(path)
+        for name in _RUNPOD_KEY_NAMES:
+            api_key = values.get(name)
+            if api_key:
+                return api_key.strip()
+
+    for name in _RUNPOD_KEY_NAMES:
+        fallback = os.environ.get(name, "").strip()
+        if fallback:
+            return fallback
+
+    searched = " or ".join(str(p) for p in candidates if p is not None)
     raise CredentialsError(
-        "RUNPOD_API_KEY not found. Add `RUNPOD_API_KEY=<your-key>` to "
-        f"{env_path} or export it as an environment variable. "
-        "Get a key from https://runpod.io/console/user/settings."
+        "RunPod API key not found. Add `RUNPOD_API_KEY=<your-key>` (or "
+        f"`RUNPOD_KEY=`) to {searched} or export it as an environment "
+        "variable. Get a key from https://runpod.io/console/user/settings."
     )
 
 
@@ -80,3 +94,12 @@ def _default_env_path() -> Path:
         if (parent / "pyproject.toml").is_file():
             return parent / ".env"
     return Path(".env").resolve()
+
+
+def _env_path_candidates() -> list[Path]:
+    """backend/.env と、その一つ上 (リポジトリ root) の .env。
+
+    root 側も見るのは、worktree では `.env` が root に置かれることがあるため。
+    """
+    backend_env = _default_env_path()
+    return [backend_env, backend_env.parent.parent / ".env"]

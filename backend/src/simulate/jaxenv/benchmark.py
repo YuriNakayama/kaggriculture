@@ -27,7 +27,7 @@ import jax
 import jax.numpy as jnp
 
 from . import env as E
-from .state import EnvState, initial_state
+from .state import MAX_UNITS, EnvState, initial_state
 
 
 @dataclass
@@ -78,14 +78,21 @@ def bench_jax(batch_size: int, steps: int) -> BenchResult:
                 jnp.where(hour == 6, E.MARKET_SELL, E.MARKET_NONE),
             )
             qty = jnp.where(hour == 0, 1, jnp.where(hour == 6, 5, 0))
-            shape = (batch_size, 2)
+
+            # Only the main farmer acts; the remaining unit slots pass. This is
+            # the wheat loop, so it understates a policy that hires hands — see
+            # the note in the module docstring about reading these numbers.
+            unit_shape = (batch_size, 2, MAX_UNITS)
+            unit_op = jnp.zeros(unit_shape, dtype=jnp.int32).at[:, :, 0].set(op)
+            unit_zero = jnp.zeros(unit_shape, dtype=jnp.int32)
+
+            m_shape = (batch_size, 2, E.MAX_MARKET_ORDERS)
+            m_op = jnp.zeros(m_shape, dtype=jnp.int32).at[:, :, 0].set(mop)
+            m_qty = jnp.zeros(m_shape, dtype=jnp.int32).at[:, :, 0].set(qty)
+            m_item = jnp.zeros(m_shape, dtype=jnp.int32)
+
             stepped: EnvState = E.step(
-                s,
-                jnp.full(shape, op, dtype=jnp.int32),
-                jnp.zeros(shape, dtype=jnp.int32),
-                jnp.full(shape, mop, dtype=jnp.int32),
-                jnp.zeros(shape, dtype=jnp.int32),
-                jnp.full(shape, qty, dtype=jnp.int32),
+                s, unit_op, unit_zero, unit_zero, m_op, m_item, m_qty
             )
             return stepped
 
