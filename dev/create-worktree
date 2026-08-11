@@ -108,7 +108,11 @@ if [ -d "${MAIN_WORKTREE}/.dvc" ]; then
 fi
 
 # .env ファイルのコピー（メインのワークツリーを基準にコピー元を探す）
-ENV_DIRS=("backend" "infra")
+#
+# "." はリポジトリルート。ルート直下の .env は gitignore されていて
+# worktree には来ないため、ここでコピーしないと worktree 側で認証情報が
+# 欠けた状態になる。
+ENV_DIRS=("." "backend" "infra")
 COPIED=()
 
 for dir in "${ENV_DIRS[@]}"; do
@@ -119,10 +123,15 @@ for dir in "${ENV_DIRS[@]}"; do
   for env_file in "${src_dir}"/.env "${src_dir}"/.env.*; do
     [ -f "$env_file" ] || continue
     filename="$(basename "$env_file")"
-    # .env.example はスキップ（gitで管理されるため）
+    # .env.example はスキップ（gitで管理されており worktree に既にある）
     [ "$filename" = ".env.example" ] && continue
     cp "$env_file" "${dst_dir}/${filename}"
-    COPIED+=("${dir}/${filename}")
+    # 表示用ラベル: ルートは "./.env" ではなく ".env" と出す
+    if [ "$dir" = "." ]; then
+      COPIED+=("${filename}")
+    else
+      COPIED+=("${dir}/${filename}")
+    fi
   done
 done
 
