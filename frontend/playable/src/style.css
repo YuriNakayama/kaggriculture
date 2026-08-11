@@ -449,3 +449,18 @@ input, select {
 }
 .hand-block { display: flex; flex-direction: column; gap: 2px; }
 .role-select { margin-left: 66px; font-size: 11px; align-self: flex-start; }
+.hud-clock { font-size: 12px; font-weight: 600; }
+.hud-tag-warn { background: #5a4020; color: #ffd9a0; }
+.hud-delta-up { color: #8fe08f; font-size: 11px; }
+.hud-delta-down { color: #ff9a9a; font-size: 11px; }
+.facts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #cfe0cf;
+  padding: 6px 8px;
+  background: #10201a;
+  border-radius: 4px;
+}
+.sell-estimate { font-size: 11px; color: #9fc3e8; margin: 0 0 0 4px; }

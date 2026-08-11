@@ -152,7 +152,15 @@ export function GameScreen({ setup, onExit }: Props) {
 
   return (
     <>
-      <HUD state={state} busy={busy} error={error ?? (agentErrorBanner || null)} onReset={() => void reset()} onExit={onExit} />
+      <HUD
+        state={state}
+        config={setup.config}
+        humanPlayerId={humanPlayerId}
+        busy={busy}
+        error={error ?? (agentErrorBanner || null)}
+        onReset={() => void reset()}
+        onExit={onExit}
+      />
       <div className="game-body">
         <div
           className={`game-main${

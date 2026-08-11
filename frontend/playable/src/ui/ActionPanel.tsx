@@ -7,10 +7,27 @@
 import { useId, useState } from 'react';
 import { ANIMALS, CROPS, PRODUCTS } from '../engine/constants';
 import { auditAction, legalMarket, legalUnitOps, type UnitOpName } from '../engine/legality';
-import type { AnimalId, CropId, GameState, PlayerAction, ShedItemId } from '../engine/types';
+import { marketPrice } from '../engine/market';
+import type { AnimalId, CropId, GameState, PlayerAction, ProductId, ShedItemId } from '../engine/types';
 import { MARKET_HELP, OP_HELP } from './opHelp';
+import { commandTargets } from './smartTasks';
 import { ROLE_LABELS, type HandRole } from './useHandRoles';
 import { defaultMarket, type MarketDraft, type TurnDraft, type UnitDraft, type UnitOp } from './useTurnDraft';
+
+/**
+ * 売却の概算: エンジンの逐次コミット (1個ずつ現在庫で値付け→在庫+1) を
+ * なぞる。相手の同時売買までは読めないため「概算」。
+ */
+function estimateSell(state: GameState, item: ProductId, qty: number): { total: number; after: number } {
+  let inv = state.market.inventory[item];
+  let total = 0;
+  for (let i = 0; i < qty; i++) {
+    const p = marketPrice(item, inv, state.market.params);
+    total += p;
+    if (p > 1) inv += 1;
+  }
+  return { total, after: marketPrice(item, inv, state.market.params) };
+}
 
 const MOVE_OPS = ['NORTH', 'SOUTH', 'EAST', 'WEST'] as const;
 
@@ -94,21 +111,31 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
         </details>
         {draft.op === 'PLANT' && (
           <select value={draft.crop} onChange={(e) => onChange({ ...draft, crop: e.target.value as CropId })}>
-            {CROP_IDS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
+            {CROP_IDS.map((c) => {
+              const n = state.privates[player].seeds[c] ?? 0;
+              return (
+                <option key={c} value={c} disabled={n === 0}>
+                  {c} (種x{n})
+                </option>
+              );
+            })}
           </select>
         )}
         {(draft.op === 'PICKUP' || draft.op === 'PLACE') && (
           <>
             <select value={draft.item} onChange={(e) => onChange({ ...draft, item: e.target.value as ShedItemId })}>
-              {SHED_ITEMS.map((it) => (
-                <option key={it} value={it}>
-                  {it}
-                </option>
-              ))}
+              {SHED_ITEMS.map((it) => {
+                // PICKUP は倉庫在庫、PLACE はそのユニットの所持数で絞り込む。
+                const n =
+                  draft.op === 'PICKUP'
+                    ? (state.privates[player].shed[it] ?? 0)
+                    : (state.privates[player].inventories[unitIdx]?.[it] ?? 0);
+                return (
+                  <option key={it} value={it} disabled={n === 0}>
+                    {it} (x{n})
+                  </option>
+                );
+              })}
             </select>
             <input
               type="number"
@@ -244,12 +271,36 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
       <button type="button" onClick={() => setOrders(orders.filter((_, i) => i !== idx))}>
         ×
       </button>
+      {draft.kind === 'SELL' &&
+        draft.product !== 'GOOSE' &&
+        draft.product !== 'COW' &&
+        draft.product !== 'SHEEP' &&
+        (() => {
+          const est = estimateSell(state, draft.product as ProductId, Math.max(1, Math.floor(draft.qty)));
+          return (
+            <span className="sell-estimate" title="1個ずつ売るたびに市場在庫が増えて値が下がる (相手の売買は含まない概算)">
+              ≈ ${est.total.toLocaleString()} / 売却後 ${est.after}
+            </span>
+          );
+        })()}
     </div>
   );
 
   return (
     <div className="action-panel">
       <h3>Your turn — Player {player + 1}</h3>
+      <div className="facts-row" title="今できることの件数 (スマートコマンドで一括実行できます)">
+        <span>💧 {commandTargets(state, player, 'WATER_ALL').length}</span>
+        <span>🌾 {commandTargets(state, player, 'HARVEST_ALL').length}</span>
+        <span>🐄 {commandTargets(state, player, 'TEND_ANIMALS').length}</span>
+        <span>🧹 {commandTargets(state, player, 'CLEAR_WEEDS').length}</span>
+        <span>
+          🌱{' '}
+          {CROP_IDS.filter((c) => (state.privates[player].seeds[c] ?? 0) > 0)
+            .map((c) => `${c.slice(0, 3)}x${state.privates[player].seeds[c]}`)
+            .join(' ') || '種なし'}
+        </span>
+      </div>
       <label className="omakase-toggle" title="農作業を内蔵 starter 方針に任せ、市場注文だけを操作する上級モード">
         <input type="checkbox" checked={omakase} onChange={(e) => onOmakaseChange(e.target.checked)} />
         🤖 おまかせ農場 (市場だけ操作)
