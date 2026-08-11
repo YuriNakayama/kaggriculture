@@ -216,8 +216,8 @@ elif [ -n "<PREPROCESS_CMD>" ]; then
     # が 47 まで膨らみ、worker 間競合で rate が 3.31 ep/s → 1.04 ep/s に低下
     # (~3x slowdown)。case10 base mart preprocess (~16k 1v1 episodes) で
     # 確認。11 workers に固定して前回計測の安定 rate に揃える。
-    export Kaggriculture_PREPROCESS_WORKERS=11
-    echo "[onstart] preprocess workers cap: Kaggriculture_PREPROCESS_WORKERS=11"
+    export KAGGRICULTURE_PREPROCESS_WORKERS=11
+    echo "[onstart] preprocess workers cap: KAGGRICULTURE_PREPROCESS_WORKERS=11"
     if ! ( cd backend && "${PY_BIN}" -m <PREPROCESS_CMD> ); then
       echo "[onstart] step=preprocess FAILED (exit code != 0)" >&2
       mark "55_preprocess_failed"

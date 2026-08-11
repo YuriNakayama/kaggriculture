@@ -25,10 +25,10 @@ echo "[onstart] train data listing before launch:"
 find data/mart/imitation -maxdepth 2 \( -name '*.parquet' -o -name '*.parquet.dvc' \) \
   -printf '%p %s bytes\n' 2>&1 | sort | head -40
 # snapshot は引用符を含む JSON なので、RunPod env では base64 で渡されている。
-# 学習プロセス起動時に decode して Kaggriculture_RUNPOD_OFFER_SNAPSHOT に再注入する。
+# 学習プロセス起動時に decode して KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT に再注入する。
 SNAPSHOT_JSON=""
-if [ -n "${Kaggriculture_RUNPOD_OFFER_SNAPSHOT_B64:-}" ]; then
-  SNAPSHOT_JSON="$(echo "${Kaggriculture_RUNPOD_OFFER_SNAPSHOT_B64}" | base64 -d)"
+if [ -n "${KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64:-}" ]; then
+  SNAPSHOT_JSON="$(echo "${KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64}" | base64 -d)"
 fi
 # train.log と gpu.log を run_dir 配下に分離して書き出す。これにより
 # `dev/runpod tail <run_id> --source train` / `--source gpu` で SSH 経由
@@ -73,14 +73,14 @@ echo "[onstart] system sampler pid=${SYSMON_PID} -> ${SYSMON_LOG}"
   # The prefix is a directory-style S3 URI (no trailing filename); train.py
   # writes both `best_e{N}_vftf{val:.4f}.pt` (history) and `best.pt` (latest).
   BEST_S3_PREFIX="s3://${KAGGRICULTURE_DVC_BUCKET}/remote/runpod_artifacts/<RUN_ID>"
-  Kaggriculture_RUN_DIR="${RUN_DIR_ABS}" \
-    Kaggriculture_RUN_ID="<RUN_ID>" \
-    Kaggriculture_GIT_SHA="<COMMIT_SHA>" \
-    Kaggriculture_GIT_BRANCH="<BRANCH>" \
-    Kaggriculture_RUNPOD_POD_ID="${INSTANCE_ID}" \
-    Kaggriculture_RUNPOD_OFFER_SNAPSHOT="${SNAPSHOT_JSON}" \
-    Kaggriculture_BEST_S3_PREFIX="${BEST_S3_PREFIX}" \
-    Kaggriculture_COMMAND="cd backend && ${PY_BIN} -m <TRAIN_MODULE> <CONFIG_ARG>" \
+  KAGGRICULTURE_RUN_DIR="${RUN_DIR_ABS}" \
+    KAGGRICULTURE_RUN_ID="<RUN_ID>" \
+    KAGGRICULTURE_GIT_SHA="<COMMIT_SHA>" \
+    KAGGRICULTURE_GIT_BRANCH="<BRANCH>" \
+    KAGGRICULTURE_RUNPOD_POD_ID="${INSTANCE_ID}" \
+    KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT="${SNAPSHOT_JSON}" \
+    KAGGRICULTURE_BEST_S3_PREFIX="${BEST_S3_PREFIX}" \
+    KAGGRICULTURE_COMMAND="cd backend && ${PY_BIN} -m <TRAIN_MODULE> <CONFIG_ARG>" \
     bash -c "cd backend && '${PY_BIN}' -m <TRAIN_MODULE> <CONFIG_ARG>" \
     2>&1 | tee "${TRAIN_LOG}"
 ) &

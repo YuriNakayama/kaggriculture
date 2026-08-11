@@ -504,16 +504,16 @@ def train(
         "AWS_SECRET_ACCESS_KEY": aws_creds.secret_access_key,
         "AWS_DEFAULT_REGION": aws_creds.region,
         "RUNPOD_API_KEY": runpod_api_key,
-        "Kaggriculture_RUN_ID": run_id,
-        "Kaggriculture_GIT_SHA": commit_sha,
-        "Kaggriculture_GIT_BRANCH": branch,
-        "Kaggriculture_CASE": case,
+        "KAGGRICULTURE_RUN_ID": run_id,
+        "KAGGRICULTURE_GIT_SHA": commit_sha,
+        "KAGGRICULTURE_GIT_BRANCH": branch,
+        "KAGGRICULTURE_CASE": case,
         # case_family / case_subdir を onstart shell に渡す。imitation case は
         # family=imitation, subdir=<case> となり既存挙動を維持。reinforce 系は
         # family=reinforce, subdir=<caseN> で別ツリーに persist / DVC pull する。
-        "Kaggriculture_CASE_FAMILY": _case_family(case),
-        "Kaggriculture_CASE_SUBDIR": _case_subdir(case),
-        "Kaggriculture_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
+        "KAGGRICULTURE_CASE_FAMILY": _case_family(case),
+        "KAGGRICULTURE_CASE_SUBDIR": _case_subdir(case),
+        "KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
     }
     # GIT_PAT は onstart の git push (.dvc メタコミット) で必要。.env か shell env
     # から取得し、無ければ警告して continue (push はスキップされる)。
@@ -800,12 +800,12 @@ def dev_cmd(
         "AWS_SECRET_ACCESS_KEY": aws_creds.secret_access_key,
         "AWS_DEFAULT_REGION": aws_creds.region,
         "RUNPOD_API_KEY": runpod_api_key,
-        "Kaggriculture_RUN_ID": run_id,
-        "Kaggriculture_GIT_SHA": commit_sha,
-        "Kaggriculture_GIT_BRANCH": branch,
-        "Kaggriculture_CASE": case,
-        "Kaggriculture_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
-        "Kaggriculture_RUNPOD_MODE": "interactive",
+        "KAGGRICULTURE_RUN_ID": run_id,
+        "KAGGRICULTURE_GIT_SHA": commit_sha,
+        "KAGGRICULTURE_GIT_BRANCH": branch,
+        "KAGGRICULTURE_CASE": case,
+        "KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
+        "KAGGRICULTURE_RUNPOD_MODE": "interactive",
     }
     git_pat = load_git_pat()
     if git_pat:

@@ -322,7 +322,7 @@ fi
 
 mark "50_dvc_pull_done"
 echo "[onstart] step=mkdir_run"
-# 絶対 path で固定: train.py は Kaggriculture_RUN_DIR を Path.resolve() するので
+# 絶対 path で固定: train.py は KAGGRICULTURE_RUN_DIR を Path.resolve() するので
 # 相対 path だと cwd (uv run --directory backend) 基準になり backend/data/... に
 # ずれる。後段の dvc add / S3 upload とも整合させるため絶対 path で持つ。
 RUN_DIR_ABS="$(pwd)/data/output/models/<CASE_FAMILY>/<CASE_SUBDIR>/runs/<RUN_ID>"

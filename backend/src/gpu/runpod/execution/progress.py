@@ -118,12 +118,12 @@ def mark_progress(
 def get_run_id() -> str | None:
     """RunPod pod 上で onstart が export した run_id を取得する補助。
 
-    train.py は `Kaggriculture_RUN_ID` を env で受ける (onstart 側が
-    `Kaggriculture_RUN_ID="<RUN_ID>"` 付きで `python -m ...train` を起動)。
+    train.py は `KAGGRICULTURE_RUN_ID` を env で受ける (onstart 側が
+    `KAGGRICULTURE_RUN_ID="<RUN_ID>"` 付きで `python -m ...train` を起動)。
     ローカル開発で env 未設定なら None。呼び出し側は None なら
     `mark_progress` を no-op にすればよい。
     """
-    return os.environ.get("Kaggriculture_RUN_ID")
+    return os.environ.get("KAGGRICULTURE_RUN_ID")
 
 
 @dataclass(frozen=True)
@@ -262,14 +262,14 @@ def write_progress_marker(
     process push fine-grained markers (e.g. ``30_train_step_0042``) without
     shelling out to ``aws s3 cp``.
 
-    `run_id` defaults to the ``Kaggriculture_RUN_ID`` env var injected by the
+    `run_id` defaults to the ``KAGGRICULTURE_RUN_ID`` env var injected by the
     onstart template. Returns True on success, False on any failure (this
     function never raises — logging must not break training).
     """
     import os
     from datetime import UTC, datetime
 
-    rid = run_id or os.environ.get("Kaggriculture_RUN_ID")
+    rid = run_id or os.environ.get("KAGGRICULTURE_RUN_ID")
     if not rid:
         return False
     ts = timestamp or datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
