@@ -5,6 +5,7 @@ import { FarmView } from './FarmView';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
 import { useGameWorker, type SetupResult } from './useGameWorker';
+import { useTurnDraft } from './useTurnDraft';
 
 interface Props {
   setup: SetupResult;
@@ -27,6 +28,8 @@ export function GameScreen({ setup, onExit }: Props) {
       }),
     [setup.slots]
   );
+
+  const draft = useTurnDraft(state, humanPlayerId);
 
   const handleSubmit = (action: PlayerAction) => {
     if (humanPlayerId === null) return;
@@ -76,7 +79,7 @@ export function GameScreen({ setup, onExit }: Props) {
           <FarmView state={state} config={setup.config} playerNames={playerNames} />
         </div>
         {humanPlayerId !== null ? (
-          <ActionPanel state={state} player={humanPlayerId} busy={busy} onSubmit={handleSubmit} />
+          <ActionPanel state={state} player={humanPlayerId} busy={busy} draft={draft} onSubmit={handleSubmit} />
         ) : (
           <aside className="action-panel">
             <h3>AI vs AI</h3>

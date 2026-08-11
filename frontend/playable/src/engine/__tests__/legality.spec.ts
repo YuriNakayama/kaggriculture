@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { auditAction, legalMarket, legalUnitOps } from '../legality';
+import { auditAction, legalMarket, legalUnitOps, legalUnitOpsAt } from '../legality';
 import { initGameState, resolveConfig } from '../state';
 
 const config = resolveConfig({ seed: 1 });
@@ -21,6 +21,34 @@ describe('legalUnitOps', () => {
     const s = initGameState(2, config, 1);
     s.privates[0].seeds.WHEAT = 1;
     expect(legalUnitOps(s, 0, 0).PLANT).toBe(true);
+  });
+});
+
+describe('legalUnitOpsAt', () => {
+  it('previews an arbitrary tile with Japanese reasons', () => {
+    const s = initGameState(2, config, 1);
+    s.privates[0].seeds.WHEAT = 1;
+    // Locked quadrant tile (NE): everything blocked with the lock reason.
+    const lockedVerdicts = legalUnitOpsAt(s, 0, 0, [9, 0]);
+    expect(lockedVerdicts.PLANT.legal).toBe(false);
+    expect(lockedVerdicts.PLANT.reason).toContain('ロック');
+    // Empty unlocked tile away from the shed: PLANT ok, PLACE explains why not.
+    const empty = legalUnitOpsAt(s, 0, 0, [0, 0]);
+    expect(empty.PLANT.legal).toBe(true);
+    expect(empty.PLACE.legal).toBe(false);
+    expect(empty.PLACE.reason).toBeTruthy();
+    // Shed access tile: PICKUP blocked only because the shed is empty.
+    const shed = legalUnitOpsAt(s, 0, 0, [4, 4]);
+    expect(shed.PICKUP.legal).toBe(false);
+    expect(shed.PICKUP.reason).toContain('倉庫');
+  });
+
+  it('movement verdicts stay relative to the unit, not the previewed tile', () => {
+    const s = initGameState(2, config, 1);
+    const a = legalUnitOpsAt(s, 0, 0, [0, 0]);
+    const b = legalUnitOpsAt(s, 0, 0, [3, 3]);
+    expect(a.NORTH).toEqual(b.NORTH);
+    expect(a.EAST).toEqual(b.EAST);
   });
 });
 

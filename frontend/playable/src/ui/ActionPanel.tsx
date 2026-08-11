@@ -4,13 +4,15 @@
  * panel resets to PASS / no orders.
  */
 
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { ANIMALS, CROPS, PRODUCTS } from '../engine/constants';
 import { auditAction, legalMarket, legalUnitOps, type UnitOpName } from '../engine/legality';
-import type { AnimalId, CropId, GameState, MarketOrder, PlayerAction, ShedItemId, UnitAction } from '../engine/types';
+import type { AnimalId, CropId, GameState, PlayerAction, ShedItemId } from '../engine/types';
+import { defaultMarket, type MarketDraft, type TurnDraft, type UnitDraft, type UnitOp } from './useTurnDraft';
 
 const MOVE_OPS = ['NORTH', 'SOUTH', 'EAST', 'WEST'] as const;
-const SIMPLE_UNIT_OPS = [
+
+const UNIT_OPS: UnitOp[] = [
   'PASS',
   'NORTH',
   'SOUTH',
@@ -25,11 +27,10 @@ const SIMPLE_UNIT_OPS = [
   'FEED',
   'COLLECT_FERTILIZER',
   'CARE',
-] as const;
-
-type UnitOp = (typeof SIMPLE_UNIT_OPS)[number] | 'PLANT' | 'PICKUP' | 'PLACE';
-
-const UNIT_OPS: UnitOp[] = [...SIMPLE_UNIT_OPS, 'PLANT', 'PICKUP', 'PLACE'];
+  'PLANT',
+  'PICKUP',
+  'PLACE',
+];
 
 const CROP_IDS = Object.keys(CROPS) as CropId[];
 const ANIMAL_IDS = Object.keys(ANIMALS) as AnimalId[];
@@ -38,107 +39,27 @@ const SHED_ITEMS: ShedItemId[] = [...PRODUCTS, ...ANIMAL_IDS];
 const MARKET_KINDS = ['HIRE', 'BUY_LAND', 'BUY_SEED', 'BUY_PRODUCT', 'BUY_ANIMAL', 'SELL'] as const;
 type MarketKind = (typeof MARKET_KINDS)[number];
 
-interface UnitDraft {
-  op: UnitOp;
-  crop: CropId;
-  item: ShedItemId;
-  qty: number;
-}
-
-interface MarketDraft {
-  kind: MarketKind;
-  crop: CropId;
-  animal: AnimalId;
-  product: ShedItemId;
-  qty: number;
-}
-
-const defaultUnit: UnitDraft = { op: 'PASS', crop: 'WHEAT', item: 'WHEAT', qty: 1 };
-const defaultMarket: MarketDraft = {
-  kind: 'BUY_SEED',
-  crop: 'WHEAT',
-  animal: 'GOOSE',
-  product: 'WHEAT',
-  qty: 1,
-};
-
-function toUnitAction(d: UnitDraft): UnitAction {
-  switch (d.op) {
-    case 'PLANT':
-      return ['PLANT', d.crop];
-    case 'PICKUP':
-      return ['PICKUP', d.item, Math.max(1, Math.floor(d.qty))];
-    case 'PLACE':
-      return ['PLACE', d.item, Math.max(1, Math.floor(d.qty))];
-    default:
-      return [d.op as (typeof SIMPLE_UNIT_OPS)[number]];
-  }
-}
-
-function toMarketOrder(d: MarketDraft): MarketOrder | null {
-  const qty = Math.max(1, Math.floor(d.qty));
-  switch (d.kind) {
-    case 'HIRE':
-      return ['HIRE'];
-    case 'BUY_LAND':
-      return ['BUY_LAND'];
-    case 'BUY_SEED':
-      return ['BUY_SEED', d.crop, qty];
-    case 'BUY_PRODUCT':
-      if (d.product !== 'WHEAT' && d.product !== 'FERTILIZER') return null;
-      return ['BUY_PRODUCT', d.product, qty];
-    case 'BUY_ANIMAL':
-      return ['BUY_ANIMAL', d.animal, qty];
-    case 'SELL':
-      if (d.product === 'GOOSE' || d.product === 'COW' || d.product === 'SHEEP') return null;
-      return ['SELL', d.product, qty];
-    default:
-      return null;
-  }
-}
-
 interface Props {
   state: GameState;
   player: number;
   busy: boolean;
+  draft: TurnDraft;
   onSubmit(action: PlayerAction): void;
 }
 
-export function ActionPanel({ state, player, busy, onSubmit }: Props) {
-  const farm = state.farms[player];
-  const numHands = farm?.hands.length ?? 0;
-
-  const [farmer, setFarmer] = useState<UnitDraft>(defaultUnit);
-  const [hands, setHands] = useState<UnitDraft[]>([]);
-  const [orders, setOrders] = useState<MarketDraft[]>([]);
+export function ActionPanel({ state, player, busy, draft, onSubmit }: Props) {
+  const { farmer, hands, orders, setFarmer, setHand, setOrders } = draft;
   const [noopNotes, setNoopNotes] = useState<string[]>([]);
   const idPrefix = useId();
   const marketLegal = legalMarket(state, player);
 
-  // Keep the hands array length in sync with the live farm. New hands default
-  // to PASS; extra entries are trimmed if a hand was lost.
-  useEffect(() => {
-    setHands((prev) => {
-      if (prev.length === numHands) return prev;
-      const next = prev.slice(0, numHands);
-      while (next.length < numHands) next.push({ ...defaultUnit });
-      return next;
-    });
-  }, [numHands]);
-
   const submit = () => {
-    const action: PlayerAction = {
-      farmer: toUnitAction(farmer),
-      hands: hands.map(toUnitAction),
-      market: orders.map(toMarketOrder).filter((o): o is MarketOrder => o !== null),
-    };
+    const action = draft.buildAction();
     // Audit BEFORE stepping: anything flagged here the engine will silently
     // discard — surfacing that is the whole point of playing by hand.
     setNoopNotes(auditAction(state, player, action));
     onSubmit(action);
-    setFarmer(defaultUnit);
-    setHands(hands.map(() => ({ ...defaultUnit })));
-    setOrders([]);
+    draft.afterSubmit(action);
   };
 
   const renderUnit = (label: string, unitIdx: number, draft: UnitDraft, onChange: (d: UnitDraft) => void) => {
@@ -311,13 +232,7 @@ export function ActionPanel({ state, player, busy, onSubmit }: Props) {
     <div className="action-panel">
       <h3>Your turn — Player {player + 1}</h3>
       {renderUnit('Farmer', 0, farmer, setFarmer)}
-      {hands.map((h, i) =>
-        renderUnit(`Hand ${i + 1}`, i + 1, h, (d) => {
-          const next = [...hands];
-          next[i] = d;
-          setHands(next);
-        })
-      )}
+      {hands.map((h, i) => renderUnit(`Hand ${i + 1}`, i + 1, h, (d) => setHand(i, d)))}
       <div className="action-section">
         <div className="action-section-header">
           <span>Market orders ({orders.length})</span>
@@ -327,9 +242,19 @@ export function ActionPanel({ state, player, busy, onSubmit }: Props) {
         </div>
         {orders.map(renderOrder)}
       </div>
-      <button type="button" className="submit-turn" onClick={submit} disabled={busy || state.done}>
-        Submit Turn
-      </button>
+      <div className="action-row">
+        <button type="button" className="submit-turn" onClick={submit} disabled={busy || state.done} style={{ flex: 1 }}>
+          Submit Turn
+        </button>
+        <button
+          type="button"
+          onClick={draft.repeatLast}
+          disabled={busy || state.done || !draft.hasLast}
+          title="前ターンのユニット操作を再セット (市場注文は除く)"
+        >
+          ↻ Repeat
+        </button>
+      </div>
       {noopNotes.length > 0 && (
         <div className="noop-notes" role="status">
           <strong>Silently discarded last turn:</strong>

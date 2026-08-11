@@ -93,84 +93,168 @@ export function legalPlaceItems(state: GameState, player: number, unit: number):
   return (Object.keys(inv) as ShedItemId[]).filter((i) => (inv[i] ?? 0) > 0);
 }
 
+export interface OpVerdict {
+  legal: boolean;
+  /** Japanese explanation of WHY the op would be a silent no-op. Set iff !legal. */
+  reason?: string;
+}
+
+export type UnitOpVerdicts = Record<UnitOpName, OpVerdict>;
+
+const ok: OpVerdict = { legal: true };
+const no = (reason: string): OpVerdict => ({ legal: false, reason });
+
+const TILE_OPS: UnitOpName[] = [
+  'PICKUP',
+  'PLACE',
+  'PLANT',
+  'WATER',
+  'HARVEST',
+  'FERTILIZE',
+  'DIG',
+  'BUILD_COOP',
+  'BUILD_PASTURE',
+  'FEED',
+  'COLLECT_FERTILIZER',
+  'CARE',
+];
+
 /**
- * One entry per unit op: `true` = some argument choice makes it a real move,
- * `false` = the engine would silently discard it.
+ * Legality of every unit op AT AN ARBITRARY TILE, with Japanese reasons for
+ * illegal ones. Used both for the current tile (ActionPanel) and for
+ * "what could I do over there?" previews on board tap. Movement verdicts are
+ * always evaluated from the unit's actual position.
  */
-export function legalUnitOps(state: GameState, player: number, unit: number): Record<UnitOpName, boolean> {
+export function legalUnitOpsAt(
+  state: GameState,
+  player: number,
+  unit: number,
+  at?: Position
+): UnitOpVerdicts {
   const farm = state.farms[player];
   const pos = unitPos(farm, unit);
-  const out = {} as Record<UnitOpName, boolean>;
+  const out = {} as UnitOpVerdicts;
   const boardSize = farm.tiles.length;
 
-  out.PASS = true;
+  out.PASS = ok;
   for (const dir of Object.keys(MOVES) as (keyof typeof MOVES)[]) {
     if (!pos) {
-      out[dir] = false;
+      out[dir] = no('ユニットがいない');
       continue;
     }
     const nx = pos[0] + MOVES[dir][0];
     const ny = pos[1] + MOVES[dir][1];
-    out[dir] = nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && farm.tiles[ny][nx] !== LOCKED;
+    if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize) out[dir] = no('盤面の外に出られない');
+    else if (farm.tiles[ny][nx] === LOCKED) out[dir] = no('ロック中の区画 (BUY_LAND で解放)');
+    else out[dir] = ok;
   }
 
-  if (!pos) {
-    for (const op of [
-      'PICKUP',
-      'PLACE',
-      'PLANT',
-      'WATER',
-      'HARVEST',
-      'FERTILIZE',
-      'DIG',
-      'BUILD_COOP',
-      'BUILD_PASTURE',
-      'FEED',
-      'COLLECT_FERTILIZER',
-      'CARE',
-    ] as UnitOpName[]) {
-      out[op] = false;
-    }
+  const target = at ?? pos;
+  if (!target) {
+    for (const op of TILE_OPS) out[op] = no('ユニットがいない');
     return out;
   }
 
-  const [x, y] = pos;
+  const [x, y] = target;
   const tile = farm.tiles[y][x];
   const onShed = isShedAdjacent([x, y], boardSize);
   const locked = tile === LOCKED;
+  const priv = state.privates[player];
 
-  out.PICKUP = onShed && legalPickupItems(state, player).length > 0;
-  out.PLANT = !locked && tile === null && legalPlantCrops(state, player).length > 0;
-  out.WATER = !locked && isPlant(tile) && !tile.watered_today;
-  out.HARVEST =
-    !locked &&
-    ((isPlant(tile) &&
-      tile.yield_units > 0 &&
-      state.day - tile.planted_day >= CROPS[tile.crop].first_yield_day) ||
-      (isAnimal(tile) && tile.yield_units > 0));
-  out.FERTILIZE = !locked && isPlant(tile) && invCount(state, player, unit, 'FERTILIZER') > 0;
-  out.DIG = !locked && tile !== null && !isAnimal(tile);
-  out.BUILD_COOP = !locked && tile === null;
-  out.BUILD_PASTURE = !locked && tile === null;
-  out.FEED = !locked && isAnimal(tile) && !tile.fed_today && invCount(state, player, unit, 'WHEAT') > 0;
-  out.COLLECT_FERTILIZER = !locked && isAnimal(tile) && tile.fertilizer_available;
-  out.CARE = !locked && isAnimal(tile) && !tile.cared_today;
+  if (locked) {
+    for (const op of TILE_OPS) out[op] = no('ロック中の区画 (BUY_LAND で解放)');
+    return out;
+  }
+
+  out.PICKUP = !onShed
+    ? no('倉庫のアクセスタイル (中央4マス) に立つ必要がある')
+    : legalPickupItems(state, player).length > 0
+      ? ok
+      : no('倉庫が空');
+
+  out.PLANT =
+    tile !== null
+      ? no('空きタイルでないと植えられない')
+      : legalPlantCrops(state, player).length > 0
+        ? ok
+        : no('種を持っていない (市場で BUY_SEED)');
+
+  out.WATER = !isPlant(tile)
+    ? no('このタイルに作物がない')
+    : tile.watered_today
+      ? no('今日はもう水やり済み')
+      : ok;
+
+  out.HARVEST = isPlant(tile)
+    ? tile.yield_units <= 0
+      ? no('収穫できる実がまだない')
+      : state.day - tile.planted_day < CROPS[tile.crop].first_yield_day
+        ? no(`初収穫は植えてから${CROPS[tile.crop].first_yield_day}日後`)
+        : ok
+    : isAnimal(tile)
+      ? tile.yield_units > 0
+        ? ok
+        : no('収穫できる生産物がまだない')
+      : no('このタイルに作物も動物もいない');
+
+  out.FERTILIZE = !isPlant(tile)
+    ? no('このタイルに作物がない')
+    : invCount(state, player, unit, 'FERTILIZER') > 0
+      ? ok
+      : no('FERTILIZER を持っていない (PICKUP か COLLECT_FERTILIZER)');
+
+  out.DIG =
+    tile === null ? no('掘るものがない') : isAnimal(tile) ? no('動物のいる建物は撤去できない') : ok;
+
+  out.BUILD_COOP = tile === null ? ok : no('空きタイルにしか建てられない');
+  out.BUILD_PASTURE = tile === null ? ok : no('空きタイルにしか建てられない');
+
+  out.FEED = !isAnimal(tile)
+    ? no('このタイルに動物がいない')
+    : tile.fed_today
+      ? no('今日はもう餌やり済み')
+      : invCount(state, player, unit, 'WHEAT') > 0
+        ? ok
+        : no('WHEAT を持っていない (倉庫から PICKUP)');
+
+  out.COLLECT_FERTILIZER = !isAnimal(tile)
+    ? no('このタイルに動物がいない')
+    : tile.fertilizer_available
+      ? ok
+      : no('肥料がまだ溜まっていない');
+
+  out.CARE = !isAnimal(tile) ? no('このタイルに動物がいない') : tile.cared_today ? no('今日はもう世話済み') : ok;
 
   // PLACE: animal onto a matching empty structure, or any carried item into
   // the shed (if adjacent and there is room).
-  let canPlace = false;
-  if (!locked && tile !== null && !isAnimal(tile) && (tile.kind === 'COOP' || tile.kind === 'PASTURE')) {
-    canPlace = (Object.keys(ANIMALS) as AnimalId[]).some(
+  if (tile !== null && !isAnimal(tile) && (tile.kind === 'COOP' || tile.kind === 'PASTURE')) {
+    const match = (Object.keys(ANIMALS) as AnimalId[]).some(
       (a) => ANIMALS[a].structure === tile.kind && invCount(state, player, unit, a) > 0
     );
+    out.PLACE = match ? ok : no(`この建物に入れられる動物を持っていない`);
+  } else if (onShed) {
+    if (!invHasAny(state, player, unit)) out.PLACE = no('持ち物が空');
+    else {
+      let total = 0;
+      for (const v of Object.values(priv.shed)) total += v ?? 0;
+      out.PLACE = total < 100 ? ok : no('倉庫が満杯 (100)'); // shedCapacity default; advisory
+    }
+  } else {
+    out.PLACE = no('倉庫のアクセスタイルか、空きの建物の上でのみ置ける');
   }
-  if (!canPlace && onShed && invHasAny(state, player, unit)) {
-    let total = 0;
-    for (const v of Object.values(state.privates[player].shed)) total += v ?? 0;
-    canPlace = total < 100; // shedCapacity default; advisory
-  }
-  out.PLACE = canPlace;
 
+  return out;
+}
+
+/**
+ * One entry per unit op: `true` = some argument choice makes it a real move,
+ * `false` = the engine would silently discard it. (Boolean view of
+ * `legalUnitOpsAt` at the unit's current tile.)
+ */
+export function legalUnitOps(state: GameState, player: number, unit: number): Record<UnitOpName, boolean> {
+  const verdicts = legalUnitOpsAt(state, player, unit);
+  const out = {} as Record<UnitOpName, boolean>;
+  for (const [op, v] of Object.entries(verdicts) as [UnitOpName, OpVerdict][]) out[op] = v.legal;
   return out;
 }
 
