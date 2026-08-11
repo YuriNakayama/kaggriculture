@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { PlayerAction } from '../engine/types';
+import type { MarketOrder, PlayerAction, UnitAction } from '../engine/types';
 import { ActionPanel } from './ActionPanel';
 import { FarmView } from './FarmView';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
-import { omakaseFarmOps } from './omakase';
+import { mergeMarket, omakaseAction } from './omakase';
 import { SmartCommandBar, type AutoStatus } from './SmartCommandBar';
 import { useHandRoles } from './useHandRoles';
 import { assignCommand, autoActions, commandTargets, queueSize, type SmartCommand, type TaskQueues } from './smartTasks';
@@ -43,8 +43,12 @@ export function GameScreen({ setup, onExit }: Props) {
 
   const handleSubmit = (action: PlayerAction) => {
     if (humanPlayerId === null || !state) return;
-    // おまかせ農場: 農作業 op を starter 方針で上書きし、市場注文だけ通す。
-    const merged = omakase ? { ...omakaseFarmOps(state, humanPlayerId), market: action.market } : action;
+    // おまかせ農場: 農作業と購入は starter 方針、販売はユーザーの注文を通す。
+    let merged = action;
+    if (omakase) {
+      const auto = omakaseAction(state, humanPlayerId);
+      merged = { farmer: auto.farmer, hands: auto.hands, market: mergeMarket(action.market, auto.autoMarket) };
+    }
     void stepGame({ [humanPlayerId]: merged });
   };
 
@@ -76,9 +80,20 @@ export function GameScreen({ setup, onExit }: Props) {
         note = 'シーズン終了';
         break;
       }
-      const { action, nextQueues, idle } = omakase
-        ? { action: { ...omakaseFarmOps(s, humanPlayerId), market: [] as never[] }, nextQueues: {}, idle: false }
-        : autoActions(s, humanPlayerId, queues);
+      let action: { farmer: UnitAction; hands: UnitAction[]; market: MarketOrder[] };
+      let nextQueues: TaskQueues;
+      let idle: boolean;
+      if (omakase) {
+        const auto = omakaseAction(s, humanPlayerId);
+        action = { farmer: auto.farmer, hands: auto.hands, market: auto.autoMarket };
+        nextQueues = {};
+        idle = false;
+      } else {
+        const r = autoActions(s, humanPlayerId, queues);
+        action = { ...r.action, market: [] };
+        nextQueues = r.nextQueues;
+        idle = r.idle;
+      }
       if (!untilMorning && idle) break;
       const ns = await stepGame({ [humanPlayerId]: action });
       if (!ns) {

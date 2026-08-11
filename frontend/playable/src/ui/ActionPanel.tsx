@@ -255,7 +255,10 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
         🤖 おまかせ農場 (市場だけ操作)
       </label>
       {omakase ? (
-        <p className="action-hints">農作業は自動で行われます。下の市場注文だけ指定して Submit してください。</p>
+        <p className="action-hints">
+          農作業と購入 (種など) は自動。<strong>販売 (SELL) はあなたの仕事</strong>です — 下の市場注文で売り時を決めて
+          Submit してください。何も注文せず Submit すればターンだけ進みます。
+        </p>
       ) : (
         <>
           {renderUnit('Farmer', 0, farmer, setFarmer)}

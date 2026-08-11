@@ -6,7 +6,7 @@
 
 import { starterAgent } from '../ai/starter';
 import type { Observation } from '../ai/types';
-import type { GameState, UnitAction } from '../engine/types';
+import type { GameState, MarketOrder, UnitAction } from '../engine/types';
 
 function buildObservation(s: GameState, player: number): Observation {
   return {
@@ -22,15 +22,32 @@ function buildObservation(s: GameState, player: number): Observation {
   };
 }
 
-/** starter 方針の農作業 op (市場注文は破棄)。失敗時は全 PASS。 */
-export function omakaseFarmOps(state: GameState, player: number): { farmer: UnitAction; hands: UnitAction[] } {
+/**
+ * starter 方針の農作業 op と、生産に必要な購入系注文 (BUY_* / HIRE)。
+ * SELL は含めない — 販売判断こそユーザーの仕事、が本モードの趣旨。
+ * 失敗時は全 PASS。
+ */
+export function omakaseAction(
+  state: GameState,
+  player: number
+): { farmer: UnitAction; hands: UnitAction[]; autoMarket: MarketOrder[] } {
   try {
     const a = starterAgent(buildObservation(state, player));
     const numHands = state.farms[player].hands.length;
     const hands = (a.hands ?? []).slice(0, numHands);
     while (hands.length < numHands) hands.push(['PASS']);
-    return { farmer: a.farmer ?? ['PASS'], hands };
+    const autoMarket = (a.market ?? []).filter((o) => Array.isArray(o) && o[0] !== 'SELL');
+    return { farmer: a.farmer ?? ['PASS'], hands, autoMarket };
   } catch {
-    return { farmer: ['PASS'], hands: state.farms[player].hands.map(() => ['PASS'] as UnitAction) };
+    return {
+      farmer: ['PASS'],
+      hands: state.farms[player].hands.map(() => ['PASS'] as UnitAction),
+      autoMarket: [],
+    };
   }
+}
+
+/** ユーザー注文を優先しつつ自動購入を合流 (エンジン上限 10 件)。 */
+export function mergeMarket(user: MarketOrder[], auto: MarketOrder[]): MarketOrder[] {
+  return [...user, ...auto].slice(0, 10);
 }

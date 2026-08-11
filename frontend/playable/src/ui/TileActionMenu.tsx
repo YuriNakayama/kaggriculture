@@ -134,21 +134,27 @@ export function TileActionMenu(props: Props) {
       )}
 
       {!onSameTile && (
-        <button
-          type="button"
-          className="tile-menu-move"
-          disabled={pathLength === null}
-          onClick={() => {
-            props.onMoveHere();
-            props.onClose();
-          }}
-        >
-          🚶 ここへ移動{pathLength !== null ? ` (${pathLength}ターン)` : ' — 到達不能'}
-        </button>
+        <div className="tile-menu-section">
+          <div className="tile-menu-subhead">🚶 移動</div>
+          <button
+            type="button"
+            className="tile-menu-move"
+            disabled={pathLength === null}
+            onClick={() => {
+              props.onMoveHere();
+              props.onClose();
+            }}
+          >
+            ここへ移動するだけ{pathLength !== null ? ` (${pathLength}ターン)` : ' — 到達不能'}
+          </button>
+        </div>
       )}
 
       {submenu === null ? (
         <div className="tile-menu-ops">
+          <div className="tile-menu-subhead">
+            {onSameTile ? '🎯 この場所で実行' : '🎯 移動して到着後に実行 (任意)'}
+          </div>
           {TILE_OP_ORDER.map((op) => {
             const v = verdicts[op];
             const needsArg = op === 'PLANT' || op === 'PICKUP' || op === 'PLACE';
