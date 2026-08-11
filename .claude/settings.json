@@ -7,11 +7,12 @@
             "Bash(gh:*)",
             "Bash(kaggle:*)",
             "Bash(terraform fmt:*)",
-            "Bash(terraform validate:*)"
+            "Bash(terraform validate:*)",
+            "Bash(terraform plan:*)",
+            "Bash(terraform apply:*)"
         ],
         "deny": [
-            "Bash(gh pr merge:*)",
-            "Bash(terraform destroy:*)"
+            "Bash(gh pr merge:*)"
         ]
     },
     "hooks": {

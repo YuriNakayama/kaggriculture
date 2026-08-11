@@ -41,4 +41,4 @@ cd backend && uv run python ../frontend/scripts/gen_parity_trace.py \
 ## デプロイ
 
 Amplify Hosting (`amplify.yml` + `infra/module/application/amplify_hosting/`) で
-`https://farm.avifauna.click` に配信。main への push で自動ビルド。
+`https://goose.avifauna.click` に配信。main への push で自動ビルド。

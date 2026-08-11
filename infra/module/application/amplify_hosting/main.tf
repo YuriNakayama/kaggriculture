@@ -29,10 +29,6 @@ resource "aws_amplify_branch" "main" {
   stage             = "PRODUCTION"
 }
 
-data "aws_route53_zone" "this" {
-  name = var.domain_name
-}
-
 resource "aws_amplify_domain_association" "this" {
   app_id      = aws_amplify_app.this.id
   domain_name = var.domain_name
@@ -47,29 +43,6 @@ resource "aws_amplify_domain_association" "this" {
   }
 }
 
-# TLS certificate validation record ("<name> CNAME <value>").
-locals {
-  cert_parts = split(" ", aws_amplify_domain_association.this.certificate_verification_dns_record)
-}
-
-resource "aws_route53_record" "cert_verification" {
-  zone_id = data.aws_route53_zone.this.zone_id
-  name    = local.cert_parts[0]
-  type    = local.cert_parts[1]
-  records = [local.cert_parts[2]]
-  ttl     = 300
-}
-
-# Subdomain -> CloudFront distribution records ("<prefix> CNAME <target>").
-resource "aws_route53_record" "sub_domain" {
-  for_each = {
-    for sd in aws_amplify_domain_association.this.sub_domain :
-    sd.prefix => split(" ", sd.dns_record)
-  }
-
-  zone_id = data.aws_route53_zone.this.zone_id
-  name    = "${each.key}.${var.domain_name}"
-  type    = each.value[1]
-  records = [each.value[2]]
-  ttl     = 300
-}
+# No explicit Route53 records: the hosted zone lives in the same account, so
+# Amplify creates and manages the TLS-validation and subdomain CNAMEs itself
+# when the domain association is created.

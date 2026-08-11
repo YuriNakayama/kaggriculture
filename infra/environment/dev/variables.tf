@@ -46,5 +46,5 @@ variable "playable_domain" {
 variable "playable_subdomain" {
   description = "Subdomain prefix for the playable app."
   type        = string
-  default     = "farm"
+  default     = "goose"
 }

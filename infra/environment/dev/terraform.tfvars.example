@@ -10,8 +10,8 @@ github_repo     = "YuriNakayama/kaggriculture"
 github_owner_id = "REPLACE_ME"
 github_repo_id  = "REPLACE_ME"
 
-# Amplify Hosting (playable frontend at https://farm.avifauna.click)
+# Amplify Hosting (playable frontend at https://goose.avifauna.click)
 # PAT with repo read + webhook admin on this repository. NEVER commit.
 amplify_github_access_token = "REPLACE_ME"
 playable_domain             = "avifauna.click"
-playable_subdomain          = "farm"
+playable_subdomain          = "goose"

@@ -31,7 +31,7 @@ variable "domain_name" {
 }
 
 variable "subdomain_prefix" {
-  description = "Subdomain serving the app (e.g. farm -> farm.<domain_name>)."
+  description = "Subdomain serving the app (e.g. goose -> goose.<domain_name>)."
   type        = string
-  default     = "farm"
+  default     = "goose"
 }
