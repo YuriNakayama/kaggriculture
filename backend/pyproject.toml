@@ -7,7 +7,7 @@ requires-python = ">=3.13,<3.14"
 authors = [{ name = "Yuri Nakayama" }]
 dependencies = [
     "kaggle>=1.6",
-    "kaggle-environments>=1.17",
+    "kaggle-environments==1.32.6",
     "numpy>=2.0",
     "polars>=1.0",
     "pyarrow>=17.0",
@@ -65,6 +65,11 @@ exclude = [
     # Other competitors' public notebooks, kept verbatim for analysis. Not our
     # code — linting or reformatting them would destroy the reference.
     "notebook",
+    # case3 is a verbatim port of one of those notebooks, kept byte-comparable
+    # to its source so a future upstream revision can be diffed against it.
+    # Reformatting it would destroy that property. Every other case, including
+    # the lightly-adapted ports (case4-case6), is linted normally.
+    "pipeline/rulebase/case3",
 ]
 line-length = 88
 indent-width = 4
@@ -99,12 +104,25 @@ indent-style = "space"
 line-ending = "auto"
 
 [tool.mypy]
+# Cases are exec'd flat by the Kaggle harness, so their modules import each
+# other by bare name. Two cases both defining `config` cannot share one mypy
+# run, so `dev/lint` type-checks each case in a separate pass with its own
+# directory on MYPYPATH; this default pass skips them all.
+mypy_path = "src"
+explicit_package_bases = true
 exclude = [
     ".venv",
     ".github",
     ".claude",
     "__pycache__",
     "notebook",
+    # Checked individually by dev/lint, or exempt as verbatim notebook ports.
+    # case3-case6 are upstream code kept byte-comparable to their source so a
+    # future upstream revision can be diffed against them; annotating them would
+    # fork them permanently for no behavioural gain. Their correctness is pinned
+    # by e2e episodes and by explicit constant and price checks against the
+    # engine instead.
+    "pipeline/rulebase/",
 ]
 python_version = "3.13"
 strict = true
