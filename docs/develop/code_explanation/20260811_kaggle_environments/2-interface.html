@@ -1,0 +1,1464 @@
+<title>Kaggriculture ② 観測と行動の仕様</title>
+<style>
+  :root {
+    --paper: #FBFAF7;
+    --surface: #F4F2EB;
+    --ink: #1F2421;
+    --muted: #6B7269;
+    --accent: #2F6B4F;
+    --accent-soft: #E4EDE6;
+    --signal: #A6532A;
+    --signal-soft: #F4E8DF;
+    --rule: #E3E0D6;
+    --rule-soft: #EFEDE5;
+    --code-bg: #F2F0E8;
+
+    --f-display: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+    --f-body: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --f-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --measure: 82ch;
+    --wide: 132ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161916;
+      --surface: #1D211D;
+      --ink: #E6E8E1;
+      --muted: #9AA396;
+      --accent: #7FBF98;
+      --accent-soft: #23302A;
+      --signal: #D9906A;
+      --signal-soft: #33251D;
+      --rule: #2C312C;
+      --rule-soft: #232823;
+      --code-bg: #1A1E1A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #161916;
+    --surface: #1D211D;
+    --ink: #E6E8E1;
+    --muted: #9AA396;
+    --accent: #7FBF98;
+    --accent-soft: #23302A;
+    --signal: #D9906A;
+    --signal-soft: #33251D;
+    --rule: #2C312C;
+    --rule-soft: #232823;
+    --code-bg: #1A1E1A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.75;
+    margin: 0;
+    padding: 0 clamp(1.1rem, 3vw, 2.5rem) 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- masthead ---- */
+
+  header.masthead {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: clamp(3rem, 9vw, 5.5rem) 0 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.1rem;
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+
+  .standfirst {
+    color: var(--muted);
+    font-size: 1.03rem;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    margin: 1.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---- sections ---- */
+
+  section { max-width: var(--measure); margin: 0 auto; }
+
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(1.45rem, 3.6vw, 1.95rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 4.5rem 0 0.4rem;
+    padding-top: 2.2rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  h2 .num {
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    flex: none;
+  }
+
+  .deck {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    padding-left: calc(0.78rem + 0.85rem + 0.6ch);
+    font-size: 0.95rem;
+  }
+
+  h3 {
+    font-family: var(--f-body);
+    font-size: 0.79rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 3.2rem 0 1rem;
+  }
+
+  p { margin: 0 0 1.15rem; text-wrap: pretty; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.855em;
+    background: var(--code-bg);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  strong { font-weight: 650; }
+
+  /* ---- wide content escapes the measure ---- */
+
+  .wide {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  th:last-child, td:last-child { padding-right: 0; }
+  td:first-child, th:first-child { padding-left: 0; }
+
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--ink);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td code { background: none; padding: 0; }
+  .num-col { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .var, .writer, .mono-col {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .ln {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--f-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-bottom: 0.7rem;
+  }
+  caption b { color: var(--ink); font-weight: 600; }
+
+  pre {
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1.2rem 1.35rem;
+    margin: 0;
+    overflow-x: auto;
+    tab-size: 2;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .tree { color: var(--muted); }
+  .tree b { color: var(--ink); font-weight: 600; }
+  .tree i { color: var(--accent); font-style: normal; }
+  .tree u { color: var(--signal); text-decoration: none; }
+
+  /* ---- figures ---- */
+
+  figure {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto 2.4rem;
+  }
+  /* Diagrams are drawn on a ~700-unit grid; letting them scale past that
+     inflates the stroke and type without adding information. */
+  figure svg {
+    display: block;
+    width: 100%;
+    max-width: 940px;
+    height: auto;
+    margin: 0 auto;
+    color: var(--ink);
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-top: 0.9rem;
+    text-wrap: pretty;
+  }
+  .svg-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .svg-scroll svg { min-width: 560px; }
+
+  /* ---- callouts ---- */
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 1.05rem 1.3rem;
+    margin: 1.8rem 0;
+    font-size: 0.94rem;
+  }
+  .note p:last-child { margin-bottom: 0; }
+  .note .label {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .warn { background: var(--signal-soft); border-left-color: var(--signal); }
+  .warn .label { color: var(--signal); }
+
+  /* ---- chips ---- */
+
+  .dir {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.42rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .dir-up   { background: var(--accent-soft); color: var(--accent); }
+  .dir-down { background: var(--signal-soft); color: var(--signal); }
+  .dir-set  { background: var(--code-bg); color: var(--muted); }
+
+  .scope {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .scope-shared { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- product cards ---- */
+
+  .card {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .card > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    padding: 0.85rem 1.2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+  }
+  .card h4 {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .card .tag {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 2px;
+    background: var(--code-bg);
+    color: var(--muted);
+  }
+  .card .tag-good { background: var(--accent-soft); color: var(--accent); }
+  .card .tag-bad  { background: var(--signal-soft); color: var(--signal); }
+  .card .verdict {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .card-body { padding: 1.1rem 1.2rem 1.3rem; }
+
+  /* timeline */
+  .tl {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    gap: 0;
+    margin: 0 0 1.2rem;
+    font-size: 0.9rem;
+  }
+  .tl dt {
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--accent);
+    padding: 0.4rem 0.8rem 0.4rem 0;
+    border-right: 2px solid var(--rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tl dd {
+    margin: 0;
+    padding: 0.4rem 0 0.4rem 1rem;
+    border-left: 0;
+    position: relative;
+  }
+  .tl dd::before {
+    content: "";
+    position: absolute;
+    left: -5px; top: 0.85rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .tl dd.pay::before  { background: var(--signal); }
+  .tl dd.wait::before { background: var(--rule); }
+  .tl .op {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    padding: 0.06em 0.35em;
+    border-radius: 3px;
+  }
+  .tl small { color: var(--muted); display: block; font-size: 0.82rem; }
+
+  /* money line */
+  .money {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .money div { background: var(--surface); padding: 0.6rem 0.8rem; }
+  .money dt {
+    font-family: var(--f-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.2rem;
+  }
+  .money dd {
+    margin: 0;
+    font-size: 1.02rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .money dd.neg { color: var(--signal); }
+  .money dd.pos { color: var(--accent); }
+  .money dd small { display: block; font-size: 0.72rem; font-weight: 400; color: var(--muted); }
+
+  /* ---- glossary ---- */
+
+  dl.glossary {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    display: grid;
+    grid-template-columns: minmax(9rem, 18rem) 1fr;
+    gap: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+  dl.glossary dt {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    padding: 0.75rem 1.2rem 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 500;
+  }
+  dl.glossary dd {
+    margin: 0;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  dl.glossary dd .en {
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+  }
+  @media (max-width: 34rem) {
+    dl.glossary { grid-template-columns: 1fr; }
+    dl.glossary dt { border-bottom: none; padding-bottom: 0.15rem; color: var(--accent); }
+    dl.glossary dd { padding-top: 0.15rem; }
+  }
+
+  /* ---- step list ---- */
+
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 1.6rem 0 2rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 0 0.9rem;
+    align-items: baseline;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 0.28rem;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.steps .title { font-weight: 650; }
+  ol.steps .body { color: var(--muted); font-size: 0.93rem; display: block; margin-top: 0.15rem; }
+  ol.steps .body code { color: var(--ink); }
+
+  ul.plain {
+    margin: 1.2rem 0 1.8rem;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  ul.plain li::marker { color: var(--accent); }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 1.8rem 0 2rem;
+    overflow: hidden;
+  }
+  .strip div { background: var(--surface); padding: 0.95rem 1.1rem; }
+  .strip dt {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.3rem;
+  }
+  .strip dd {
+    margin: 0;
+    font-size: 1.3rem;
+    font-family: var(--f-display);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .strip dd small { font-size: 0.78rem; font-family: var(--f-body); color: var(--muted); display: block; margin-top: 0.15rem; }
+
+  footer {
+    max-width: var(--measure);
+    margin: 5rem auto 0;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<style>
+  /* ---- series navigation ---- */
+  .series {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 1.1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+  }
+  .series a, .series span {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .series a:hover { border-color: var(--accent); color: var(--accent); }
+  .series .here {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .pager {
+    max-width: var(--measure);
+    margin: 4rem auto 0;
+    padding-top: 2rem;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+  .pager a {
+    flex: 1 1 14rem;
+    display: block;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    text-decoration: none;
+    background: var(--surface);
+  }
+  .pager a:hover { border-color: var(--accent); }
+  .pager .dir {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: none;
+    padding: 0;
+    margin-bottom: 0.3rem;
+  }
+  .pager .t {
+    display: block;
+    font-family: var(--f-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .pager .n { text-align: right; }
+  .toc {
+    max-width: var(--measure);
+    margin: 2rem auto 0;
+    padding: 1.1rem 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .toc h2 {
+    all: unset;
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+  .toc ol { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .toc li::marker { color: var(--accent); font-family: var(--f-mono); font-size: 0.8rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .toc a:hover { border-color: var(--accent); color: var(--accent); }
+  @media print { .series, .pager { display: none; } }
+</style>
+
+<header class="masthead">
+  <p class="eyebrow">実装分析 / kaggle-environments</p>
+  <h1>② 観測と行動の仕様</h1>
+  <p class="standfirst">エージェントが受け取る情報と、返すべき行動。在庫の制約もここで扱う。</p>
+  <ul class="meta">
+    <li><b>対象</b> envs/kaggriculture/kaggriculture.py</li>
+    <li><b>ルール本体</b> 1,073 行</li>
+    <li><b>フレームワーク</b> core.py 772 行</li>
+  </ul>
+  <nav class="series" aria-label="この資料の構成">
+<a href="1-environment.html">① 環境の仕組み</a>
+<span class="here" aria-current="page">② 観測と行動</span>
+<a href="3-economy.html">③ 市場と生産</a>
+</nav>
+</header>
+
+<div class="toc">
+  <h2>このページの内容</h2>
+  <ol>
+      <li><a href="#s00">00 観測 — 受け取る情報</a></li>
+      <li><a href="#s01">01 在庫の制約</a></li>
+      <li><a href="#s02">02 行動 — 返す内容</a></li>
+  </ol>
+</div>
+
+
+<section id="s00">
+  <h2><span class="num">00</span> 観測 — 受け取る情報</h2>
+  <p class="deck">obs に何が入っているか。全キーを実測値で展開する。</p>
+
+<h3>受け取る観測の全体</h3>
+
+  <p>
+    <code>obs</code> は 9 個のキーを持つ辞書型である。
+    以下は<strong>実際に環境を動かして取得した中身を、入れ子をすべて展開したもの</strong>。
+    値は開始直後（0 日目 0 ターン目）の実測値。
+    区切りコメントに<strong>共有か自分専用か</strong>を明記してある。
+  </p>
+
+  <div class="wide">
+<pre><code>obs = {
+  <i># ───── 基本情報（すべて整数）─────────────────────────────</i>
+  "player":   0,        <i># 自分がどちらか。0 か 1</i>
+  "day":      0,        <i># 何日目か。0〜29</i>
+  "hour":     0,        <i># その日の何ターン目か。0〜23</i>
+  "step":     0,        <i># 通算ターン数。</i><u>プレイヤー 1 には存在しない</u>
+  "remainingOverageTime": 60,   <i># 持ち時間の残り（秒）</i>
+
+  <i># ───── </i><b>farms</b><i>：盤面。</i><b>自分と相手の両方が入る</b><i> ──────────────</i>
+  "farms": [
+    {                                    <i># farms[0] = プレイヤー 0 の農場</i>
+      "money":              3000.0,      <i># 所持金。これが最終得点</i>
+      "tiles":              [[…], …],    <i># 10×10。</i><u>tiles[y][x] の順</u>
+      "farmer":             [4, 4],      <i># 農夫の座標。</i><u>[x, y] の順</u>
+      "hands":              [],          <i># 雇い人の座標を雇った順に</i>
+      "unlocked_quadrants": ["NW"],      <i># 購入済み区画</i>
+      "hires_today":        0,           <i># 今日すでに雇った人数</i>
+    },
+    { … },                               <i># farms[1] = 相手の農場。</i><b>同じ 6 キーが全部見える</b>
+  ],
+
+  <i># ───── </i><b>private</b><i>：</i><b>自分の分だけ。相手のものは入らない</b><i> ─────────</i>
+  "private": {
+    "shed":   {"WHEAT": 0, "CARROT": 0, … , "GOOSE": 0, …},  <i># 倉庫。12 キー固定</i>
+    "seeds":  {"WHEAT": 0, "CARROT": 0, … , "MELON": 0},     <i># 種。5 キー固定</i>
+    "inventories": [ {} ],   <i># 手持ち。</i><u>先頭が農夫、以降が雇い人</u>
+  },
+
+  <i># ───── </i><b>market</b><i>：市場。共有 ───────────────────────────</i>
+  "market": {
+    "inventory": {"WHEAT": 10000, "CARROT": 10000, … },  <i># 9 商品の市場在庫</i>
+    "prices":    {"WHEAT": 25,    "CARROT": 35,    … },  <i># 9 商品の現在価格</i>
+  },
+
+  <i># ───── </i><b>town</b><i>：町。共有。キーは 1 つだけ ──────────────────</i>
+  "town": {
+    "unlocked_shops": [],    <i># 解禁済みの店名。</i><u>同じ店が重複して並びうる</u>
+  },
+}</code></pre>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>4 つの塊の性格</b> — どれが誰に見えるか</caption>
+      <thead>
+        <tr>
+          <th>キー</th><th>中身</th><th class="num-col">個数</th>
+          <th>相手の分</th><th>主な用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">farms</td>
+          <td>農場の盤面と所持金</td>
+          <td class="num-col">2 人分</td>
+          <td><span class="dir dir-up">見える</span></td>
+          <td>自分の作業計画。相手の生産量の推定</td>
+        </tr>
+        <tr>
+          <td class="var">private</td>
+          <td>倉庫・種・手持ち</td>
+          <td class="num-col">自分のみ</td>
+          <td><span class="dir dir-down">見えない</span></td>
+          <td>何を売れるか、何を植えられるかの判断</td>
+        </tr>
+        <tr>
+          <td class="var">market</td>
+          <td>市場在庫と価格</td>
+          <td class="num-col">共通 1 つ</td>
+          <td><span class="dir dir-set">共有</span></td>
+          <td>売り時の判断（→ <a href="3-economy.html">③</a>）</td>
+        </tr>
+        <tr>
+          <td class="var">town</td>
+          <td>解禁済みの店</td>
+          <td class="num-col">共通 1 つ</td>
+          <td><span class="dir dir-set">共有</span></td>
+          <td>今後の需要の見積もり</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">step はプレイヤー 1 には届かない</span>
+    <p>
+      実際に確認すると <code>obs</code> のキーはプレイヤー 0 が 9 個、
+      <strong>プレイヤー 1 は 8 個</strong>で、<code>step</code> だけが欠けている。
+      通算ターン数が要るなら <code>day * 24 + hour</code> で計算するか、
+      <code>obs.get("step")</code> と既定値つきで読むこと。
+      <strong>先手では動くのに後手で落ちるコード</strong>は、たいていこれが原因になる。
+    </p>
+  </div>
+
+  <div class="warn note">
+    <span class="label">座標の順序が場所によって逆になる</span>
+    <p>
+      盤面は <code>tiles[y][x]</code>（縦が先）だが、農夫と雇い人の座標は
+      <code>[x, y]</code>（横が先）で入っている。
+      足元のマスを読むには <code>fx, fy = farm["farmer"]</code> のあと
+      <strong><code>farm["tiles"][fy][fx]</code></strong> と添字を入れ替える。
+      間違えても例外にならず、別のマスを見に行くだけなので気づきにくい。
+    </p>
+  </div>
+
+  <h3>tiles — マス 1 つの中身</h3>
+
+  <p>
+    <code>tiles[y][x]</code> は次の 7 通りのいずれか。
+    <strong>相手のマスについても同じ情報がすべて見える。</strong>
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>マスが取りうる 7 通り</b></caption>
+      <thead>
+        <tr><th>値</th><th>意味</th><th>そのマスでできること</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono-col">None</td><td>空き</td>
+          <td>植える / 小屋・牧場を建てる</td>
+        </tr>
+        <tr>
+          <td class="mono-col">"LOCKED"</td><td>未購入の区画</td>
+          <td>通過のみ。作業は全て無効</td>
+        </tr>
+        <tr>
+          <td class="mono-col">{"kind": "PLANT", …}</td><td>作物が育っている</td>
+          <td>水やり / 収穫 / 施肥 / 除去</td>
+        </tr>
+        <tr>
+          <td class="mono-col">{"kind": "WEED"}</td><td>雑草</td>
+          <td>除去のみ</td>
+        </tr>
+        <tr>
+          <td class="mono-col">{"kind": "COOP"}</td><td>鶏小屋（動物なし）</td>
+          <td>ガチョウを置く / 除去</td>
+        </tr>
+        <tr>
+          <td class="mono-col">{"kind": "PASTURE"}</td><td>牧場（動物なし）</td>
+          <td>牛・羊を置く / 除去</td>
+        </tr>
+        <tr>
+          <td class="mono-col">{"kind": …, "animal": …}</td><td>動物がいる</td>
+          <td>餌やり / 世話 / 収穫 / 肥料回収。<strong>除去はできない</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>作物のマスは 8 キーを持つ。これも実測値である。</p>
+
+  <div class="wide">
+<pre><code><i># 小麦を 0 日目に植え、2 日目まで水やりを続けたときの実際の値</i>
+{
+  "kind":                  "PLANT",   <i># 作物であることを示す</i>
+  "crop":                  "WHEAT",   <i># 品種</i>
+  "planted_day":           0,         <i># 植えた日。obs["day"] との差が経過日数</i>
+  "watered_today":         True,      <i># 今日もう水をやったか</i>
+  "consecutive_unwatered": 0,         <i># 連続何日忘れたか。</i><u>2 で雑草になる</u>
+  "yield_units":           2,         <i># 今収穫したら取れる個数</i>
+  "max_lifespan_step":     120,       <i># この通算ターン数を過ぎると枯れ始める</i>
+  "fertilized_until_day":  -1,        <i># 肥料が切れる日。-1 は未施肥</i>
+}</code></pre>
+  </div>
+
+  <h3>private — 3 つの在庫の使い分け</h3>
+
+  <div class="wide">
+    <table>
+      <caption><b>obs["private"]</b> — どれも自分の分だけ</caption>
+      <thead>
+        <tr><th>キー</th><th>形</th><th>役割</th><th>注意</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">shed</td>
+          <td class="mono-col">{"WHEAT": 0, …}<br>9 商品 + 3 動物 = 12 キー</td>
+          <td><strong>売却できる唯一の置き場</strong></td>
+          <td>合計 100 個まで。0 個の品目もキーは残る</td>
+        </tr>
+        <tr>
+          <td class="var">seeds</td>
+          <td class="mono-col">{"WHEAT": 0, …}<br>5 作物 = 5 キー</td>
+          <td>植付にのみ使う独立勘定</td>
+          <td>売れない。倉庫にも手持ちにも入らない</td>
+        </tr>
+        <tr>
+          <td class="var">inventories</td>
+          <td class="mono-col">[{}, {}, …]<br>1 + 雇い人の人数</td>
+          <td>収穫物が最初に入る場所</td>
+          <td><strong>0 個の品目はキーごと消える</strong>ので <code>.get()</code> で読む</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  </section>
+
+<section id="s01">
+  <h2><span class="num">01</span> 在庫の制約</h2>
+  <p class="deck">種・手持ち・倉庫で制約が違う。溢れる問題が起きるのは倉庫だけ。</p>
+
+<h3>在庫の制約と、物の流れ</h3>
+
+  <p>
+    在庫は 3 か所（種・手持ち・倉庫）に分かれ、
+    <strong>それぞれ制約が違う</strong>。
+    以下はすべて実際に環境を動かして確認した挙動である。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>3 か所の制約の比較</b></caption>
+      <thead>
+        <tr><th></th><th>種 <span class="ln">seeds</span></th><th>手持ち <span class="ln">inventories</span></th><th>倉庫 <span class="ln">shed</span></th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>容量</strong></td>
+          <td><span class="dir dir-up">無制限</span></td>
+          <td><span class="dir dir-up">無制限</span></td>
+          <td><span class="dir dir-down">合計 100 個</span></td>
+        </tr>
+        <tr>
+          <td><strong>入るもの</strong></td>
+          <td>5 作物の種のみ</td>
+          <td>9 商品 + 3 動物</td>
+          <td>9 商品 + 3 動物<br><span class="ln">動物も枠を 1 つ消費する</span></td>
+        </tr>
+        <tr>
+          <td><strong>日をまたぐと</strong></td>
+          <td><span class="dir dir-up">そのまま残る</span></td>
+          <td><span class="dir dir-down">倉庫へ流され空になる</span></td>
+          <td><span class="dir dir-up">そのまま残る</span></td>
+        </tr>
+        <tr>
+          <td><strong>持ち主</strong></td>
+          <td>プレイヤーに 1 つ</td>
+          <td><strong>作業者ごとに 1 つ</strong><br><span class="ln">農夫 + 雇い人の人数分</span></td>
+          <td>プレイヤーに 1 つ</td>
+        </tr>
+        <tr>
+          <td><strong>売却</strong></td>
+          <td><span class="dir dir-down">できない</span></td>
+          <td><span class="dir dir-down">できない</span></td>
+          <td><span class="dir dir-up">ここからのみ</span></td>
+        </tr>
+        <tr>
+          <td><strong>置き場所の制約</strong></td>
+          <td>なし</td>
+          <td>なし。作業者が持ち歩く</td>
+          <td>出し入れは<strong>中央 4 タイルの上でのみ</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">制約があるのは倉庫だけ</span>
+    <p>
+      種と手持ちには<strong>上限がない</strong>。実際、満杯の倉庫から
+      繰り返し取り出して手持ちを 100 個まで膨らませることができた。
+      つまり「入り切らない」問題が起きるのは倉庫だけで、
+      <strong>倉庫の 100 枠をどう使うかが在庫管理のほぼ全て</strong>になる。
+      動物も 1 匹につき 1 枠を占めるので、購入したまま設置し忘れると売り物の枠を圧迫する。
+    </p>
+  </div>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 330" role="img"
+           aria-label="物の流れ。収穫物は手持ちから倉庫を経て市場へ。種は市場から畑へ直行する。">
+        <defs>
+          <marker id="arF" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+          <marker id="arFa" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="var(--accent)"></polygon>
+          </marker>
+          <marker id="arFs" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="var(--signal)"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="18" font-size="12" font-weight="600" fill="currentColor">物がどこを通るか（矢印の上は必要な命令）</text>
+
+        <!-- market node (left) -->
+        <rect x="14" y="120" width="104" height="56" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.4"></rect>
+        <text x="66" y="144" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">市場</text>
+        <text x="66" y="161" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.75">共有</text>
+
+        <!-- seeds -->
+        <rect x="176" y="34" width="116" height="50" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="234" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">種</text>
+        <text x="234" y="72" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.75">上限なし</text>
+
+        <path d="M 92 118 Q 110 60 172 56" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#arF)"></path>
+        <text x="120" y="72" font-size="9.5" fill="currentColor">BUY_SEED</text>
+
+        <!-- field -->
+        <rect x="348" y="34" width="116" height="50" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"></rect>
+        <text x="406" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)">畑のマス</text>
+        <text x="406" y="72" text-anchor="middle" font-size="9.5" fill="var(--accent)">育つ</text>
+
+        <line x1="294" y1="59" x2="344" y2="59" stroke="currentColor" stroke-width="1.3" marker-end="url(#arF)"></line>
+        <text x="319" y="51" text-anchor="middle" font-size="9.5" fill="currentColor">PLANT</text>
+
+        <!-- carried -->
+        <rect x="348" y="120" width="116" height="56" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4"></rect>
+        <text x="406" y="142" text-anchor="middle" font-size="11" font-weight="600" fill="var(--signal)">手持ち</text>
+        <text x="406" y="158" text-anchor="middle" font-size="9.5" fill="var(--signal)">上限なし / 毎日空になる</text>
+
+        <line x1="406" y1="88" x2="406" y2="116" stroke="currentColor" stroke-width="1.3" marker-end="url(#arF)"></line>
+        <text x="414" y="106" font-size="9.5" fill="currentColor">HARVEST</text>
+
+        <!-- shed -->
+        <rect x="520" y="120" width="166" height="56" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"></rect>
+        <text x="603" y="142" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)">倉庫</text>
+        <text x="603" y="158" text-anchor="middle" font-size="9.5" fill="var(--accent)">100 個まで / 中央 4 タイル</text>
+
+        <path d="M 466 138 L 516 138" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#arF)"></path>
+        <text x="491" y="130" text-anchor="middle" font-size="9.5" fill="currentColor">DROP</text>
+        <path d="M 516 160 L 466 160" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#arF)"></path>
+        <text x="491" y="174" text-anchor="middle" font-size="9.5" fill="currentColor">PICKUP</text>
+
+        <!-- auto drop at end of day -->
+        <path d="M 400 180 Q 470 216 596 180" fill="none" stroke="var(--signal)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arFs)"></path>
+        <text x="498" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--signal)">1 日の終わりに自動で流れる（超過分は消滅）</text>
+
+        <!-- sell back to market -->
+        <path d="M 560 118 Q 380 236 66 178" fill="none" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#arFa)"></path>
+        <text x="250" y="228" text-anchor="middle" font-size="10" font-weight="600" fill="var(--accent)">SELL — 売れるのは倉庫からだけ</text>
+
+        <!-- buy product into shed -->
+        <path d="M 66 116 Q 300 24 560 116" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arF)"></path>
+        <text x="300" y="20" text-anchor="middle" font-size="9.5" fill="currentColor">BUY_PRODUCT / BUY_ANIMAL — 倉庫へ直接届く（満杯なら失敗）</text>
+
+        <!-- dead end note -->
+        <line x1="14" y1="250" x2="686" y2="250" stroke="currentColor" stroke-width="0.75" opacity="0.25"></line>
+        <text x="14" y="272" font-size="10.5" font-weight="600" fill="var(--signal)">種だけが袋小路 — 買って植える以外の使い道がなく、売って現金に戻すことはできない。</text>
+        <text x="14" y="292" font-size="10.5" fill="currentColor" opacity="0.8">収穫物は必ず「手持ち → 倉庫」を経る。畑から直接は売れない。</text>
+        <text x="14" y="312" font-size="10.5" fill="currentColor" opacity="0.8">動物は市場 → 倉庫 → 手持ち → 小屋 と、置くまでに 3 回動かす必要がある。</text>
+      </svg>
+    </div>
+    <figcaption>
+      物の移動経路。<strong>種だけが別系統</strong>で、市場から買って畑に消えるだけの一方通行になっている。
+      収穫物と動物は倉庫を必ず経由し、その倉庫だけが 100 個の上限を持つ。
+    </figcaption>
+  </figure>
+
+  <h3>倉庫が満杯のときに何が起きるか</h3>
+
+  <p>
+    <strong>入れ方によって挙動が違う</strong>。
+    購入は「入らなければ丸ごと失敗」、手持ちからの移動は「入る分だけ入れて残りは消滅」する。
+    以下は実測結果である。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>倉庫の空きが足りないとき</b></caption>
+      <thead>
+        <tr><th>経路</th><th>挙動</th><th>実測例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">BUY_PRODUCT<br>BUY_ANIMAL</td>
+          <td><span class="dir dir-set">空きの分だけ買って打ち切り</span><br>1 個ずつ約定し、<strong>満杯になった時点でその注文は終了</strong>。買えなかった分の代金は引かれない</td>
+          <td class="mono-col">98/100 に 5 個注文 → 2 個成立<br>100/100 → 1 個も買えない</td>
+        </tr>
+        <tr>
+          <td class="var">BUY_SEED</td>
+          <td><span class="dir dir-up">影響なし</span><br>種は倉庫を通らないので<strong>満杯でも買える</strong></td>
+          <td class="mono-col">100/100 でもメロンの種を購入できた</td>
+        </tr>
+        <tr>
+          <td class="var">DROP / PLACE</td>
+          <td><span class="dir dir-down">部分的に入り、残りは消滅</span></td>
+          <td class="mono-col">97/100 に 10 個 → 3 個だけ残り 7 個消滅</td>
+        </tr>
+        <tr>
+          <td class="var">1 日の終わり<br>の自動移動</td>
+          <td><span class="dir dir-down">部分的に入り、残りは消滅</span><br><strong>命令を出していなくても起きる</strong></td>
+          <td class="mono-col">95/100 に 20 個 → 5 個だけ残り 15 個消滅</td>
+        </tr>
+        <tr>
+          <td class="var">PICKUP</td>
+          <td><span class="dir dir-up">制限なし</span><br>手持ちに上限がないため常に成功</td>
+          <td class="mono-col">満杯の倉庫から 100 個まで取り出せた</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">何が捨てられるかは辞書に入れた順で決まる</span>
+    <p>
+      手持ちに複数の品目があると、<strong>先に入っていた品目から順に</strong>倉庫へ詰められ、
+      枠が尽きた時点で残りは丸ごと消える。品目の価値は考慮されない。<br>
+      実測 — 空き 3 の倉庫に「メロン 5 個 + 人参 5 個」を入れると
+      <strong>メロン 3 個だけが残り、人参は 5 個とも消えた</strong>。
+      順番を逆に持つと、今度は人参 3 個が残ってメロンが全部消えた。
+    </p>
+    <p>
+      つまり<strong>高価なものを先に収穫しておけば生き残る</strong>という、
+      直感に乏しい優先順位が働く。安全側に倒すなら、
+      日が変わる前に自分で <code>DROP</code> して空きを確認するほうが確実である。
+    </p>
+  </div>
+
+  <div class="wide">
+<pre><code><i># 倉庫まわりで踏みやすい 3 つの前提</i>
+
+<i># 1. 空き枠の計算 — 動物も枠を消費する</i>
+空き = 100 - sum(obs["private"]["shed"].values())
+<i>#      ↑ WHEAT〜FERTILIZER の 9 商品に加え GOOSE/COW/SHEEP も合算される</i>
+
+<i># 2. 手持ちは 0 個の品目がキーごと消える</i>
+carried = obs["private"]["inventories"][0]
+n = carried.get("MELON", 0)      <i># </i><u>carried["MELON"] は KeyError になりうる</u>
+
+<i># 3. 売れるのは倉庫の分だけ。収穫直後は倉庫に入っていない</i>
+売れる数 = obs["private"]["shed"].get("MELON", 0)
+<i>#          ↑ 手持ちの分を足してはいけない。SELL は倉庫しか見ない</i></code></pre>
+  </div>
+
+  <div class="note">
+    <span class="label">在庫管理として何を決めることになるか</span>
+    <p>
+      倉庫の 100 枠は<strong>「売れるまでの待合室」</strong>であり、
+      枠が埋まっていると収穫物が捨てられ、購入も通らなくなる。
+      一方で価格を潰さずに売るには少しずつ売るしかない（<a href="3-economy.html">③ 売却のタイミング</a>）ので、
+      <strong>売り急ぐと安く、貯めると溢れる</strong>という板挟みが生じる。
+      これが「作った分だけ儲かる」を成立させない 2 つ目の理由になっている。
+    </p>
+  </div>
+
+  <h3>market と town — 共有情報</h3>
+
+  <div class="wide">
+    <table>
+      <caption><b>obs["market"]</b> と <b>obs["town"]</b></caption>
+      <thead>
+        <tr><th>キー</th><th>形</th><th>意味</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">market["inventory"]</td>
+          <td class="mono-col">{"WHEAT": 10000, …}<br>9 商品</td>
+          <td>市場在庫。<strong>価格の唯一の入力</strong>（→ <a href="3-economy.html">③</a>）</td>
+        </tr>
+        <tr>
+          <td class="var">market["prices"]</td>
+          <td class="mono-col">{"WHEAT": 25, …}<br>9 商品</td>
+          <td>現在価格。在庫からの計算値で、<strong>直前の全取引を織り込み済み</strong></td>
+        </tr>
+        <tr>
+          <td class="var">town["unlocked_shops"]</td>
+          <td class="mono-col">["BAKERY", "PET_CAFE", …]</td>
+          <td>解禁済みの店名。<strong>同じ店が重複して並びうる</strong>（上限 8）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">観測に含まれないもの</span>
+    <p>
+      <strong>相手の <code>private</code>（倉庫・種・手持ち）は一切入らない。</strong>
+      相手が何をどれだけ抱えているかは、盤面と市場在庫の推移から推定するしかない。
+      また乱数の種、次に解禁される店、天候にあたる要素も観測されない。
+    </p>
+  </div>
+
+  </section>
+
+<section id="s02">
+  <h2><span class="num">02</span> 行動 — 返す内容</h2>
+  <p class="deck">3 つのキーと、使える 24 の命令。</p>
+
+<h3>返すべき行動の全体</h3>
+
+  <p>
+    返り値は 3 キーの辞書型で固定である。<strong>キーが欠けていても例外にはならず、
+    その部分が「何もしない」扱いになる</strong>。
+  </p>
+
+  <div class="wide">
+<pre><code>return {
+  <b>"farmer"</b>: [命令, *引数],          <i># </i><u>必ず 1 つ</u><i>。リストが 1 段であることに注意</i>
+  <b>"hands"</b>:  [[命令, *引数], …],     <i># </i><u>雇い人の人数とちょうど同じ数</u><i>。順番は雇った順</i>
+  <b>"market"</b>: [[命令, *引数], …],     <i># </i><u>最大 10 件</u><i>。11 件目以降は黙って捨てられる</i>
+}
+
+<i># 何もしないとき（例外を捕まえたときの安全な既定値）</i>
+{"farmer": ["PASS"], "hands": [], "market": []}</code></pre>
+  </div>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 250" role="img"
+           aria-label="行動の構造。農夫は1手、雇い人は人数分、市場注文は最大10件。">
+        <defs>
+          <marker id="ar9" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="20" font-size="12" font-weight="600" fill="currentColor">1 ターンに返す 3 つのキー</text>
+
+        <!-- farmer -->
+        <rect x="14" y="34" width="132" height="58" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"></rect>
+        <text x="80" y="56" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="var(--accent)">"farmer"</text>
+        <text x="80" y="74" text-anchor="middle" font-size="10" fill="var(--accent)">ちょうど 1 手</text>
+        <line x1="150" y1="63" x2="196" y2="63" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar9)"></line>
+        <rect x="198" y="42" width="150" height="42" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="273" y="60" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">["WATER"]</text>
+        <text x="273" y="76" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">["PLANT", "WHEAT"]</text>
+
+        <!-- hands -->
+        <rect x="14" y="102" width="132" height="58" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="80" y="124" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">"hands"</text>
+        <text x="80" y="142" text-anchor="middle" font-size="10" fill="currentColor">雇い人の人数と同数</text>
+        <line x1="150" y1="131" x2="196" y2="131" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar9)"></line>
+        <rect x="198" y="110" width="150" height="42" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="273" y="128" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">[]</text>
+        <text x="273" y="144" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">[["WATER"], ["DIG"]]</text>
+
+        <!-- market -->
+        <rect x="14" y="170" width="132" height="58" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="80" y="192" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">"market"</text>
+        <text x="80" y="210" text-anchor="middle" font-size="10" fill="currentColor">最大 10 件、順番が重要</text>
+        <line x1="150" y1="199" x2="196" y2="199" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar9)"></line>
+        <rect x="198" y="178" width="150" height="42" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="273" y="196" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">[["SELL", "WHEAT", 6]]</text>
+        <text x="273" y="212" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor">[["HIRE"]]</text>
+
+        <!-- rules on the right -->
+        <rect x="374" y="34" width="312" height="194" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4"></rect>
+        <text x="390" y="56" font-size="11" font-weight="600" fill="var(--signal)">数が合わないとどうなるか</text>
+
+        <text x="390" y="80" font-size="10" fill="var(--signal)">農夫の命令を 2 つ入れる</text>
+        <text x="406" y="95" font-size="10" fill="var(--signal)">→ 先頭が命令名、残りは引数として解釈される</text>
+
+        <text x="390" y="118" font-size="10" fill="var(--signal)">hands が雇い人より少ない</text>
+        <text x="406" y="133" font-size="10" fill="var(--signal)">→ 余った雇い人はその日何もしない</text>
+
+        <text x="390" y="156" font-size="10" fill="var(--signal)">hands が雇い人より多い</text>
+        <text x="406" y="171" font-size="10" fill="var(--signal)">→ はみ出した分は無視される</text>
+
+        <text x="390" y="194" font-size="10" fill="var(--signal)">market が 11 件以上</text>
+        <text x="406" y="209" font-size="10" fill="var(--signal)">→ 11 件目以降は捨てられる。並べる順番で優先度が決まる</text>
+      </svg>
+    </div>
+    <figcaption>
+      3 つのキーの形と、数が合わなかったときの挙動。
+      いずれも<strong>例外にはならず、静かに一部が失われる</strong>。
+      とくに市場注文は<strong>並べた順に処理される</strong>ため、
+      売りたいものを先頭に置くかどうかで結果が変わる。
+    </figcaption>
+  </figure>
+
+  <h3>農夫・雇い人が使える 18 の命令</h3>
+
+  <p>
+    <code>"farmer"</code> と <code>"hands"</code> には同じ命令が使える。
+    <strong>立っているマスに対して作用する</strong>のが基本で、
+    条件を満たさなければ黙って何も起きない。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>移動と待機</b></caption>
+      <thead>
+        <tr><th>命令</th><th>書き方</th><th>効果</th><th>無効になる条件</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="var">NORTH</td><td class="mono-col">["NORTH"]</td><td>y が 1 減る（上へ）</td><td rowspan="4">盤外に出る場合。<strong>未購入区画へは入れる</strong></td></tr>
+        <tr><td class="var">SOUTH</td><td class="mono-col">["SOUTH"]</td><td>y が 1 増える（下へ）</td></tr>
+        <tr><td class="var">EAST</td><td class="mono-col">["EAST"]</td><td>x が 1 増える（右へ）</td></tr>
+        <tr><td class="var">WEST</td><td class="mono-col">["WEST"]</td><td>x が 1 減る（左へ）</td></tr>
+        <tr><td class="var">PASS</td><td class="mono-col">["PASS"]</td><td>何もしない</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>倉庫の出し入れ</b> — 中央 4 タイルの上でのみ有効</caption>
+      <thead>
+        <tr><th>命令</th><th>書き方</th><th>効果</th><th>無効になる条件</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">PICKUP</td><td class="mono-col">["PICKUP", 品目, 個数]</td>
+          <td>倉庫から手持ちへ。個数は省略可（既定 1）</td>
+          <td>倉庫の脇にいない / 在庫不足</td>
+        </tr>
+        <tr>
+          <td class="var">PLACE</td><td class="mono-col">["PLACE", 品目, 個数]</td>
+          <td>手持ちから倉庫へ。<strong>動物名を指定すると小屋・牧場への設置になる</strong></td>
+          <td>倉庫の脇にいない / 容量超過</td>
+        </tr>
+        <tr>
+          <td class="var">DROP</td><td class="mono-col">["DROP"]</td>
+          <td>手持ちを<strong>全部</strong>倉庫へ。品目の指定は不要</td>
+          <td>倉庫の脇にいない。<strong>容量超過分は捨てられる</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>作物への作業</b> — 未購入区画では全て無効</caption>
+      <thead>
+        <tr><th>命令</th><th>書き方</th><th>効果</th><th>無効になる条件</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">PLANT</td><td class="mono-col">["PLANT", 作物名]</td>
+          <td>種を 1 消費して植える</td>
+          <td>マスが空きでない / 種がない</td>
+        </tr>
+        <tr>
+          <td class="var">WATER</td><td class="mono-col">["WATER"]</td>
+          <td>水やり。収穫期に入っていれば収穫量も増える</td>
+          <td>作物がない / <strong>今日すでにやった</strong></td>
+        </tr>
+        <tr>
+          <td class="var">HARVEST</td><td class="mono-col">["HARVEST"]</td>
+          <td>実りを手持ちへ。継続作物以外はマスが空きに戻る</td>
+          <td>収穫量が 0 / 初収穫日に達していない</td>
+        </tr>
+        <tr>
+          <td class="var">FERTILIZE</td><td class="mono-col">["FERTILIZE"]</td>
+          <td>肥料を 1 消費。3 日間、水やりと生産の効果が倍になる</td>
+          <td>作物がない / <strong>手持ちに肥料がない</strong></td>
+        </tr>
+        <tr>
+          <td class="var">DIG</td><td class="mono-col">["DIG"]</td>
+          <td>マスの中身を除去して空きに戻す</td>
+          <td>すでに空き / <strong>動物がいるマスは除去できない</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>動物と建築</b></caption>
+      <thead>
+        <tr><th>命令</th><th>書き方</th><th>効果</th><th>無効になる条件</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">BUILD_COOP</td><td class="mono-col">["BUILD_COOP"]</td>
+          <td>鶏小屋を建てる（ガチョウ用）</td>
+          <td rowspan="2">マスが空きでない。<strong>費用はかからない</strong></td>
+        </tr>
+        <tr>
+          <td class="var">BUILD_<br>PASTURE</td><td class="mono-col">["BUILD_PASTURE"]</td>
+          <td>牧場を建てる（牛・羊用）</td>
+        </tr>
+        <tr>
+          <td class="var">FEED</td><td class="mono-col">["FEED"]</td>
+          <td>餌やり。<strong>手持ちの小麦を 1 消費</strong></td>
+          <td>動物がいない / 今日すでにやった / 小麦がない</td>
+        </tr>
+        <tr>
+          <td class="var">CARE</td><td class="mono-col">["CARE"]</td>
+          <td>世話。餌もやった日なら次の生産が 1 増える</td>
+          <td>動物がいない / 今日すでにやった</td>
+        </tr>
+        <tr>
+          <td class="var">COLLECT_<br>FERTILIZER</td><td class="mono-col">["COLLECT_FERTILIZER"]</td>
+          <td>肥料を 1 回収して手持ちへ</td>
+          <td>動物がいない / まだ溜まっていない</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>市場注文の 6 命令</h3>
+
+  <div class="wide">
+    <table>
+      <caption><b>obs["market"]</b> に並べる命令。<b>1 ターンに合計 10 件まで</b></caption>
+      <thead>
+        <tr><th>命令</th><th>書き方</th><th>効果</th><th>無効になる条件</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">SELL</td><td class="mono-col">["SELL", 品目, 個数]</td>
+          <td><strong>倉庫から</strong>売る。1 個ずつ約定し、そのたび価格が下がる</td>
+          <td>倉庫にない。足りない分は途中で打ち切られる</td>
+        </tr>
+        <tr>
+          <td class="var">BUY_SEED</td><td class="mono-col">["BUY_SEED", 作物名, 個数]</td>
+          <td>種を買う。値段は固定で市場在庫の影響を受けない</td>
+          <td>所持金不足</td>
+        </tr>
+        <tr>
+          <td class="var">BUY_PRODUCT</td><td class="mono-col">["BUY_PRODUCT", 品目, 個数]</td>
+          <td>商品を買って倉庫へ。<strong>小麦と肥料しか買えない</strong></td>
+          <td>所持金不足 / 倉庫が満杯</td>
+        </tr>
+        <tr>
+          <td class="var">BUY_ANIMAL</td><td class="mono-col">["BUY_ANIMAL", 動物名, 個数]</td>
+          <td>動物を買って倉庫へ。設置は別途 PLACE で行う</td>
+          <td>所持金不足 / 倉庫が満杯</td>
+        </tr>
+        <tr>
+          <td class="var">HIRE</td><td class="mono-col">["HIRE"]</td>
+          <td>雇い人を 1 人。<strong>個数は指定できず、1 件で 1 人</strong></td>
+          <td>所持金不足</td>
+        </tr>
+        <tr>
+          <td class="var">BUY_LAND</td><td class="mono-col">["BUY_LAND"]</td>
+          <td>次の区画を購入。<strong>買う場所は選べず順番が決まっている</strong></td>
+          <td>所持金不足 / 全区画を購入済み</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">品目名の一覧</span>
+    <p>
+      <strong>作物</strong>（PLANT と BUY_SEED で使う）—
+      <code>WHEAT</code> <code>CARROT</code> <code>TOMATO</code> <code>STRAWBERRY</code> <code>MELON</code><br>
+      <strong>動物</strong>（BUY_ANIMAL と PLACE で使う）—
+      <code>GOOSE</code> <code>COW</code> <code>SHEEP</code><br>
+      <strong>商品</strong>（SELL で使う。作物 5 種に加えて）—
+      <code>EGG</code> <code>MILK</code> <code>WOOL</code> <code>FERTILIZER</code>
+    </p>
+  </div>
+
+  <div class="warn note">
+    <span class="label">同じターンに雇って働かせることはできない</span>
+    <p>
+      雇用は市場注文として処理され、<strong>その処理は農夫・雇い人の行動より後に走る</strong>。
+      実際に試すと、<code>["HIRE"]</code> と同時に <code>"hands"</code> へ
+      <code>["EAST"]</code> を渡しても雇い人は倉庫脇に立ったままで、動くのは次のターンだった。
+      <strong>雇った当日は 1 手も働かない</strong>ため、雇用費用は
+      「残りターン数ぶんの労働」に対して支払っていることになる。
+      盤上に出たかどうかは <code>obs["farms"][自分]["hands"]</code> の長さで確認できる。
+    </p>
+  </div>
+</section>
+
+<nav class="pager" aria-label="前後のページ">
+<a href="1-environment.html"><span class="dir">← 前のページ</span><span class="t">① 環境の仕組み</span></a>
+<a class="n" href="3-economy.html"><span class="dir">次のページ →</span><span class="t">③ 市場と生産</span></a>
+</nav>
+<footer>
+  解析対象 — <code>kaggle_environments/envs/kaggriculture/kaggriculture.py</code>（1,073 行）および
+  <code>kaggle_environments/core.py</code>（772 行）。行番号は同ファイル内の位置を指す。
+  数値はすべて実際に環境を実行して計測したもの。
+</footer>

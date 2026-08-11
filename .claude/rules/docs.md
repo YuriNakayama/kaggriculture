@@ -12,11 +12,34 @@ Conventions for the `docs/` tree. Keep human-readable narrative under `docs/`; p
 ```
 docs/
   competition/    Competition spec & rules summaries (abstract.md, baseline / evaluation references)
+  develop/        Explanations of code that already exists (see below)
   experiment/     Experiment plans and results (see structure below)
   plans/          Feature plans (one directory per feature, numbered phases 00-codebase-research → 06-testing)
 ```
 
 `docs/competition/` holds reference material about the competition itself — rules, scoring, baseline mechanics. It does not change with each experiment iteration.
+
+## `docs/develop/` structure
+
+Explanations of code that **already exists** — how a module is laid out, what each piece is responsible for, how a request actually flows through it. Distinct from `docs/plans/`, which describes work not yet done.
+
+```
+docs/develop/code_explanation/{yyyymmdd}_{scope}.md
+docs/develop/code_explanation/{yyyymmdd}_{scope}/     # when one document is not enough
+```
+
+- Written by the `code-explain` skill, or by hand following the same three-pass shape (file tree → responsibilities and I/O → step-by-step trace).
+- `{scope}` is the subsystem being explained in snake_case (`kaggle_environments`, `simulate_jaxenv`).
+- A single Markdown file is the default. Use a directory when the explanation splits into several pages; add a `README.md` there as the index.
+
+### HTML exception
+
+`docs/` is otherwise Markdown-only so diffs stay readable. **Code explanations may ship as HTML** when diagrams carry information Markdown cannot express (inline SVG, overlaid charts). When they do:
+
+- Put them in their own dated directory with a `README.md` index explaining why HTML was chosen.
+- State in that README that the HTML is **excluded from diff review** — reviewers read the rendered page, not the source.
+- Keep the pages self-contained (inline CSS/SVG, no external assets) and make any cross-page links **relative**, so the directory works offline after a plain `git clone`.
+- Numbers quoted in the explanation should say whether they were measured or read from a spec, and against which dependency version — measured figures go stale when the dependency moves.
 
 ## `docs/experiment/` structure
 

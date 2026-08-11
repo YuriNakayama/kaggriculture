@@ -1,0 +1,1810 @@
+<title>Kaggriculture ① 環境の仕組み</title>
+<style>
+  :root {
+    --paper: #FBFAF7;
+    --surface: #F4F2EB;
+    --ink: #1F2421;
+    --muted: #6B7269;
+    --accent: #2F6B4F;
+    --accent-soft: #E4EDE6;
+    --signal: #A6532A;
+    --signal-soft: #F4E8DF;
+    --rule: #E3E0D6;
+    --rule-soft: #EFEDE5;
+    --code-bg: #F2F0E8;
+
+    --f-display: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+    --f-body: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --f-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --measure: 82ch;
+    --wide: 132ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161916;
+      --surface: #1D211D;
+      --ink: #E6E8E1;
+      --muted: #9AA396;
+      --accent: #7FBF98;
+      --accent-soft: #23302A;
+      --signal: #D9906A;
+      --signal-soft: #33251D;
+      --rule: #2C312C;
+      --rule-soft: #232823;
+      --code-bg: #1A1E1A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #161916;
+    --surface: #1D211D;
+    --ink: #E6E8E1;
+    --muted: #9AA396;
+    --accent: #7FBF98;
+    --accent-soft: #23302A;
+    --signal: #D9906A;
+    --signal-soft: #33251D;
+    --rule: #2C312C;
+    --rule-soft: #232823;
+    --code-bg: #1A1E1A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.75;
+    margin: 0;
+    padding: 0 clamp(1.1rem, 3vw, 2.5rem) 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- masthead ---- */
+
+  header.masthead {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: clamp(3rem, 9vw, 5.5rem) 0 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.1rem;
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+
+  .standfirst {
+    color: var(--muted);
+    font-size: 1.03rem;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    margin: 1.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---- sections ---- */
+
+  section { max-width: var(--measure); margin: 0 auto; }
+
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(1.45rem, 3.6vw, 1.95rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 4.5rem 0 0.4rem;
+    padding-top: 2.2rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  h2 .num {
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    flex: none;
+  }
+
+  .deck {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    padding-left: calc(0.78rem + 0.85rem + 0.6ch);
+    font-size: 0.95rem;
+  }
+
+  h3 {
+    font-family: var(--f-body);
+    font-size: 0.79rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 3.2rem 0 1rem;
+  }
+
+  p { margin: 0 0 1.15rem; text-wrap: pretty; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.855em;
+    background: var(--code-bg);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  strong { font-weight: 650; }
+
+  /* ---- wide content escapes the measure ---- */
+
+  .wide {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  th:last-child, td:last-child { padding-right: 0; }
+  td:first-child, th:first-child { padding-left: 0; }
+
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--ink);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td code { background: none; padding: 0; }
+  .num-col { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .var, .writer, .mono-col {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .ln {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--f-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-bottom: 0.7rem;
+  }
+  caption b { color: var(--ink); font-weight: 600; }
+
+  pre {
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1.2rem 1.35rem;
+    margin: 0;
+    overflow-x: auto;
+    tab-size: 2;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .tree { color: var(--muted); }
+  .tree b { color: var(--ink); font-weight: 600; }
+  .tree i { color: var(--accent); font-style: normal; }
+  .tree u { color: var(--signal); text-decoration: none; }
+
+  /* ---- figures ---- */
+
+  figure {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto 2.4rem;
+  }
+  /* Diagrams are drawn on a ~700-unit grid; letting them scale past that
+     inflates the stroke and type without adding information. */
+  figure svg {
+    display: block;
+    width: 100%;
+    max-width: 940px;
+    height: auto;
+    margin: 0 auto;
+    color: var(--ink);
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-top: 0.9rem;
+    text-wrap: pretty;
+  }
+  .svg-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .svg-scroll svg { min-width: 560px; }
+
+  /* ---- callouts ---- */
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 1.05rem 1.3rem;
+    margin: 1.8rem 0;
+    font-size: 0.94rem;
+  }
+  .note p:last-child { margin-bottom: 0; }
+  .note .label {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .warn { background: var(--signal-soft); border-left-color: var(--signal); }
+  .warn .label { color: var(--signal); }
+
+  /* ---- chips ---- */
+
+  .dir {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.42rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .dir-up   { background: var(--accent-soft); color: var(--accent); }
+  .dir-down { background: var(--signal-soft); color: var(--signal); }
+  .dir-set  { background: var(--code-bg); color: var(--muted); }
+
+  .scope {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .scope-shared { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- product cards ---- */
+
+  .card {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .card > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    padding: 0.85rem 1.2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+  }
+  .card h4 {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .card .tag {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 2px;
+    background: var(--code-bg);
+    color: var(--muted);
+  }
+  .card .tag-good { background: var(--accent-soft); color: var(--accent); }
+  .card .tag-bad  { background: var(--signal-soft); color: var(--signal); }
+  .card .verdict {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .card-body { padding: 1.1rem 1.2rem 1.3rem; }
+
+  /* timeline */
+  .tl {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    gap: 0;
+    margin: 0 0 1.2rem;
+    font-size: 0.9rem;
+  }
+  .tl dt {
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--accent);
+    padding: 0.4rem 0.8rem 0.4rem 0;
+    border-right: 2px solid var(--rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tl dd {
+    margin: 0;
+    padding: 0.4rem 0 0.4rem 1rem;
+    border-left: 0;
+    position: relative;
+  }
+  .tl dd::before {
+    content: "";
+    position: absolute;
+    left: -5px; top: 0.85rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .tl dd.pay::before  { background: var(--signal); }
+  .tl dd.wait::before { background: var(--rule); }
+  .tl .op {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    padding: 0.06em 0.35em;
+    border-radius: 3px;
+  }
+  .tl small { color: var(--muted); display: block; font-size: 0.82rem; }
+
+  /* money line */
+  .money {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .money div { background: var(--surface); padding: 0.6rem 0.8rem; }
+  .money dt {
+    font-family: var(--f-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.2rem;
+  }
+  .money dd {
+    margin: 0;
+    font-size: 1.02rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .money dd.neg { color: var(--signal); }
+  .money dd.pos { color: var(--accent); }
+  .money dd small { display: block; font-size: 0.72rem; font-weight: 400; color: var(--muted); }
+
+  /* ---- glossary ---- */
+
+  dl.glossary {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    display: grid;
+    grid-template-columns: minmax(9rem, 18rem) 1fr;
+    gap: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+  dl.glossary dt {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    padding: 0.75rem 1.2rem 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 500;
+  }
+  dl.glossary dd {
+    margin: 0;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  dl.glossary dd .en {
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+  }
+  @media (max-width: 34rem) {
+    dl.glossary { grid-template-columns: 1fr; }
+    dl.glossary dt { border-bottom: none; padding-bottom: 0.15rem; color: var(--accent); }
+    dl.glossary dd { padding-top: 0.15rem; }
+  }
+
+  /* ---- step list ---- */
+
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 1.6rem 0 2rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 0 0.9rem;
+    align-items: baseline;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 0.28rem;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.steps .title { font-weight: 650; }
+  ol.steps .body { color: var(--muted); font-size: 0.93rem; display: block; margin-top: 0.15rem; }
+  ol.steps .body code { color: var(--ink); }
+
+  ul.plain {
+    margin: 1.2rem 0 1.8rem;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  ul.plain li::marker { color: var(--accent); }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 1.8rem 0 2rem;
+    overflow: hidden;
+  }
+  .strip div { background: var(--surface); padding: 0.95rem 1.1rem; }
+  .strip dt {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.3rem;
+  }
+  .strip dd {
+    margin: 0;
+    font-size: 1.3rem;
+    font-family: var(--f-display);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .strip dd small { font-size: 0.78rem; font-family: var(--f-body); color: var(--muted); display: block; margin-top: 0.15rem; }
+
+  footer {
+    max-width: var(--measure);
+    margin: 5rem auto 0;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<style>
+  /* ---- series navigation ---- */
+  .series {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 1.1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+  }
+  .series a, .series span {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .series a:hover { border-color: var(--accent); color: var(--accent); }
+  .series .here {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .pager {
+    max-width: var(--measure);
+    margin: 4rem auto 0;
+    padding-top: 2rem;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+  .pager a {
+    flex: 1 1 14rem;
+    display: block;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    text-decoration: none;
+    background: var(--surface);
+  }
+  .pager a:hover { border-color: var(--accent); }
+  .pager .dir {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: none;
+    padding: 0;
+    margin-bottom: 0.3rem;
+  }
+  .pager .t {
+    display: block;
+    font-family: var(--f-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .pager .n { text-align: right; }
+  .toc {
+    max-width: var(--measure);
+    margin: 2rem auto 0;
+    padding: 1.1rem 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .toc h2 {
+    all: unset;
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+  .toc ol { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .toc li::marker { color: var(--accent); font-family: var(--f-mono); font-size: 0.8rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .toc a:hover { border-color: var(--accent); color: var(--accent); }
+  @media print { .series, .pager { display: none; } }
+</style>
+
+<header class="masthead">
+  <p class="eyebrow">実装分析 / kaggle-environments</p>
+  <h1>① 環境の仕組み</h1>
+  <p class="standfirst">ルールがどこに書かれ、状態がどう保持され、1 ターンがどう処理されるか。</p>
+  <ul class="meta">
+    <li><b>対象</b> envs/kaggriculture/kaggriculture.py</li>
+    <li><b>ルール本体</b> 1,073 行</li>
+    <li><b>フレームワーク</b> core.py 772 行</li>
+  </ul>
+  <nav class="series" aria-label="この資料の構成">
+<span class="here" aria-current="page">① 環境の仕組み</span>
+<a href="2-interface.html">② 観測と行動</a>
+<a href="3-economy.html">③ 市場と生産</a>
+</nav>
+</header>
+
+<div class="toc">
+  <h2>このページの内容</h2>
+  <ol>
+      <li><a href="#s00">00 このゲームと用語</a></li>
+      <li><a href="#s01">01 ファイル構成</a></li>
+      <li><a href="#s02">02 状態 — 何が、どこに置かれているか</a></li>
+      <li><a href="#s03">03 どの変数を、どのメソッドが更新するか</a></li>
+      <li><a href="#s04">04 1 ターンの処理順</a></li>
+      <li><a href="#s05">05 実装から見える 3 つの落とし穴</a></li>
+  </ol>
+</div>
+
+<section id="s00">
+  <h2><span class="num">00</span> このゲームと用語</h2>
+  <p class="deck">以降で使う言葉を先に固定する。すべてこの実装の中で定義されたもの。</p>
+
+  <p>
+    2 人のプレイヤーがそれぞれ 10×10 の農場を経営し、
+    <strong>30 日 × 1 日 24 ターン = 720 ターン</strong>を戦う。
+    作物を植え、水をやり、収穫し、共有の市場に売る。
+    <strong>終了時点の所持金が多い方が勝ち</strong>で、売れ残った在庫は 0 点として扱われる。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 720 250" role="img"
+           aria-label="10かける10の農場は4つの5かける5の象限に分かれ、北西のみ最初から使える。中央の4タイルが倉庫への出入口。">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <!-- board -->
+        <g transform="translate(20,34)">
+          <text x="0" y="-12" font-size="12" font-weight="600" fill="currentColor">農場（1 プレイヤー分）</text>
+
+          <!-- 4 quadrants -->
+          <rect x="0"   y="0"   width="90" height="90" fill="var(--accent-soft)" stroke="currentColor" stroke-width="1.5"></rect>
+          <rect x="90"  y="0"   width="90" height="90" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"></rect>
+          <rect x="0"   y="90"  width="90" height="90" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"></rect>
+          <rect x="90"  y="90"  width="90" height="90" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" opacity="0.55"></rect>
+
+          <text x="45"  y="44" text-anchor="middle" font-size="12" font-weight="600" fill="var(--accent)">北西</text>
+          <text x="45"  y="60" text-anchor="middle" font-size="10" fill="var(--accent)">最初から使える</text>
+          <text x="135" y="44" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.75">北東</text>
+          <text x="135" y="60" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">$1,000</text>
+          <text x="45"  y="134" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.75">南西</text>
+          <text x="45"  y="150" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">$2,000</text>
+          <text x="135" y="134" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.75">南東</text>
+          <text x="135" y="150" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.6">$4,000</text>
+
+          <!-- shed access tiles at the centre -->
+          <rect x="72" y="72" width="36" height="36" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.5"></rect>
+          <line x1="90" y1="72" x2="90" y2="108" stroke="var(--signal)" stroke-width="0.75" opacity="0.6"></line>
+          <line x1="72" y1="90" x2="108" y2="90" stroke="var(--signal)" stroke-width="0.75" opacity="0.6"></line>
+
+          <line x1="126" y1="90" x2="112" y2="90" stroke="var(--signal)" stroke-width="1.2" marker-end="url(#ar)"></line>
+          <text x="132" y="86" font-size="11" font-weight="600" fill="var(--signal)">倉庫の出入口</text>
+          <text x="132" y="101" font-size="10" fill="var(--signal)">この 4 タイルの上でのみ</text>
+          <text x="132" y="114" font-size="10" fill="var(--signal)">倉庫に出し入れできる</text>
+
+          <text x="0" y="200" font-size="10" fill="currentColor" opacity="0.6">実線 = 使用可 / 破線 = 未購入（購入するまで何もできない）</text>
+        </g>
+
+        <!-- season timeline -->
+        <g transform="translate(400,34)">
+          <text x="0" y="-12" font-size="12" font-weight="600" fill="currentColor">時間の単位</text>
+
+          <rect x="0" y="6" width="290" height="30" fill="var(--surface)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="145" y="26" text-anchor="middle" font-size="12" fill="currentColor">1 シーズン = 720 ターン</text>
+
+          <line x1="145" y1="42" x2="145" y2="56" stroke="currentColor" stroke-width="1" marker-end="url(#ar)"></line>
+
+          <rect x="0" y="58" width="290" height="30" fill="var(--surface)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="145" y="78" text-anchor="middle" font-size="12" fill="currentColor">30 日  （日ごとに一斉処理が入る）</text>
+
+          <line x1="145" y1="94" x2="145" y2="108" stroke="currentColor" stroke-width="1" marker-end="url(#ar)"></line>
+
+          <rect x="0" y="110" width="290" height="30" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.2"></rect>
+          <text x="145" y="130" text-anchor="middle" font-size="12" fill="var(--accent)">24 ターン  （1 ターン = 1 回の判断）</text>
+
+          <line x1="145" y1="146" x2="145" y2="160" stroke="currentColor" stroke-width="1" marker-end="url(#ar)"></line>
+
+          <rect x="0" y="162" width="290" height="46" fill="none" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="145" y="180" text-anchor="middle" font-size="11" fill="currentColor">1 ターンにできること</text>
+          <text x="145" y="197" text-anchor="middle" font-size="11" fill="currentColor">農夫 1 手 + 雇い人 各 1 手 + 市場注文 最大 10 件</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      盤面と時間の単位。農場は 4 つの区画に分かれ、北西だけが最初から使える。
+      中央の 4 タイルが倉庫への唯一の出入口で、そのうち 3 つは未購入区画にあるため初期状態では 1 つしか立てない。
+    </figcaption>
+  </figure>
+
+  <h3>用語集</h3>
+
+  <dl class="glossary">
+    <dt>ターン<span class="en"> step</span></dt>
+    <dd>判断の 1 単位。両プレイヤーが同時に 1 手ずつ出し、まとめて処理される。全 720 回。</dd>
+
+    <dt>象限<span class="en"> quadrant</span></dt>
+    <dd>農場を 4 分割した 5×5 の区画。北西だけ無料。残りは $1,000 → $2,000 → $4,000 の順でしか買えない。</dd>
+
+    <dt>倉庫<span class="en"> shed</span></dt>
+    <dd>農場の中央にある保管庫。<strong>市場に売れるのは倉庫の中身だけ</strong>。非種アイテムを合計 100 個まで。</dd>
+
+    <dt>手持ち<span class="en"> inventory</span></dt>
+    <dd>農夫や雇い人が手に持っている分。収穫物はまずここに入る。<strong>1 日の終わりに倉庫へ移され、空になる</strong>。</dd>
+
+    <dt>種<span class="en"> seeds</span></dt>
+    <dd>倉庫とも手持ちとも別の独立した勘定。市場で買い、植えるときだけ減る。売ることはできない。</dd>
+
+    <dt>農夫<span class="en"> farmer</span></dt>
+    <dd>常に 1 人いる操作対象。盤上を 1 ターンに 1 マス動き、立っているマスに対して作業する。</dd>
+
+    <dt>雇い人<span class="en"> farm hand</span></dt>
+    <dd>その日だけ雇える追加の作業者。同じ日の n 人目の費用はフィボナッチ数列（1,1,2,3,5,8…）。<strong>日が変わると全員消える</strong>。</dd>
+
+    <dt>雑草<span class="en"> weed</span></dt>
+    <dd>何も育たない状態のマス。放置した作物・逃げた動物・自然発生（空きマスに 1 日 0.5%）で生じる。除去には 1 手かかる。</dd>
+
+    <dt>継続作物<span class="en"> ongoing</span></dt>
+    <dd>収穫してもマスに残り、繰り返し実る作物。トマトと苺の 2 つだけ。他の 3 つは 1 回収穫すると消える。</dd>
+
+    <dt>市場在庫<span class="en"> market inventory</span></dt>
+    <dd>その商品が世界にどれだけ出回っているかを表す数。<strong>両プレイヤーで共有し、価格はこの数だけで決まる</strong>。自分の倉庫の中身とは別物 —— 詳しくは 05 節。</dd>
+
+    <dt>均衡在庫<span class="en"> I0</span></dt>
+    <dd>全商品で 10,000。市場在庫がちょうどこの値のとき、価格は商品ごとの基準価格に一致する。ここを境に値動きの向きが変わる。</dd>
+
+    <dt>基準価格<span class="en"> base</span></dt>
+    <dd>市場在庫が均衡在庫のときの値段。商品ごとに固定（小麦 $25、メロン $250 など）。</dd>
+
+    <dt>町<span class="en"> town</span></dt>
+    <dd>市場在庫を定期的に減らす需要側。3 日ごとに店が 1 つ増え、店は減らないので<strong>需要は増える一方</strong>。</dd>
+
+    <dt>観測<span class="en"> observation</span></dt>
+    <dd>毎ターン各プレイヤーに渡される情報。相手の盤面は見えるが、相手の倉庫・種・所持アイテムは見えない。</dd>
+  </dl>
+
+  <h3>エージェントが書くもの</h3>
+
+  <p>
+    参加者が実装するのは <code>agent(観測) → 行動</code> という関数 1 つだけ。
+    以下は環境に同梱されている手本（<code>starter_agent</code>、1041 行）の骨格で、
+    <strong>人参を植えて水をやり収穫して売る</strong>という最小の循環になっている。
+  </p>
+
+  <div class="wide">
+<pre><code>def agent(obs):
+    farm    = obs["farms"][obs["player"]]   <i># 自分の盤面（相手の分も入っている）</i>
+    fx, fy  = farm["farmer"]                <i># 農夫のいるマス</i>
+    tile    = farm["tiles"][fy][fx]         <i># そのマスの中身</i>
+    seeds   = obs["private"]["seeds"]       <i># 種（自分だけ見える）</i>
+    shed    = obs["private"]["shed"]        <i># 倉庫（自分だけ見える）</i>
+
+    <i># --- 市場注文: 最大 10 件、順番が意味を持つ ---</i>
+    market = []
+    if shed.get("CARROT", 0) > 0:
+        market.append(["SELL", "CARROT", shed["CARROT"]])   <i># 倉庫の分だけ売れる</i>
+    if seeds.get("CARROT", 0) == 0:
+        market.append(["BUY_SEED", "CARROT", 1])
+
+    <i># --- 農夫の 1 手: 立っているマスの状態で分岐 ---</i>
+    farmer = ["PASS"]
+    if tile is None:                        <i># 空きマス → 植える</i>
+        farmer = ["PLANT", "CARROT"]
+    elif tile["kind"] == "PLANT":
+        age = obs["day"] - tile["planted_day"]
+        if age >= 3:                        <i># 育ちきった → 収穫</i>
+            farmer = ["HARVEST"]
+        elif not tile["watered_today"]:      <i># まだ → 水やり</i>
+            farmer = ["WATER"]
+
+    return {"farmer": farmer, "hands": [], "market": market}</code></pre>
+  </div>
+
+  <div class="warn note">
+    <span class="label">失敗が例外として現れない</span>
+    <p>
+      間違った命令名、範囲外の座標、11 件目の市場注文は
+      <strong>エラーにならず、黙って捨てられる</strong>。
+      そのターンが無駄になるだけで、実行は続く。
+      つまり不具合はクラッシュではなく<strong>点数の低さとしてのみ現れる</strong>。
+    </p>
+  </div>
+
+</section>
+<section id="s01">
+  <h2><span class="num">01</span> ファイル構成</h2>
+  <p class="deck">何が存在し、どこにルールが書かれているか。</p>
+
+  <div class="wide">
+<pre class="tree"><code>kaggle_environments/                    <i>← Python パッケージ（5,236 行 + 環境群）</i>
+
+├── ── 全環境で共通のフレームワーク ──────────────────────
+├── <b>core.py</b>            772  Environment クラス。試合の進行を管理する
+├── core_harness.py   1117  Kaggle 本番サーバ用（手元では使わない）
+├── agent.py           224  エージェント読込（ファイルパス / 関数 / 組込み名）
+├── main.py            343  コマンドライン入口
+├── utils.py           265  データ整形・スキーマ検証・乱数シード解決
+├── errors.py          120  タイムアウト等の例外定義
+├── helpers.py         315  環境共通の補助クラス
+├── api.py              31  HTTP API の薄いラッパ
+├── ablation.py       1332  + ablation_analysis.py 354 <i>← 実験用、本筋と無関係</i>
+└── local_harness_runner.py 225
+
+└── envs/                              <i>← 環境が 23 個。1 環境 = 1 ディレクトリ</i>
+    ├── <b>kaggriculture/</b>                 <i>★ 本稿の対象</i>
+    │   ├── kaggriculture.json    139  設定・観測・行動の形式定義
+    │   ├── <b>kaggriculture.py</b>     1073  <u>ルール本体はこの 1 ファイルに全部入っている</u>
+    │   ├── README.md             26k  公式ルール（人間向け）
+    │   ├── AGENTS.md             14k  エージェント作者向け仕様
+    │   └── visualizer/                対戦記録の描画（JavaScript）
+    ├── kaggriculture_beginner/        簡易版
+    └── (connectx / halite / lux_ai_s3 / ... 20 環境)</code></pre>
+  </div>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 230" role="img"
+           aria-label="フレームワークと環境の境界。フレームワークは4つの契約を通してのみ環境を呼び出す。">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <rect x="14" y="30" width="200" height="170" fill="var(--surface)" stroke="currentColor" stroke-width="1.4"></rect>
+        <text x="114" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">フレームワーク</text>
+        <text x="114" y="55" text-anchor="middle" font-size="11" font-family="monospace" fill="currentColor">core.py</text>
+        <text x="114" y="80" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.8">試合を進める</text>
+        <text x="114" y="97" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.8">行動の形式を検査する</text>
+        <text x="114" y="114" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.8">全ターンを記録する</text>
+        <text x="114" y="131" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.8">タイムアウトを見張る</text>
+        <text x="114" y="156" text-anchor="middle" font-size="10.5" fill="var(--signal)">ゲームのルールは</text>
+        <text x="114" y="172" text-anchor="middle" font-size="10.5" fill="var(--signal)">一切知らない</text>
+
+        <!-- contracts -->
+        <g font-family="monospace" font-size="10.5">
+          <line x1="222" y1="62"  x2="286" y2="62"  stroke="currentColor" stroke-width="1.2" marker-end="url(#ar2)"></line>
+          <text x="254" y="55" text-anchor="middle" fill="currentColor" font-family="system-ui" font-size="9.5">読む</text>
+          <line x1="222" y1="102" x2="286" y2="102" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#ar2)"></line>
+          <text x="254" y="95" text-anchor="middle" fill="var(--accent)" font-family="system-ui" font-size="9.5">毎ターン呼ぶ</text>
+          <line x1="222" y1="142" x2="286" y2="142" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar2)"></line>
+          <text x="254" y="135" text-anchor="middle" fill="currentColor" font-family="system-ui" font-size="9.5">描画時のみ</text>
+        </g>
+
+        <rect x="292" y="30" width="240" height="170" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 3"></rect>
+        <text x="412" y="22" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">環境が提供する 4 つの契約</text>
+
+        <rect x="306" y="48" width="212" height="28" fill="var(--code-bg)" stroke="currentColor" stroke-width="0.8"></rect>
+        <text x="412" y="66" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor">kaggriculture.json</text>
+
+        <rect x="306" y="88" width="212" height="28" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"></rect>
+        <text x="412" y="106" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="600" fill="var(--accent)">interpreter(state, env)</text>
+
+        <rect x="306" y="128" width="212" height="28" fill="var(--code-bg)" stroke="currentColor" stroke-width="0.8"></rect>
+        <text x="412" y="146" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor">renderer / html_renderer</text>
+
+        <text x="412" y="180" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">ゲームのルールは全て</text>
+        <text x="412" y="194" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-weight="600">interpreter の中だけにある</text>
+
+        <line x1="540" y1="102" x2="586" y2="102" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar2)"></line>
+        <rect x="592" y="76" width="94" height="52" fill="var(--surface)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="639" y="98" text-anchor="middle" font-size="11" fill="currentColor">他 22 環境も</text>
+        <text x="639" y="114" text-anchor="middle" font-size="11" fill="currentColor">同じ形</text>
+      </svg>
+    </div>
+    <figcaption>
+      フレームワークと環境の境界。<code>core.py</code> は農業のルールを一切知らず、
+      4 つの契約を通してのみ環境を呼び出す。逆に言えば、ゲームの挙動を変えられるのは
+      <code>interpreter</code> の中だけである。
+    </figcaption>
+  </figure>
+</section>
+
+<section id="s02">
+  <h2><span class="num">02</span> 状態 — 何が、どこに置かれているか</h2>
+  <p class="deck">全ての状態は素の辞書型で保持され、関数が直接書き換える。</p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 330" role="img"
+           aria-label="観測の構造。farms・market・town は両プレイヤー共有、private は本人のみ。">
+        <rect x="14" y="34" width="330" height="278" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"></rect>
+        <text x="179" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--accent)">両プレイヤーが見られる（共有）</text>
+
+        <rect x="30" y="50" width="298" height="122" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="42" y="68" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">farms[0], farms[1]</text>
+        <text x="42" y="86" font-size="10.5" fill="currentColor" opacity="0.85">money   所持金</text>
+        <text x="42" y="103" font-size="10.5" fill="currentColor" opacity="0.85">tiles[y][x]  10×10 の各マスの中身</text>
+        <text x="42" y="120" font-size="10.5" fill="currentColor" opacity="0.85">farmer  農夫の座標 / hands  雇い人の座標</text>
+        <text x="42" y="137" font-size="10.5" fill="currentColor" opacity="0.85">unlocked_quadrants  購入済みの区画</text>
+        <text x="42" y="154" font-size="10.5" fill="currentColor" opacity="0.85">hires_today  今日すでに雇った人数</text>
+        <text x="42" y="167" font-size="9.5" fill="var(--signal)">↑ 相手の分もそのまま入っている</text>
+
+        <rect x="30" y="182" width="144" height="58" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="42" y="200" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">market</text>
+        <text x="42" y="217" font-size="10.5" fill="currentColor" opacity="0.85">inventory  商品別在庫</text>
+        <text x="42" y="232" font-size="10.5" fill="currentColor" opacity="0.85">prices     商品別価格</text>
+
+        <rect x="184" y="182" width="144" height="58" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="196" y="200" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">town</text>
+        <text x="196" y="217" font-size="10.5" fill="currentColor" opacity="0.85">unlocked_shops</text>
+        <text x="196" y="232" font-size="10.5" fill="currentColor" opacity="0.85">解禁済みの店</text>
+
+        <rect x="30" y="250" width="298" height="46" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="42" y="268" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">day, hour</text>
+        <text x="42" y="285" font-size="10.5" fill="currentColor" opacity="0.85">今が何日目の何ターン目か</text>
+
+        <rect x="360" y="34" width="326" height="278" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.5"></rect>
+        <text x="523" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--signal)">自分だけが見られる（非共有）</text>
+
+        <rect x="376" y="50" width="294" height="76" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="388" y="68" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">private["shed"]</text>
+        <text x="388" y="86" font-size="10.5" fill="currentColor" opacity="0.85">倉庫の中身。商品名 → 個数</text>
+        <text x="388" y="103" font-size="10.5" fill="var(--accent)">市場に売れるのはここの分だけ</text>
+        <text x="388" y="119" font-size="10.5" fill="currentColor" opacity="0.85">合計 100 個まで</text>
+
+        <rect x="376" y="136" width="294" height="66" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="388" y="154" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">private["seeds"]</text>
+        <text x="388" y="172" font-size="10.5" fill="currentColor" opacity="0.85">種の在庫。作物名 → 個数</text>
+        <text x="388" y="189" font-size="10.5" fill="currentColor" opacity="0.85">倉庫とも手持ちとも別勘定</text>
+
+        <rect x="376" y="212" width="294" height="84" fill="var(--paper)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="388" y="230" font-size="11" font-family="monospace" font-weight="600" fill="currentColor">private["inventories"]</text>
+        <text x="388" y="248" font-size="10.5" fill="currentColor" opacity="0.85">[農夫の手持ち, 雇い人1の手持ち, ...]</text>
+        <text x="388" y="265" font-size="10.5" fill="currentColor" opacity="0.85">収穫物はまずここに入る</text>
+        <text x="388" y="282" font-size="10.5" fill="var(--signal)">1 日の終わりに空になる</text>
+      </svg>
+    </div>
+    <figcaption>
+      観測の左右の非対称が、この競技の中心的な難しさを作っている。
+      <strong>相手の畑は全て見えるのに、相手の倉庫は見えない</strong>。
+      つまり相手が今どれだけ売り物を抱えているかは、盤面から推定するしかない。
+    </figcaption>
+  </figure>
+
+  <h3>マスはどう移り変わるか</h3>
+
+  <p>
+    マスが取りうる 7 通りの値は <a href="2-interface.html">② 観測と行動</a> で挙げた。
+    ここではその<strong>間の移動</strong>、つまり何をすればどの状態に変わるかを見る。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 260" role="img"
+           aria-label="マスの状態遷移図。空きマスから作物へ、作物は収穫か雑草化のいずれかで終わる。">
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+          <marker id="ar3s" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="var(--signal)"></polygon>
+          </marker>
+        </defs>
+
+        <!-- LOCKED -->
+        <rect x="14" y="104" width="96" height="44" rx="2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3"></rect>
+        <text x="62" y="124" text-anchor="middle" font-size="11" font-family="monospace" fill="currentColor">"LOCKED"</text>
+        <text x="62" y="140" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.7">未購入</text>
+
+        <line x1="112" y1="126" x2="158" y2="126" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"></line>
+        <text x="135" y="118" text-anchor="middle" font-size="9.5" fill="currentColor">区画を買う</text>
+
+        <!-- None -->
+        <rect x="160" y="104" width="96" height="44" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.4"></rect>
+        <text x="208" y="124" text-anchor="middle" font-size="11" font-family="monospace" fill="currentColor">None</text>
+        <text x="208" y="140" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.7">空き</text>
+
+        <line x1="258" y1="126" x2="314" y2="126" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#ar3)"></line>
+        <text x="286" y="118" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-weight="600">植える</text>
+
+        <!-- PLANT -->
+        <rect x="316" y="96" width="110" height="60" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"></rect>
+        <text x="371" y="118" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="var(--accent)">kind:"PLANT"</text>
+        <text x="371" y="134" text-anchor="middle" font-size="10" fill="var(--accent)">育成中</text>
+        <text x="371" y="148" text-anchor="middle" font-size="9.5" fill="var(--accent)">毎日水やりが要る</text>
+
+        <!-- harvest back to None -->
+        <path d="M 340 92 Q 274 46 208 100" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"></path>
+        <text x="274" y="42" text-anchor="middle" font-size="9.5" fill="currentColor">収穫（1 回で消える作物）</text>
+
+        <!-- ongoing self loop -->
+        <path d="M 404 92 Q 440 62 424 100" fill="none" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#ar3)"></path>
+        <text x="470" y="72" text-anchor="middle" font-size="9.5" fill="var(--accent)">収穫（継続作物は残る）</text>
+
+        <!-- to WEED -->
+        <line x1="371" y1="160" x2="371" y2="196" stroke="var(--signal)" stroke-width="1.6" marker-end="url(#ar3s)"></line>
+        <text x="382" y="176" font-size="9.5" fill="var(--signal)">2 日連続で水やりを忘れる</text>
+        <text x="382" y="189" font-size="9.5" fill="var(--signal)">／ 寿命切れ</text>
+
+        <rect x="316" y="198" width="110" height="44" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4"></rect>
+        <text x="371" y="218" text-anchor="middle" font-size="11" font-family="monospace" fill="var(--signal)">kind:"WEED"</text>
+        <text x="371" y="234" text-anchor="middle" font-size="10" fill="var(--signal)">雑草</text>
+
+        <!-- weed back to None via DIG -->
+        <path d="M 316 220 Q 208 220 208 152" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"></path>
+        <text x="238" y="212" text-anchor="middle" font-size="9.5" fill="currentColor">除去に 1 手</text>
+
+        <!-- spontaneous weed -->
+        <path d="M 190 152 Q 150 200 316 224" fill="none" stroke="var(--signal)" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#ar3s)"></path>
+        <text x="150" y="238" font-size="9.5" fill="var(--signal)">自然発生 1 日 0.5%</text>
+
+        <!-- animals branch -->
+        <rect x="470" y="180" width="216" height="62" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="578" y="200" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor">COOP / PASTURE (+animal)</text>
+        <text x="578" y="217" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">空きマスに建て、動物を置く</text>
+        <text x="578" y="233" text-anchor="middle" font-size="10" fill="var(--signal)">2 日連続で餌を忘れると逃げる</text>
+        <path d="M 256 132 Q 400 292 470 218" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar3)"></path>
+      </svg>
+    </div>
+    <figcaption>
+      マスの状態遷移。植えた作物は<strong>収穫で終わるか、雑草になって終わるかの二択</strong>で、
+      水やりを 2 日続けて怠ればそれだけで失われる。雑草の除去には 1 手かかるため、
+      放置は「作物 1 つ」ではなく「作物 1 つ + 除去 1 手」の損失になる。
+    </figcaption>
+  </figure>
+</section>
+
+<section id="s03">
+  <h2><span class="num">03</span> どの変数を、どのメソッドが更新するか</h2>
+  <p class="deck">全ての書き込み箇所を、ルール本体の行番号つきで列挙する。</p>
+
+  <p>
+    状態は辞書型で保持され破壊的に書き換えられるため、
+    「誰がこの値を動かしたか」は型からは追えない。
+    向きは <span class="dir dir-up">増</span> <span class="dir dir-down">減</span>
+    <span class="dir dir-set">代入</span> で示す。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 300" role="img"
+           aria-label="収穫物とお金の流れ。収穫物は手持ちから倉庫を経てのみ市場に売れる。">
+        <defs>
+          <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+          <marker id="ar4a" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="var(--accent)"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="20" font-size="12" font-weight="600" fill="currentColor">収穫物が売れるまでの経路</text>
+
+        <!-- tile -->
+        <rect x="14" y="40" width="118" height="52" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="73" y="62" text-anchor="middle" font-size="11" fill="currentColor">畑のマス</text>
+        <text x="73" y="79" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity="0.75">yield_units</text>
+
+        <line x1="134" y1="66" x2="188" y2="66" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar4)"></line>
+        <text x="161" y="58" text-anchor="middle" font-size="9.5" fill="currentColor">収穫</text>
+
+        <!-- inventory -->
+        <rect x="190" y="40" width="130" height="52" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.3"></rect>
+        <text x="255" y="62" text-anchor="middle" font-size="11" fill="var(--signal)">手持ち</text>
+        <text x="255" y="79" text-anchor="middle" font-size="10" font-family="monospace" fill="var(--signal)">inventories</text>
+
+        <line x1="322" y1="66" x2="376" y2="66" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar4)"></line>
+        <text x="349" y="52" text-anchor="middle" font-size="9.5" fill="currentColor">倉庫に置く</text>
+        <text x="349" y="82" text-anchor="middle" font-size="9.5" fill="currentColor">／日の終わり</text>
+
+        <!-- shed -->
+        <rect x="378" y="40" width="130" height="52" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"></rect>
+        <text x="443" y="62" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)">倉庫</text>
+        <text x="443" y="79" text-anchor="middle" font-size="10" font-family="monospace" fill="var(--accent)">shed（100 個まで）</text>
+
+        <line x1="510" y1="66" x2="564" y2="66" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#ar4a)"></line>
+        <text x="537" y="58" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--accent)">売る</text>
+
+        <rect x="566" y="40" width="120" height="52" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="626" y="62" text-anchor="middle" font-size="11" fill="currentColor">市場</text>
+        <text x="626" y="79" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity="0.75">money が増える</text>
+
+        <text x="255" y="112" text-anchor="middle" font-size="10" fill="var(--signal)">日の終わりに空になる</text>
+        <text x="443" y="112" text-anchor="middle" font-size="10" fill="var(--accent)">売れるのはここの分だけ</text>
+
+        <!-- separator -->
+        <line x1="14" y1="136" x2="686" y2="136" stroke="currentColor" stroke-width="0.75" opacity="0.25"></line>
+
+        <text x="14" y="162" font-size="12" font-weight="600" fill="currentColor">種は別勘定 — 倉庫も手持ちも通らない</text>
+
+        <rect x="14" y="178" width="130" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="79" y="200" text-anchor="middle" font-size="11" fill="currentColor">市場</text>
+        <text x="79" y="216" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">種を買う</text>
+
+        <line x1="146" y1="201" x2="200" y2="201" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar4)"></line>
+
+        <rect x="202" y="178" width="130" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="267" y="200" text-anchor="middle" font-size="11" fill="currentColor">種の在庫</text>
+        <text x="267" y="216" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity="0.75">seeds</text>
+
+        <line x1="334" y1="201" x2="388" y2="201" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar4)"></line>
+        <text x="361" y="193" text-anchor="middle" font-size="9.5" fill="currentColor">植える</text>
+
+        <rect x="390" y="178" width="130" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="455" y="200" text-anchor="middle" font-size="11" fill="currentColor">畑のマス</text>
+        <text x="455" y="216" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">育成開始</text>
+
+        <text x="14" y="256" font-size="10.5" fill="var(--signal)">種は売却できない。買った時点で支出が確定する。</text>
+        <text x="14" y="276" font-size="10.5" fill="var(--signal)">倉庫が満杯でも種は買えるが、収穫物は倉庫に入らず捨てられる。</text>
+      </svg>
+    </div>
+    <figcaption>
+      3 つの在庫の役割分担。<strong>収穫しただけでは売れない</strong> —— 手持ちから倉庫へ移して初めて売却対象になる。
+      移動は明示的に置くか、1 日の終わりの自動処理を待つかのどちらかで、後者では容量超過分が捨てられる。
+    </figcaption>
+  </figure>
+
+  <div class="wide">
+    <table>
+      <caption><b>money</b> — 勝敗を決める唯一の値。増えるのは 1 箇所だけ</caption>
+      <thead>
+        <tr><th>更新するメソッド</th><th>向き</th><th>内容</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>売却 1 個ごとに価格分を加算 —— <strong>収入はここだけ</strong></td>
+          <td class="ln">644</td>
+        </tr>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>商品・種・動物の購入</td>
+          <td class="ln">656, 663, 671</td>
+        </tr>
+        <tr>
+          <td class="writer">_do_hire</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>雇い人 1 人分。同じ日の n 人目はフィボナッチ数列の n 番目</td>
+          <td class="ln">693</td>
+        </tr>
+        <tr>
+          <td class="writer">_do_buy_land</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>区画の購入（$1,000 / $2,000 / $4,000）</td>
+          <td class="ln">706</td>
+        </tr>
+        <tr>
+          <td class="writer">interpreter</td>
+          <td><span class="dir dir-set">読出</span></td>
+          <td>最終ターンに、そのまま得点として転記</td>
+          <td class="ln">950</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>market["inventory"]</b> <span class="scope scope-shared">共有</span> — 価格の唯一の入力</caption>
+      <thead>
+        <tr><th>更新するメソッド</th><th>向き</th><th>内容</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>売却で 1 増える。<strong>ただし価格が $1 より高いときだけ</strong>（下限で売っても供給に乗らない）</td>
+          <td class="ln">647</td>
+        </tr>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>商品の購入で 1 減る。種と動物の購入は在庫に触れない</td>
+          <td class="ln">658</td>
+        </tr>
+        <tr>
+          <td class="writer">_town_consume</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>4 ターンごと、解禁済みの店ごとに 1（1 品目だけの店は 2）</td>
+          <td class="ln">730</td>
+        </tr>
+        <tr>
+          <td class="writer">_town_consume</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>24 ターンごと、町全体が肥料以外の全商品を 1 ずつ</td>
+          <td class="ln">734</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">価格は状態ではなく計算結果</span>
+    <p>
+      <code>market["prices"]</code> を書くのは <code>_refresh_prices</code>（199 行）だけで、
+      中身は在庫から毎回計算し直される。呼ばれるのは
+      <strong>注文 1 個の決済ごと</strong>（615 行）と<strong>町の消費の直後</strong>（736 行）。
+      つまり観測に載る価格は 1 ターン前の値ではなく、<strong>直前の全取引を織り込んだ値</strong>である。
+    </p>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>private</b> — 3 つの在庫。役割が明確に違う</caption>
+      <thead>
+        <tr><th>変数</th><th>更新するメソッド</th><th>向き</th><th>内容</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var" rowspan="5">shed<br><span class="ln">倉庫</span></td>
+          <td class="writer">_apply_unit_action</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>手持ちから置く（容量まで）</td>
+          <td class="ln">341, 396</td>
+        </tr>
+        <tr>
+          <td class="writer">_apply_unit_action</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>手持ちへ取り出す</td>
+          <td class="ln">360</td>
+        </tr>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>売却は<strong>倉庫から直接</strong>。手持ちからは売れない</td>
+          <td class="ln">643</td>
+        </tr>
+        <tr>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>購入した商品・動物の着荷先</td>
+          <td class="ln">657, 672</td>
+        </tr>
+        <tr>
+          <td class="writer">_drop_inventories_to_shed</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>日の終わりに全手持ちを流し込む。<strong>容量超過分は捨てられる</strong></td>
+          <td class="ln">843</td>
+        </tr>
+        <tr>
+          <td class="var" rowspan="2">seeds<br><span class="ln">種</span></td>
+          <td class="writer">_commit_unit</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>購入で 1 増える</td>
+          <td class="ln">664</td>
+        </tr>
+        <tr>
+          <td class="writer">_apply_unit_action</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>植えると 1 減る。<strong>倉庫も手持ちも経由しない</strong></td>
+          <td class="ln">414</td>
+        </tr>
+        <tr>
+          <td class="var" rowspan="3">inventories<br><span class="ln">手持ち</span></td>
+          <td class="writer">_apply_unit_action</td>
+          <td><span class="dir dir-up">増</span></td>
+          <td>倉庫から取り出す / 収穫する / 肥料を集める</td>
+          <td class="ln">361, 453, 459, 508</td>
+        </tr>
+        <tr>
+          <td class="writer">_apply_unit_action</td>
+          <td><span class="dir dir-down">減</span></td>
+          <td>動物を置く / 肥料をまく / 餌をやる</td>
+          <td class="ln">377, 465, 497</td>
+        </tr>
+        <tr>
+          <td class="writer">_end_of_day</td>
+          <td><span class="dir dir-set">代入</span></td>
+          <td>空にリセット —— <strong>持ち越せない</strong></td>
+          <td class="ln">869</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>farm</b> <span class="scope scope-shared">共有</span> — 盤面。相手からも全て見える</caption>
+      <thead>
+        <tr><th>変数</th><th>更新するメソッド</th><th>内容</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var" rowspan="6">tiles[y][x]</td>
+          <td class="writer">_apply_unit_action</td>
+          <td>植える → 作物 / 建てる → 小屋・牧場 / 置く → 動物</td>
+          <td class="ln">378, 415, 483, 489</td>
+        </tr>
+        <tr>
+          <td class="writer">_apply_unit_action</td>
+          <td>収穫（1 回で消える作物）→ 空き / 除去 → 空き</td>
+          <td class="ln">455, 477</td>
+        </tr>
+        <tr>
+          <td class="writer">_do_buy_land</td>
+          <td>未購入 → 空き（区画単位でまとめて）</td>
+          <td class="ln">712</td>
+        </tr>
+        <tr>
+          <td class="writer">_decay_plants</td>
+          <td>寿命切れで収穫量が尽きたら → 雑草</td>
+          <td class="ln">753</td>
+        </tr>
+        <tr>
+          <td class="writer">_daily_refresh_plants</td>
+          <td>2 日連続で水やりを忘れると → 雑草</td>
+          <td class="ln">771</td>
+        </tr>
+        <tr>
+          <td class="writer">_daily_refresh_animals<br>_spawn_weeds</td>
+          <td>2 日連続で餌を忘れると動物が逃げ小屋だけ残る / 空きマスに 0.5% で雑草</td>
+          <td class="ln">806, 827</td>
+        </tr>
+        <tr>
+          <td class="var" rowspan="2">farmer<br><span class="ln">農夫の位置</span></td>
+          <td class="writer">_set_farmer_position</td>
+          <td>移動命令で書き換え</td>
+          <td class="ln">274</td>
+        </tr>
+        <tr>
+          <td class="writer">_end_of_day</td>
+          <td>倉庫の脇へ戻される</td>
+          <td class="ln">866</td>
+        </tr>
+        <tr>
+          <td class="var" rowspan="2">hands<br><span class="ln">雇い人</span></td>
+          <td class="writer">_do_hire</td>
+          <td>1 人追加（同時に手持ちの枠も 1 つ増える）</td>
+          <td class="ln">695</td>
+        </tr>
+        <tr>
+          <td class="writer">_end_of_day</td>
+          <td><strong>全員解散</strong></td>
+          <td class="ln">867</td>
+        </tr>
+        <tr>
+          <td class="var">hires_today</td>
+          <td class="writer">_do_hire / _end_of_day</td>
+          <td>1 増えるたびに次の雇用が高くなる / 日が変わると 0 に戻る</td>
+          <td class="ln">694, 868</td>
+        </tr>
+        <tr>
+          <td class="var">unlocked_<br>quadrants</td>
+          <td class="writer">_do_buy_land</td>
+          <td>追加のみ。<strong>減ることはない</strong></td>
+          <td class="ln">708</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>作物のマス</b>が内部に持つ値</caption>
+      <thead>
+        <tr><th>フィールド</th><th>意味</th><th>更新するメソッド</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var" rowspan="4">yield_units</td>
+          <td rowspan="4">今このマスから取れる個数</td>
+          <td class="writer">_apply_unit_action — 水やりが収穫期に入っていれば +1（肥料中は +2）</td>
+          <td class="ln">430</td>
+        </tr>
+        <tr><td class="writer">_apply_unit_action — 収穫で 0 にして手持ちへ移す</td><td class="ln">452, 458</td></tr>
+        <tr><td class="writer">_decay_plants — 寿命後は 2 ターンに 1 回 −1</td><td class="ln">751</td></tr>
+        <tr><td class="writer">_daily_refresh_plants / _animals — 継続作物と動物の日次生産で +1</td><td class="ln">787, 814</td></tr>
+
+        <tr>
+          <td class="var">watered_today</td>
+          <td>今日もう水をやったか</td>
+          <td class="writer">_apply_unit_action で真 / _daily_refresh_plants で偽に戻す</td>
+          <td class="ln">423, 769</td>
+        </tr>
+        <tr>
+          <td class="var">consecutive_<br>unwatered</td>
+          <td>何日連続で水やりを忘れたか</td>
+          <td class="writer">_daily_refresh_plants — <strong>2 に達すると雑草になる</strong></td>
+          <td class="ln">766, 768</td>
+        </tr>
+        <tr>
+          <td class="var">max_lifespan_<br>step</td>
+          <td>いつ枯れ始めるか</td>
+          <td class="writer">_new_plant で植えた時に確定 / 継続作物は最終生産時に設定</td>
+          <td class="ln">211, 789</td>
+        </tr>
+        <tr>
+          <td class="var">fertilized_<br>until_day</td>
+          <td>肥料の効果が切れる日</td>
+          <td class="writer">_apply_unit_action — 施肥した日から 3 日間</td>
+          <td class="ln">468</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>動物のマス</b>が内部に持つ値</caption>
+      <thead>
+        <tr><th>フィールド</th><th>意味</th><th>更新するメソッド</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">fed_today</td>
+          <td>今日もう餌をやったか</td>
+          <td class="writer">_apply_unit_action で真（小麦を 1 消費）/ 日の終わりに偽</td>
+          <td class="ln">499, 819</td>
+        </tr>
+        <tr>
+          <td class="var">consecutive_<br>unfed</td>
+          <td>何日連続で餌を忘れたか</td>
+          <td class="writer">_daily_refresh_animals — <strong>2 に達すると逃げる</strong></td>
+          <td class="ln">801, 803</td>
+        </tr>
+        <tr>
+          <td class="var">cared_today</td>
+          <td>今日世話をしたか</td>
+          <td class="writer">_apply_unit_action で真 / 日の終わりに偽</td>
+          <td class="ln">516, 820</td>
+        </tr>
+        <tr>
+          <td class="var">pending_<br>care_bonus</td>
+          <td>積み立てた増産分</td>
+          <td class="writer">_daily_refresh_animals — <strong>餌と世話の両方をやった日</strong>に +1、次の生産日に全額払い出し</td>
+          <td class="ln">815, 817</td>
+        </tr>
+        <tr>
+          <td class="var">fertilizer_<br>available</td>
+          <td>肥料を回収できるか</td>
+          <td class="writer">_daily_refresh_animals で真 / 回収すると偽</td>
+          <td class="ln">818, 507</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>環境が持つ値</b> — エージェントが直接動かせない</caption>
+      <thead>
+        <tr><th>変数</th><th>更新する場所</th><th>内容</th><th class="num-col">行</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">town<br>["unlocked_shops"]</td>
+          <td class="writer">_end_of_day</td>
+          <td>3 日ごとに乱数で 1 店追加。同じ店が重複しうる。上限 8。<strong>減らない＝需要は増える一方</strong></td>
+          <td class="ln">878</td>
+        </tr>
+        <tr>
+          <td class="var">observation<br>.step</td>
+          <td class="writer">core.py</td>
+          <td><strong>フレームワーク側が採番する。</strong>ルール本体は読むだけ</td>
+          <td class="ln">core:626</td>
+        </tr>
+        <tr>
+          <td class="var">day / hour</td>
+          <td class="writer">interpreter</td>
+          <td>ターン数からの計算値。<code>day = step÷24</code>、<code>hour = step%24</code></td>
+          <td class="ln">936–937</td>
+        </tr>
+        <tr>
+          <td class="var">reward / status</td>
+          <td class="writer">interpreter</td>
+          <td>最終ターンに終了印と所持金を書き込む</td>
+          <td class="ln">947–950</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">持ち越せるものと、毎日消えるもの</span>
+    <p>
+      更新者を並べると、状態が 2 種類に割れる。日をまたいで残るのは
+      <code>money</code> / <code>shed</code> / <code>seeds</code> / <code>tiles</code> /
+      <code>unlocked_quadrants</code> の <strong>5 つだけ</strong>。
+      <code>inventories</code>・<code>hands</code>・<code>hires_today</code>・<code>watered_today</code> は
+      毎日ゼロに戻る。<strong>複数日にまたがる計画で意味を持つのは前者 5 つに限られる。</strong>
+    </p>
+  </div>
+</section>
+
+<section id="s04">
+  <h2><span class="num">04</span> 1 ターンの処理順</h2>
+  <p class="deck">両プレイヤーの行動を受け取ってから、次のターンに移るまで。</p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 420" role="img"
+           aria-label="1ターンの処理順。行動の適用、市場決済、町の消費、作物劣化、24ターンごとの日次処理。">
+        <defs>
+          <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <!-- inputs -->
+        <rect x="14" y="14" width="150" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="89" y="34" text-anchor="middle" font-size="11" fill="currentColor">プレイヤー 0 の行動</text>
+        <text x="89" y="50" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.7">農夫 / 雇い人 / 市場注文</text>
+
+        <rect x="180" y="14" width="150" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="255" y="34" text-anchor="middle" font-size="11" fill="currentColor">プレイヤー 1 の行動</text>
+        <text x="255" y="50" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.7">農夫 / 雇い人 / 市場注文</text>
+
+        <line x1="172" y1="70" x2="172" y2="88" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+
+        <!-- steps -->
+        <g>
+          <rect x="14" y="90" width="316" height="46" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="30" y="110" font-size="11" font-weight="600" fill="currentColor">1  種の一括検証</text>
+          <text x="30" y="126" font-size="9.5" fill="currentColor" opacity="0.8">種が足りない作物は、その作物の植付を全て取り消す</text>
+
+          <line x1="172" y1="138" x2="172" y2="152" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+
+          <rect x="14" y="154" width="316" height="46" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="30" y="174" font-size="11" font-weight="600" fill="currentColor">2  各作業者の行動を適用</text>
+          <text x="30" y="190" font-size="9.5" fill="currentColor" opacity="0.8">農夫 → 雇い人の順。無効な命令はここで黙って捨てられる</text>
+
+          <line x1="172" y1="202" x2="172" y2="216" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+
+          <rect x="14" y="218" width="316" height="60" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"></rect>
+          <text x="30" y="238" font-size="11" font-weight="600" fill="var(--accent)">3  市場の決済</text>
+          <text x="30" y="254" font-size="9.5" fill="var(--accent)">両者の注文を 1 個ずつ交互に約定させる</text>
+          <text x="30" y="269" font-size="9.5" fill="var(--accent)">1 個ごとに価格を計算し直す（→ 右図）</text>
+
+          <line x1="172" y1="280" x2="172" y2="294" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+
+          <rect x="14" y="296" width="316" height="46" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="30" y="316" font-size="11" font-weight="600" fill="currentColor">4  町が買う</text>
+          <text x="30" y="332" font-size="9.5" fill="currentColor" opacity="0.8">4 ターンごとに各店、24 ターンごとに町全体</text>
+
+          <line x1="172" y1="344" x2="172" y2="358" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+
+          <rect x="14" y="360" width="316" height="46" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+          <text x="30" y="380" font-size="11" font-weight="600" fill="currentColor">5  作物の劣化</text>
+          <text x="30" y="396" font-size="9.5" fill="currentColor" opacity="0.8">寿命を過ぎた作物の収穫量を削る</text>
+        </g>
+
+        <!-- day boundary branch -->
+        <line x1="332" y1="383" x2="376" y2="383" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"></line>
+        <text x="354" y="375" text-anchor="middle" font-size="9" fill="currentColor">24 の倍数のときだけ</text>
+
+        <rect x="378" y="218" width="308" height="188" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.5"></rect>
+        <text x="394" y="240" font-size="11" font-weight="600" fill="var(--signal)">6  1 日の終わりの一斉処理</text>
+        <text x="394" y="260" font-size="9.5" fill="var(--signal)">a. 水やり判定 → 2 日忘れた作物は雑草に</text>
+        <text x="394" y="277" font-size="9.5" fill="var(--signal)">b. 継続作物と動物が生産する</text>
+        <text x="394" y="294" font-size="9.5" fill="var(--signal)">c. 餌やり判定 → 2 日忘れた動物は逃げる</text>
+        <text x="394" y="311" font-size="9.5" fill="var(--signal)">d. 空きマスに 0.5% で雑草が生える</text>
+        <text x="394" y="328" font-size="9.5" fill="var(--signal)">e. 手持ちを倉庫へ流す（超過分は破棄）</text>
+        <text x="394" y="345" font-size="9.5" fill="var(--signal)">f. 農夫を初期位置へ、雇い人は全員解散</text>
+        <text x="394" y="362" font-size="9.5" fill="var(--signal)">g. 3 日ごとに店が 1 つ増える</text>
+        <text x="394" y="386" font-size="9.5" font-weight="600" fill="var(--signal)">d と g は同じ乱数列を共有する（→ 05 落とし穴）</text>
+
+        <!-- market detail -->
+        <rect x="378" y="14" width="308" height="188" rx="2" fill="var(--paper)" stroke="var(--accent)" stroke-width="1.5"></rect>
+        <text x="394" y="36" font-size="11" font-weight="600" fill="var(--accent)">3 の内側 — 1 個ずつの交互約定</text>
+
+        <g font-size="9.5">
+          <rect x="394" y="48" width="120" height="26" fill="var(--surface)" stroke="currentColor" stroke-width="0.9"></rect>
+          <text x="454" y="65" text-anchor="middle" fill="currentColor">在庫 10,000 → 価格 $35</text>
+
+          <line x1="454" y1="76" x2="454" y2="88" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"></line>
+          <text x="524" y="86" font-size="9" fill="currentColor">両者に同じ価格を提示</text>
+
+          <rect x="394" y="90" width="120" height="26" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="0.9"></rect>
+          <text x="454" y="107" text-anchor="middle" fill="var(--accent)">両者が 1 個ずつ売る</text>
+
+          <line x1="454" y1="118" x2="454" y2="130" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"></line>
+          <text x="524" y="128" font-size="9" fill="currentColor">在庫が 2 増える</text>
+
+          <rect x="394" y="132" width="120" height="26" fill="var(--surface)" stroke="currentColor" stroke-width="0.9"></rect>
+          <text x="454" y="149" text-anchor="middle" fill="currentColor">在庫 10,002 → 価格 $34</text>
+
+          <line x1="454" y1="160" x2="454" y2="172" stroke="currentColor" stroke-width="1" marker-end="url(#ar5)"></line>
+          <text x="524" y="170" font-size="9" fill="currentColor">残りがある限り繰り返す</text>
+
+          <text x="454" y="188" text-anchor="middle" font-size="10" font-weight="600" fill="var(--signal)">売るほど自分で値を下げる</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      1 ターンの処理順。市場の決済は<strong>両者の注文を 1 個ずつ交互に処理し、そのたびに価格を計算し直す</strong>。
+      まとめ売りは自分自身で価格を押し下げながら進むことになり、相手も同時に売っていればさらに下がる。
+    </figcaption>
+  </figure>
+
+  <h3>市場の値動き</h3>
+  <p>
+    価格の仕組みは <a href="3-economy.html">③ 市場と生産</a> で扱う。ここでは
+    <strong>売却 1 個ごとに価格が引き直される</strong>という点だけ押さえておけばよい。
+  </p>
+</section>
+
+<section id="s05">
+  <h2><span class="num">05</span> 実装から見える 3 つの落とし穴</h2>
+  <p class="deck">コードを読まないと気づけない挙動。</p>
+
+  <div class="strip">
+    <div>
+      <dt>落とし穴 1</dt>
+      <dd>盤面が乱数を動かす<small>空きマスの数で店が変わる</small></dd>
+    </div>
+    <div>
+      <dt>落とし穴 2</dt>
+      <dd>ターン番号の所有権<small>フレームワーク側にある</small></dd>
+    </div>
+    <div>
+      <dt>落とし穴 3</dt>
+      <dd>失敗が無音<small>点数の低さとしてのみ現れる</small></dd>
+    </div>
+  </div>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 190" role="img"
+           aria-label="乱数列の共有。雑草判定が空きマスの数だけ乱数を消費してから、店の抽選が行われる。">
+        <defs>
+          <marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="20" font-size="12" font-weight="600" fill="currentColor">1 日の終わりに、同じ乱数列が順番に消費される</text>
+
+        <line x1="14" y1="66" x2="686" y2="66" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"></line>
+
+        <g font-size="9.5">
+          <line x1="40" y1="58" x2="40" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="70" y1="58" x2="70" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="100" y1="58" x2="100" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="130" y1="58" x2="130" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <text x="160" y="70" fill="currentColor">…</text>
+          <line x1="190" y1="58" x2="190" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="220" y1="58" x2="220" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="250" y1="58" x2="250" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <text x="280" y="70" fill="currentColor">…</text>
+          <line x1="310" y1="58" x2="310" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="340" y1="58" x2="340" y2="74" stroke="currentColor" stroke-width="1"></line>
+          <line x1="370" y1="58" x2="370" y2="74" stroke="currentColor" stroke-width="1"></line>
+        </g>
+
+        <path d="M 30 84 L 380 84" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"></path>
+        <text x="205" y="100" text-anchor="middle" font-size="10.5" fill="currentColor">雑草判定 — 空きマス 1 つにつき 1 回、両プレイヤー分</text>
+        <text x="205" y="116" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.7">空きマスが減れば、消費される回数も減る</text>
+
+        <line x1="410" y1="58" x2="410" y2="74" stroke="var(--signal)" stroke-width="2.5"></line>
+        <path d="M 400 84 L 420 84" fill="none" stroke="var(--signal)" stroke-width="1"></path>
+        <text x="410" y="102" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--signal)">店の抽選</text>
+        <text x="410" y="118" text-anchor="middle" font-size="10" fill="var(--signal)">3 日ごと</text>
+
+        <line x1="440" y1="66" x2="686" y2="66" stroke="currentColor" stroke-width="1.2" opacity="0.35"></line>
+
+        <text x="14" y="152" font-size="10.5" fill="var(--signal)">
+          結果 — 抽選の直前までに何回乱数が消費されたかが盤面に依存するため、
+        </text>
+        <text x="14" y="170" font-size="10.5" font-weight="600" fill="var(--signal)">
+          同じ乱数の種でも、打ち方が違えば解禁される店が変わる。
+        </text>
+      </svg>
+    </div>
+    <figcaption>
+      雑草判定と店の抽選が同じ乱数列を共有している。
+      雑草判定は空きマスの数だけ乱数を消費するため、<strong>盤面の埋まり具合が抽選結果を左右する</strong>。
+      再現実験を組む際、この結合を見落とすと同じ種でも結果が一致しない。
+    </figcaption>
+  </figure>
+
+  <ul class="plain">
+    <li>
+      <strong>ターン番号を進めるのはフレームワーク側</strong> ——
+      <code>day</code> と <code>hour</code> はターン番号からの計算値なので、
+      ルール本体だけを自前で回すとターン番号が止まったままになる。
+      すると <strong>1 日の終わりの処理が一度も走らない</strong>まま、
+      それらしい点数で試合が完走してしまう。例外は出ない。
+    </li>
+    <li>
+      <strong>無効な行動は例外にならない</strong> ——
+      間違った命令名も、範囲外の座標も、11 件目の市場注文も、黙って捨てられる。
+      不具合はクラッシュではなく点数の低さとしてのみ現れるため、
+      通常なら例外が担う「間違いの通知」を、行動を組み立てる側の検査が肩代わりする必要がある。
+    </li>
+    <li>
+      <strong>売却は自分で価格を押し下げる</strong> ——
+      注文 1 個ごとに価格が計算し直されるため、まとめ売りは進むほど手取りが減る。
+      相手も同じ在庫に売り込むので、<strong>いつ売るかは相手の在庫の推定と不可分</strong>になる。
+      そしてその在庫は観測に含まれない。
+    </li>
+  </ul>
+
+  <h3>処理コストの内訳</h3>
+
+  <p>1 シーズン（720 ターン）を実行したときの時間配分。</p>
+
+  <div class="wide">
+    <table>
+      <thead>
+        <tr><th>処理</th><th class="num-col">時間</th><th class="num-col">割合</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono-col">structify</td><td class="num-col">1.00s</td><td class="num-col">30.5%</td><td>辞書を属性アクセス可能な形に変換</td></tr>
+        <tr><td class="mono-col">その他標準ライブラリ</td><td class="num-col">0.90s</td><td class="num-col">27.5%</td><td>—</td></tr>
+        <tr><td class="mono-col">deepcopy</td><td class="num-col">0.84s</td><td class="num-col">25.7%</td><td>全ターンの状態を記録として複製</td></tr>
+        <tr><td class="mono-col">スキーマ検証</td><td class="num-col">0.39s</td><td class="num-col">11.9%</td><td>行動の形式が正しいかの確認</td></tr>
+        <tr><td class="mono-col">フレームワーク本体</td><td class="num-col">0.08s</td><td class="num-col">2.6%</td><td>—</td></tr>
+        <tr><td class="mono-col"><strong>ゲームのルール</strong></td><td class="num-col"><strong>0.06s</strong></td><td class="num-col"><strong>1.7%</strong></td><td><strong>本稿が扱ってきた処理の全て</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <strong>ルールの実行は全体の 1.7% にすぎない</strong>。
+    残りは記録と検証の仕組みが占めており、毎ターン全状態を複製していることが主因である。
+    対戦記録が不要な用途なら、ルール本体だけを直接呼ぶことで大幅に速くなる。
+  </p>
+</section>
+
+
+<nav class="pager" aria-label="前後のページ">
+<span style="flex:1 1 14rem"></span>
+<a class="n" href="2-interface.html"><span class="dir">次のページ →</span><span class="t">② 観測と行動</span></a>
+</nav>
+<footer>
+  解析対象 — <code>kaggle_environments/envs/kaggriculture/kaggriculture.py</code>（1,073 行）および
+  <code>kaggle_environments/core.py</code>（772 行）。行番号は同ファイル内の位置を指す。
+  数値はすべて実際に環境を実行して計測したもの。
+</footer>
