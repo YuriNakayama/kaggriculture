@@ -1,0 +1,30 @@
+#!/bin/bash
+# Launch the playable UI locally (vite dev server, LAN-accessible).
+#
+#   dev/play            # dev server on http://localhost:5173 (+ LAN URL)
+#   dev/play --build    # production build of all frontend packages
+#   dev/play --test     # frontend unit tests (TS engine etc.)
+#
+# Requires pnpm (https://pnpm.io). First run downloads node deps.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+case "${1:-}" in
+  --build)
+    cd frontend && pnpm install && node scripts/collect-agents.mjs && exec pnpm build
+    ;;
+  --test)
+    cd frontend && pnpm install && exec pnpm test
+    ;;
+  *)
+    cd frontend && pnpm install
+    node scripts/collect-agents.mjs
+    # Replay page: build once if missing (drag&drop viewer iframes it).
+    if [ ! -f playable/public/replay/index.html ]; then
+      pnpm --filter @kaggle-environments/core build \
+        && pnpm --filter @kaggle-environments/kaggriculture-visualizer build \
+        && node scripts/copy-replay.mjs
+    fi
+    cd playable && exec pnpm dev --host "$@"
+    ;;
+esac

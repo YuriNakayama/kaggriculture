@@ -1,0 +1,71 @@
+name: Frontend
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/pipeline/**"
+      - "backend/uv.lock"
+      - ".github/workflows/frontend.yml"
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - "backend/pipeline/**"
+      - "backend/uv.lock"
+      - ".github/workflows/frontend.yml"
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --locked
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Collect Python agents
+        run: node scripts/collect-agents.mjs
+        working-directory: frontend
+
+      # Regenerate the reference trace from the *installed* Python engine so a
+      # kaggle-environments bump that changes behaviour fails the parity spec.
+      - name: Generate parity trace (Python engine)
+        run: uv run python ../frontend/scripts/gen_parity_trace.py --steps 720 --seed 123 --out ../frontend/playable/parity-trace.json
+        working-directory: backend
+
+      - name: Build
+        run: pnpm build
+        working-directory: frontend
+
+      - name: Test (engine, legality, Pyodide bridge, parity)
+        run: pnpm test
+        working-directory: frontend

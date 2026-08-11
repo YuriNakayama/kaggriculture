@@ -30,3 +30,21 @@ variable "github_repo_id" {
   description = "Numeric GitHub repository id. `gh api repos/<owner>/<repo> --jq .id`"
   type        = string
 }
+
+variable "amplify_github_access_token" {
+  description = "GitHub PAT for Amplify (repo read + webhook). tfvars only — never commit."
+  type        = string
+  sensitive   = true
+}
+
+variable "playable_domain" {
+  description = "Apex domain with an existing Route53 hosted zone for the playable app."
+  type        = string
+  default     = "avifauna.click"
+}
+
+variable "playable_subdomain" {
+  description = "Subdomain prefix for the playable app."
+  type        = string
+  default     = "farm"
+}

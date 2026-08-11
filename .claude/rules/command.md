@@ -21,6 +21,7 @@ paths:
 | Command | What it does |
 |---|---|
 | `dev/simulate --case <family>/<caseN> [--opponent random\|starter\|pass] [--episodes N]` | Run episodes locally via `kaggle-environments` and report final money / win rate |
+| `dev/play [--build\|--test]` | Playable frontend: dev server (LAN-accessible; play vs pipeline agents in the browser, replay viewer, AI-vs-AI spectate). `--build` = production build, `--test` = frontend tests incl. engine parity |
 | `dev/submit --case <family>/<caseN> --dry-run` | Build + verify only. **Always run this first.** |
 | `dev/submit --case <family>/<caseN> -m MSG` | Build, verify, submit, and record to `data/output/submit/`. Refuses at 5/day |
 
