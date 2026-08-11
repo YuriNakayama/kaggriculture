@@ -1,0 +1,75 @@
+{
+  "skill_name": "code-explain",
+  "evals": [
+    {
+      "id": 0,
+      "name": "mid-size-package-simulate",
+      "prompt": "backend/src/simulate の実装を把握したいです。エピソード実行まわりがどういう構造でどう動いてるのか、順を追って整理してください。",
+      "expected_output": "docs/develop/code_explanation/{yyyymmdd}_simulate.md が作成され、注釈付きディレクトリツリー・クラス/メソッドの責務とI/O表・番号付きの処理ステップの3段構成になっている。ターミナルにも要約が出る。",
+      "files": [],
+      "assertions": [
+        "Output document exists as a .md file",
+        "Filename matches the {yyyymmdd}_{scope}.md convention using today's date",
+        "Document contains all three analysis passes: directory tree, class/method inventory, processing steps",
+        "Class/method inventory is a table including responsibility and input/output columns",
+        "Processing steps are numbered and cite specific file:line anchors",
+        "Header block records scope paths, file/line counts, analysis date, and commit sha",
+        "A separate terminal summary was produced (terminal_summary.md)",
+        "Document does not write into the repo's docs/ tree (no repo pollution)",
+        "Document opens with a 用語 (glossary) table defining identifiers and domain terms",
+        "Uses at least 3 visual formats densely (tables, mermaid, skeleton code) rather than prose",
+        "Terminal summary reports a self-review pass and what it changed",
+        "Covers episode.py, matrix.py and config.py — the core of episode execution",
+        "Identifies entry points (e.g. __main__ / __init__ exports)",
+        "Notes the crash/timeout/invalid-action detection the engine otherwise hides"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "vague-scope-jaxenv",
+      "prompt": "JAX の環境まわりのコードを読み解いて解説ドキュメントにまとめて",
+      "expected_output": "曖昧なスコープを backend/src/simulate/jaxenv に解決し（必要なら確認し）、3段構成の解説を docs/develop/code_explanation/{yyyymmdd}_jaxenv.md に出力する。",
+      "files": [],
+      "assertions": [
+        "Output document exists as a .md file",
+        "Filename matches the {yyyymmdd}_{scope}.md convention using today's date",
+        "Document contains all three analysis passes: directory tree, class/method inventory, processing steps",
+        "Class/method inventory is a table including responsibility and input/output columns",
+        "Processing steps are numbered and cite specific file:line anchors",
+        "Header block records scope paths, file/line counts, analysis date, and commit sha",
+        "A separate terminal summary was produced (terminal_summary.md)",
+        "Document does not write into the repo's docs/ tree (no repo pollution)",
+        "Document opens with a 用語 (glossary) table defining identifiers and domain terms",
+        "Uses at least 3 visual formats densely (tables, mermaid, skeleton code) rather than prose",
+        "Terminal summary reports a self-review pass and what it changed",
+        "Resolved the unstated scope to backend/src/simulate/jaxenv and stated how",
+        "Covers env.py and state.py",
+        "Scope slug in the filename reflects the resolved scope (e.g. jaxenv)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "single-agent-case7",
+      "prompt": "rulebase/case7 のエージェントが毎ターン何をしてるのか知りたい。処理の流れを追ってドキュメントにして。",
+      "expected_output": "backend/pipeline/rulebase/case7 を対象に、agent() の毎ターン処理を番号付きステップで追った解説が docs/develop/code_explanation/{yyyymmdd}_rulebase_case7.md に出力される。",
+      "files": [],
+      "assertions": [
+        "Output document exists as a .md file",
+        "Filename matches the {yyyymmdd}_{scope}.md convention using today's date",
+        "Document contains all three analysis passes: directory tree, class/method inventory, processing steps",
+        "Class/method inventory is a table including responsibility and input/output columns",
+        "Processing steps are numbered and cite specific file:line anchors",
+        "Header block records scope paths, file/line counts, analysis date, and commit sha",
+        "A separate terminal summary was produced (terminal_summary.md)",
+        "Document does not write into the repo's docs/ tree (no repo pollution)",
+        "Document opens with a 用語 (glossary) table defining identifiers and domain terms",
+        "Uses at least 3 visual formats densely (tables, mermaid, skeleton code) rather than prose",
+        "Terminal summary reports a self-review pass and what it changed",
+        "Traces the per-turn agent() flow in order, matching the user's actual question",
+        "Documents branching / conditional behaviour within a turn",
+        "Describes the core state objects the agent reads and returns"
+      ]
+    }
+  ],
+  "notes": "Assertions were validated across two iterations. The visual-format check counts how many formats are used densely rather than requiring a quota of each — demanding e.g. 2+ mermaid diagrams rewards padding over clarity."
+}
