@@ -122,6 +122,8 @@ export interface TurnDraft {
   setUnitDraft(unit: number, patch: Partial<UnitDraft>): void;
   /** Bundle drafts into the submittable PlayerAction. */
   buildAction(): PlayerAction;
+  /** buildAction with one unit's draft overridden — for instant (tap-to-run) ops. */
+  buildActionWith(unit: number, patch: Partial<UnitDraft>): PlayerAction;
   /** Reset unit drafts to PASS and clear orders (after submit). */
   afterSubmit(action: PlayerAction): void;
   /** Restore the previously submitted action's unit ops (not market orders). */
@@ -168,6 +170,15 @@ export function useTurnDraft(state: GameState | null, player: number | null): Tu
     market: orders.map(toMarketOrder).filter((o): o is MarketOrder => o !== null),
   });
 
+  const buildActionWith = (unit: number, patch: Partial<UnitDraft>): PlayerAction => {
+    const patched = { ...(unit === 0 ? farmer : (hands[unit - 1] ?? defaultUnit)), ...patch };
+    return {
+      farmer: unit === 0 ? toUnitAction(patched) : toUnitAction(farmer),
+      hands: hands.map((h, i) => (i === unit - 1 ? toUnitAction(patched) : toUnitAction(h))),
+      market: orders.map(toMarketOrder).filter((o): o is MarketOrder => o !== null),
+    };
+  };
+
   const afterSubmit = (action: PlayerAction) => {
     lastRef.current = action;
     setHasLast(true);
@@ -193,6 +204,7 @@ export function useTurnDraft(state: GameState | null, player: number | null): Tu
     setOrders,
     setUnitDraft,
     buildAction,
+    buildActionWith,
     afterSubmit,
     repeatLast,
     hasLast,

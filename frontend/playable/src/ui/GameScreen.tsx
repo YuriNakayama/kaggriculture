@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MarketOrder, PlayerAction, UnitAction } from '../engine/types';
+import type { MarketOrder, PlayerAction, Position, UnitAction } from '../engine/types';
 import { ActionPanel } from './ActionPanel';
-import { FarmView } from './FarmView';
+import { FarmView, overlayKey, type OverlayMap } from './FarmView';
+import { findPath, pathPositions } from './pathfind';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
 import { mergeMarket, omakaseAction } from './omakase';
@@ -36,7 +37,7 @@ export function GameScreen({ setup, onExit }: Props) {
   );
 
   const draft = useTurnDraft(state, humanPlayerId);
-  const board = useBoardPlay(state, humanPlayerId, draft);
+  const board = useBoardPlay(state, humanPlayerId);
   const handRoles = useHandRoles(state, humanPlayerId, draft);
   const [mobileFocusOwn, setMobileFocusOwn] = useState(true);
   const [omakase, setOmakase] = useState(false);
@@ -61,6 +62,8 @@ export function GameScreen({ setup, onExit }: Props) {
   // auto-advance until done / morning / an attention event. ---
   const [auto, setAuto] = useState<AutoStatus>({ running: false, label: null, remaining: 0, stopNote: null });
   const autoStopRef = useRef(false);
+  // Live queues during an auto-run, for path overlays on the board.
+  const [runQueues, setRunQueues] = useState<TaskQueues>({});
 
   const runAuto = async (label: string, initialQueues: TaskQueues, untilMorning: boolean) => {
     if (humanPlayerId === null || !state || state.done) return;
@@ -102,6 +105,7 @@ export function GameScreen({ setup, onExit }: Props) {
       }
       s = ns;
       queues = nextQueues;
+      setRunQueues(queues);
       setAuto((a) => ({ ...a, remaining: queueSize(queues) }));
       if (untilMorning) {
         if (s.day !== startDay) {
@@ -117,8 +121,44 @@ export function GameScreen({ setup, onExit }: Props) {
         break;
       }
     }
+    setRunQueues({});
     setAuto({ running: false, label: null, remaining: 0, stopNote: note });
   };
+
+  // タップ操作の即時実行: 選んだ op でそのままターンを送る (Submit 不要)。
+  const instantOp = (patch: Parameters<typeof draft.buildActionWith>[1]) => {
+    if (humanPlayerId === null || !state || state.done || busy || auto.running) return;
+    const action = draft.buildActionWith(board.selectedUnit, patch);
+    draft.afterSubmit(action);
+    void stepGame({ [humanPlayerId]: action });
+  };
+
+  // 移動 (+到着後 op) はタスク化して自動進行。thenOp なしは到着で即完了。
+  const moveTo = (target: Position, thenOp?: UnitAction) => {
+    void runAuto('移動中', { [board.selectedUnit]: [{ kind: 'op-at', target, op: thenOp ?? null }] }, false);
+  };
+
+  // Auto-run path overlays (merged under the tap/selection overlays).
+  const queueOverlays = useMemo<OverlayMap>(() => {
+    const out: OverlayMap = {};
+    if (!state || humanPlayerId === null) return out;
+    for (const [uStr, tasks] of Object.entries(runQueues)) {
+      const u = Number(uStr);
+      const pos = u === 0 ? state.farms[humanPlayerId].farmer : state.farms[humanPlayerId].hands[u - 1];
+      const task = tasks[0];
+      if (!pos || !task || task.kind !== 'op-at') continue;
+      const path = findPath(state.farms[humanPlayerId], pos, task.target);
+      if (!path) continue;
+      for (const p of pathPositions(pos, path)) out[overlayKey(p[0], p[1])] = 'ov-path';
+      out[overlayKey(task.target[0], task.target[1])] = 'ov-target';
+    }
+    return out;
+  }, [state, humanPlayerId, runQueues]);
+
+  const mergedOverlays = useMemo<OverlayMap>(
+    () => ({ ...queueOverlays, ...board.overlays }),
+    [queueOverlays, board.overlays]
+  );
 
   // --- AI-vs-AI spectate: autoplay with a speed control ---
   const [playing, setPlaying] = useState(false);
@@ -182,7 +222,7 @@ export function GameScreen({ setup, onExit }: Props) {
             config={setup.config}
             playerNames={playerNames}
             humanPlayerId={humanPlayerId}
-            overlays={board.overlays}
+            overlays={mergedOverlays}
             onTileTap={board.onTileTap}
           />
           {humanPlayerId !== null && board.tapPos && board.tapVerdicts && (
@@ -196,8 +236,10 @@ export function GameScreen({ setup, onExit }: Props) {
               onSameTile={board.onSameTile}
               pathLength={board.pathLength}
               unitsHere={board.unitsHere}
-              onPick={(patch) => draft.setUnitDraft(board.selectedUnit, patch)}
-              onMoveHere={board.moveHere}
+              onPick={instantOp}
+              onMoveHere={(thenOp) => {
+                if (board.tapPos) moveTo(board.tapPos, thenOp);
+              }}
               onSelectUnit={(u) => board.setSelectedUnit(u)}
               onClose={board.closeMenu}
             />
@@ -218,6 +260,11 @@ export function GameScreen({ setup, onExit }: Props) {
                 )
               }
               onUntilMorning={() => void runAuto('翌朝まで自動進行', {}, true)}
+              onNextTurn={() => {
+                const action = draft.buildAction();
+                draft.afterSubmit(action);
+                handleSubmit(action);
+              }}
               onStop={() => {
                 autoStopRef.current = true;
               }}

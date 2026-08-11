@@ -13,7 +13,8 @@ import { findPath } from './pathfind';
 export type SmartCommand = 'WATER_ALL' | 'HARVEST_ALL' | 'CLEAR_WEEDS' | 'TEND_ANIMALS' | 'DEPOSIT_ALL';
 
 export type UnitTask =
-  | { kind: 'op-at'; target: Position; op: UnitAction }
+  // op: null = 移動のみ (到着したら完了、追加ターンを消費しない)
+  | { kind: 'op-at'; target: Position; op: UnitAction | null }
   | { kind: 'deposit' };
 
 export type TaskQueues = Record<number, UnitTask[]>;
@@ -99,7 +100,10 @@ export function nextOp(
   if (!pos) return null;
 
   if (task.kind === 'op-at') {
-    if (pos[0] === task.target[0] && pos[1] === task.target[1]) return { op: task.op, done: true };
+    if (pos[0] === task.target[0] && pos[1] === task.target[1]) {
+      if (task.op === null) return null; // 到着のみで完了 — このターンは消費しない
+      return { op: task.op, done: true };
+    }
     const path = findPath(farm, pos, task.target);
     if (!path || path.length === 0) return null; // unreachable → drop task
     return { op: [path[0]], done: false };

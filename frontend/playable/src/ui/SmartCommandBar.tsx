@@ -21,6 +21,7 @@ interface Props {
   auto: AutoStatus;
   onCommand(cmd: SmartCommand): void;
   onUntilMorning(): void;
+  onNextTurn(): void;
   onStop(): void;
 }
 
@@ -32,7 +33,7 @@ const COMMANDS: { cmd: SmartCommand; label: string; help: string }[] = [
   { cmd: 'DEPOSIT_ALL', label: '📦 収納', help: '全ユニットの持ち物を倉庫へ運ぶ' },
 ];
 
-export function SmartCommandBar({ state, player, busy, auto, onCommand, onUntilMorning, onStop }: Props) {
+export function SmartCommandBar({ state, player, busy, auto, onCommand, onUntilMorning, onNextTurn, onStop }: Props) {
   return (
     <div className="smart-bar">
       <div className="smart-bar-title">スマートコマンド (自動で移動・実行)</div>
@@ -52,6 +53,14 @@ export function SmartCommandBar({ state, player, busy, auto, onCommand, onUntilM
             </button>
           );
         })}
+        <button
+          type="button"
+          title="このターンを実行して1ターン進める (役割ハンド・保留中の市場注文もこのとき実行)"
+          disabled={busy || auto.running || state.done}
+          onClick={onNextTurn}
+        >
+          ⏭ 1ターン
+        </button>
         <button
           type="button"
           title="タスクを消化しつつ翌朝まで自動でターンを進める (収穫可能が現れたら停止)"

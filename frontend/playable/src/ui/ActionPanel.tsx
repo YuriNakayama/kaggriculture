@@ -342,8 +342,15 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
         {orders.map(renderOrder)}
       </div>
       <div className="action-row">
-        <button type="button" className="submit-turn" onClick={submit} disabled={busy || state.done} style={{ flex: 1 }}>
-          Submit Turn
+        <button
+          type="button"
+          className="submit-turn"
+          onClick={submit}
+          disabled={busy || state.done}
+          style={{ flex: 1 }}
+          title="ここで組んだ操作と市場注文でこのターンを実行 (盤面タップやスマートコマンドは自動実行されるため通常は不要)"
+        >
+          実行 (このターン)
         </button>
         <button
           type="button"

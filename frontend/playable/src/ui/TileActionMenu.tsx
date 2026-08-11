@@ -153,7 +153,7 @@ export function TileActionMenu(props: Props) {
       {submenu === null ? (
         <div className="tile-menu-ops">
           <div className="tile-menu-subhead">
-            {onSameTile ? '🎯 この場所で実行' : '🎯 移動して到着後に実行 (任意)'}
+            {onSameTile ? '🎯 この場所で実行 (選ぶと即ターン実行)' : '🎯 移動して到着後に実行 (自動で進みます)'}
           </div>
           {TILE_OP_ORDER.map((op) => {
             const v = verdicts[op];
