@@ -63,11 +63,14 @@ from .state import (
     N_SHOPS,
     PRODUCT_FERTILIZER,
     PRODUCT_WHEAT,
+    SHED_ACCESS_X,
+    SHED_ACCESS_Y,
     SHED_CAPACITY,
     SHOP_DEMAND,
     TOWN_CENTER_MASK,
     TURNS_PER_DAY,
     EnvState,
+    default_spawn,
     is_shed_adjacent,
     market_price,
     quadrant_of,
@@ -818,8 +821,6 @@ def _do_hire(state: EnvState, wants: jnp.ndarray) -> EnvState:
     Cost is ``fib(hires_today)``; the new hand spawns on the shed-access tile
     with the fewest occupants, NWSE order breaking ties.
     """
-    from .state import SHED_ACCESS_X, SHED_ACCESS_Y
-
     cost = HIRE_COST[jnp.clip(state.hires_today, 0, MAX_UNITS)].astype(jnp.float32)
     n_active = state.unit_active.sum(axis=-1)
     ok = wants & (state.money >= cost) & (n_active < MAX_UNITS)
@@ -1282,8 +1283,6 @@ def _end_of_day(
     state = _drop_inventories_to_shed(state)
 
     # Hands vanish at day end; the farmer respawns at the default tile.
-    from .state import default_spawn
-
     spawn_x, spawn_y = default_spawn()
     active = jnp.zeros_like(state.unit_active).at[:, :, 0].set(1)
     state = state._replace(
