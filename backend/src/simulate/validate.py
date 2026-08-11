@@ -15,7 +15,7 @@ Every check mirrors a specific engine behaviour, cited per method below.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -99,6 +99,41 @@ def _shed_access_tiles(board_size: int) -> set[tuple[int, int]]:
         (half - 1, half),
         (half, half),
     }
+
+
+#: Structure each animal needs to stand on, from ANIMALS in kaggriculture.py.
+_ANIMAL_STRUCTURES: dict[str, str] = {
+    "GOOSE": "COOP",
+    "COW": "PASTURE",
+    "SHEEP": "PASTURE",
+}
+
+
+def _is_animal_placement(
+    action: list[Any], farm: Mapping[str, Any] | None, x: int, y: int
+) -> bool:
+    """True when ``PLACE`` targets a matching unoccupied structure.
+
+    The engine takes this branch before the shed-drop path, so it is legal from
+    any tile — not only the shed-access ones.
+    """
+    if farm is None or len(action) < 2:
+        return False
+    structure = _ANIMAL_STRUCTURES.get(str(action[1]))
+    if structure is None:
+        return False
+    tiles = farm.get("tiles")
+    if not isinstance(tiles, list) or not (0 <= y < len(tiles)):
+        return False
+    row = tiles[y]
+    if not isinstance(row, list) or not (0 <= x < len(row)):
+        return False
+    tile = row[x]
+    return (
+        isinstance(tile, dict)
+        and tile.get("kind") == structure
+        and "animal" not in tile
+    )
 
 
 def _quadrant_of(x: int, y: int, board_size: int) -> str:
@@ -250,12 +285,18 @@ class ActionValidator:
             return
 
         # Shed ops resolve before the LOCKED guard but require an access tile.
+        #
+        # `PLACE <animal>` is the exception: the engine resolves animal
+        # placement onto a matching unoccupied structure *before* the shed-drop
+        # path, so placing a cow on a pasture is legal anywhere on the board.
+        # Only `PLACE <item>` falling through to the shed drop needs the tile.
         if op in SHED_OPS and (x, y) not in _shed_access_tiles(board_size):
-            self._record(
-                "shed_not_adjacent",
-                f"{name}: {op} at ({x},{y}) is not a shed-access tile",
-            )
-            return
+            if not (op == "PLACE" and _is_animal_placement(unit_action, farm, x, y)):
+                self._record(
+                    "shed_not_adjacent",
+                    f"{name}: {op} at ({x},{y}) is not a shed-access tile",
+                )
+                return
 
         # Tile ops no-op on locked quadrants.
         if op in TILE_OPS:
