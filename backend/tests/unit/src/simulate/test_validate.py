@@ -221,3 +221,42 @@ def test_wrap_records_issues_from_the_wrapped_agent() -> None:
     wrapped(_obs())
 
     assert "unknown_unit_op" in _kinds(validator)
+
+
+def test_placing_an_animal_on_a_pasture_is_legal_away_from_the_shed() -> None:
+    """The engine resolves animal placement before the shed-drop path.
+
+    `_apply_unit_action` matches `PLACE <animal>` against the tile's structure
+    and returns, so a cow goes onto a pasture anywhere on the board. Treating
+    every PLACE as a shed op reported this as discarded when it is not, and
+    that false positive fired on four agent cases.
+    """
+    obs = _obs(farmer=(1, 1))
+    obs["farms"][0]["tiles"][1][1] = {"kind": "PASTURE"}
+    validator = ActionValidator(player=0)
+
+    validator.validate(obs, {"farmer": ["PLACE", "COW"], "hands": [], "market": []})
+
+    assert _kinds(validator) == []
+
+
+def test_placing_an_item_away_from_the_shed_is_still_reported() -> None:
+    """Non-animal PLACE falls through to the shed drop, which needs the tile."""
+    obs = _obs(farmer=(1, 1))
+    validator = ActionValidator(player=0)
+
+    action = {"farmer": ["PLACE", "WHEAT", 3], "hands": [], "market": []}
+    validator.validate(obs, action)
+
+    assert "shed_not_adjacent" in _kinds(validator)
+
+
+def test_placing_an_animal_on_an_occupied_pasture_is_reported() -> None:
+    """An occupied structure fails the engine's match, so PLACE falls through."""
+    obs = _obs(farmer=(1, 1))
+    obs["farms"][0]["tiles"][1][1] = {"kind": "PASTURE", "animal": "COW"}
+    validator = ActionValidator(player=0)
+
+    validator.validate(obs, {"farmer": ["PLACE", "SHEEP"], "hands": [], "market": []})
+
+    assert "shed_not_adjacent" in _kinds(validator)

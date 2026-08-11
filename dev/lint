@@ -4,10 +4,37 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 EXIT_CODE=0
 
+# Agent cases authored in this repo. Each is type-checked in its own mypy pass:
+# the Kaggle harness exec's a case flat with its directory on sys.path, so its
+# modules import each other by bare name, and two cases both defining `config`
+# cannot share a single run. Add every new authored case here — pyproject.toml
+# excludes pipeline/rulebase/ wholesale from the default pass, so a case left
+# off this list is silently never type-checked.
+#
+# Verbatim notebook ports (case3-case6) are deliberately absent: they are
+# upstream code kept byte-comparable to their source.
+AUTHORED_CASES=(
+    "pipeline/rulebase/case1"
+    "pipeline/rulebase/case2"
+    "pipeline/rulebase/case7"
+)
+
 echo "== ruff =="
 (cd "$ROOT_DIR/backend" && uv run ruff check . --fix) || EXIT_CODE=1
 
 echo "== mypy =="
 (cd "$ROOT_DIR/backend" && uv run mypy --config-file pyproject.toml .) || EXIT_CODE=1
+
+for case_dir in "${AUTHORED_CASES[@]}"; do
+    echo "== mypy ($case_dir) =="
+    # --exclude '' clears the config's pipeline/rulebase/ exclusion, which would
+    # otherwise skip the very directory being requested here.
+    (cd "$ROOT_DIR/backend" \
+        && MYPYPATH="src:$case_dir" uv run mypy \
+            --config-file pyproject.toml \
+            --explicit-package-bases \
+            --exclude '' \
+            "$case_dir"/*.py) || EXIT_CODE=1
+done
 
 exit $EXIT_CODE
