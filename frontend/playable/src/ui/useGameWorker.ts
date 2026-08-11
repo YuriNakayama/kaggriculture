@@ -98,9 +98,9 @@ export function useGameWorker(setup: SetupResult) {
     };
   }, [setup]);
 
-  const stepGame = async (humanActions: HumanActions): Promise<void> => {
+  const stepGame = async (humanActions: HumanActions): Promise<GameState | null> => {
     const client = clientRef.current;
-    if (!client) return;
+    if (!client) return null;
     setBusy(true);
     setError(null);
     try {
@@ -110,8 +110,10 @@ export function useGameWorker(setup: SetupResult) {
       else saveSession(setup, logRef.current);
       setState(next);
       setAgentErrors(client.lastAgentErrors);
+      return next;
     } catch (e) {
       setError(String(e));
+      return null;
     } finally {
       setBusy(false);
     }

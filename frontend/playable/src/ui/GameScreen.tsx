@@ -4,6 +4,8 @@ import { ActionPanel } from './ActionPanel';
 import { FarmView } from './FarmView';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
+import { SmartCommandBar, type AutoStatus } from './SmartCommandBar';
+import { assignCommand, autoActions, commandTargets, queueSize, type SmartCommand, type TaskQueues } from './smartTasks';
 import { TileActionMenu } from './TileActionMenu';
 import { useBoardPlay } from './useBoardPlay';
 import { useGameWorker, type SetupResult } from './useGameWorker';
@@ -43,6 +45,56 @@ export function GameScreen({ setup, onExit }: Props) {
   const handleAiStep = () => {
     if (humanPlayerId !== null) return;
     void stepGame({});
+  };
+
+  // --- Smart commands: expand task queues into one op per unit per turn and
+  // auto-advance until done / morning / an attention event. ---
+  const [auto, setAuto] = useState<AutoStatus>({ running: false, label: null, remaining: 0, stopNote: null });
+  const autoStopRef = useRef(false);
+
+  const runAuto = async (label: string, initialQueues: TaskQueues, untilMorning: boolean) => {
+    if (humanPlayerId === null || !state || state.done) return;
+    autoStopRef.current = false;
+    let s = state;
+    let queues = initialQueues;
+    const startDay = s.day;
+    const startHarvest = commandTargets(s, humanPlayerId, 'HARVEST_ALL').length;
+    setAuto({ running: true, label, remaining: queueSize(queues), stopNote: null });
+    let note: string | null = 'タスク完了';
+    for (;;) {
+      if (autoStopRef.current) {
+        note = '手動停止';
+        break;
+      }
+      if (s.done) {
+        note = 'シーズン終了';
+        break;
+      }
+      const { action, nextQueues, idle } = autoActions(s, humanPlayerId, queues);
+      if (!untilMorning && idle) break;
+      const ns = await stepGame({ [humanPlayerId]: action });
+      if (!ns) {
+        note = 'エラーで停止';
+        break;
+      }
+      s = ns;
+      queues = nextQueues;
+      setAuto((a) => ({ ...a, remaining: queueSize(queues) }));
+      if (untilMorning) {
+        if (s.day !== startDay) {
+          note = '朝になったので停止';
+          break;
+        }
+        const harvestNow = commandTargets(s, humanPlayerId, 'HARVEST_ALL').length;
+        if (harvestNow > startHarvest) {
+          note = `収穫可能が ${harvestNow} 件になったので停止`;
+          break;
+        }
+      } else if (queueSize(queues) === 0) {
+        break;
+      }
+    }
+    setAuto({ running: false, label: null, remaining: 0, stopNote: note });
   };
 
   // --- AI-vs-AI spectate: autoplay with a speed control ---
@@ -121,7 +173,26 @@ export function GameScreen({ setup, onExit }: Props) {
           )}
         </div>
         {humanPlayerId !== null ? (
-          <ActionPanel state={state} player={humanPlayerId} busy={busy} draft={draft} onSubmit={handleSubmit} />
+          <div className="action-col">
+            <SmartCommandBar
+              state={state}
+              player={humanPlayerId}
+              busy={busy}
+              auto={auto}
+              onCommand={(cmd: SmartCommand) =>
+                void runAuto(
+                  cmd === 'DEPOSIT_ALL' ? '倉庫へ収納' : '一括作業',
+                  assignCommand(state, humanPlayerId, cmd),
+                  false
+                )
+              }
+              onUntilMorning={() => void runAuto('翌朝まで自動進行', {}, true)}
+              onStop={() => {
+                autoStopRef.current = true;
+              }}
+            />
+            <ActionPanel state={state} player={humanPlayerId} busy={busy || auto.running} draft={draft} onSubmit={handleSubmit} />
+          </div>
         ) : (
           <aside className="action-panel">
             <h3>AI vs AI</h3>

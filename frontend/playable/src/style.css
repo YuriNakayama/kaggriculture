@@ -230,6 +230,34 @@ input, select {
 .noop-notes ul { margin: 4px 0 0; padding-left: 18px; }
 .noop-notes li { margin: 2px 0; }
 
+/* --- smart command bar --- */
+.action-col {
+  flex: 0 0 400px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid #2a402a;
+}
+.action-col .action-panel { flex: 1 1 auto; border-left: none; }
+.smart-bar {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  background: #182a20;
+  border-bottom: 1px solid #2a402a;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.smart-bar-title { font-size: 11px; color: #9fc39f; font-weight: 600; }
+.smart-bar-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.smart-bar-buttons button { font-size: 12px; padding: 6px 10px; }
+.smart-bar-status { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #ffe9b0; }
+.smart-bar-note { font-size: 11px; color: #9fc3e8; }
+
+@media (max-width: 839.95px) {
+  .action-col { flex: 0 0 auto; border-left: none; border-top: 1px solid #2a402a; }
+}
+
 /* --- board tap-to-act --- */
 .game-main { position: relative; }
 .tappable-grid .cell { cursor: pointer; }
