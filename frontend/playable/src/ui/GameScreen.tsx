@@ -4,7 +4,9 @@ import { ActionPanel } from './ActionPanel';
 import { FarmView } from './FarmView';
 import { GameOverModal } from './GameOverModal';
 import { HUD } from './HUD';
+import { omakaseFarmOps } from './omakase';
 import { SmartCommandBar, type AutoStatus } from './SmartCommandBar';
+import { useHandRoles } from './useHandRoles';
 import { assignCommand, autoActions, commandTargets, queueSize, type SmartCommand, type TaskQueues } from './smartTasks';
 import { TileActionMenu } from './TileActionMenu';
 import { useBoardPlay } from './useBoardPlay';
@@ -35,11 +37,15 @@ export function GameScreen({ setup, onExit }: Props) {
 
   const draft = useTurnDraft(state, humanPlayerId);
   const board = useBoardPlay(state, humanPlayerId, draft);
+  const handRoles = useHandRoles(state, humanPlayerId, draft);
   const [mobileFocusOwn, setMobileFocusOwn] = useState(true);
+  const [omakase, setOmakase] = useState(false);
 
   const handleSubmit = (action: PlayerAction) => {
-    if (humanPlayerId === null) return;
-    void stepGame({ [humanPlayerId]: action });
+    if (humanPlayerId === null || !state) return;
+    // おまかせ農場: 農作業 op を starter 方針で上書きし、市場注文だけ通す。
+    const merged = omakase ? { ...omakaseFarmOps(state, humanPlayerId), market: action.market } : action;
+    void stepGame({ [humanPlayerId]: merged });
   };
 
   const handleAiStep = () => {
@@ -70,7 +76,9 @@ export function GameScreen({ setup, onExit }: Props) {
         note = 'シーズン終了';
         break;
       }
-      const { action, nextQueues, idle } = autoActions(s, humanPlayerId, queues);
+      const { action, nextQueues, idle } = omakase
+        ? { action: { ...omakaseFarmOps(s, humanPlayerId), market: [] as never[] }, nextQueues: {}, idle: false }
+        : autoActions(s, humanPlayerId, queues);
       if (!untilMorning && idle) break;
       const ns = await stepGame({ [humanPlayerId]: action });
       if (!ns) {
@@ -191,7 +199,17 @@ export function GameScreen({ setup, onExit }: Props) {
                 autoStopRef.current = true;
               }}
             />
-            <ActionPanel state={state} player={humanPlayerId} busy={busy || auto.running} draft={draft} onSubmit={handleSubmit} />
+            <ActionPanel
+              state={state}
+              player={humanPlayerId}
+              busy={busy || auto.running}
+              draft={draft}
+              roles={handRoles.roles}
+              onRoleChange={handRoles.setRole}
+              omakase={omakase}
+              onOmakaseChange={setOmakase}
+              onSubmit={handleSubmit}
+            />
           </div>
         ) : (
           <aside className="action-panel">

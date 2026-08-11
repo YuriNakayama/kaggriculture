@@ -9,6 +9,7 @@ import { ANIMALS, CROPS, PRODUCTS } from '../engine/constants';
 import { auditAction, legalMarket, legalUnitOps, type UnitOpName } from '../engine/legality';
 import type { AnimalId, CropId, GameState, PlayerAction, ShedItemId } from '../engine/types';
 import { MARKET_HELP, OP_HELP } from './opHelp';
+import { ROLE_LABELS, type HandRole } from './useHandRoles';
 import { defaultMarket, type MarketDraft, type TurnDraft, type UnitDraft, type UnitOp } from './useTurnDraft';
 
 const MOVE_OPS = ['NORTH', 'SOUTH', 'EAST', 'WEST'] as const;
@@ -45,10 +46,14 @@ interface Props {
   player: number;
   busy: boolean;
   draft: TurnDraft;
+  roles: Record<number, HandRole>;
+  onRoleChange(unit: number, role: HandRole): void;
+  omakase: boolean;
+  onOmakaseChange(on: boolean): void;
   onSubmit(action: PlayerAction): void;
 }
 
-export function ActionPanel({ state, player, busy, draft, onSubmit }: Props) {
+export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, omakase, onOmakaseChange, onSubmit }: Props) {
   const { farmer, hands, orders, setFarmer, setHand, setOrders } = draft;
   const [noopNotes, setNoopNotes] = useState<string[]>([]);
   const idPrefix = useId();
@@ -245,8 +250,34 @@ export function ActionPanel({ state, player, busy, draft, onSubmit }: Props) {
   return (
     <div className="action-panel">
       <h3>Your turn — Player {player + 1}</h3>
-      {renderUnit('Farmer', 0, farmer, setFarmer)}
-      {hands.map((h, i) => renderUnit(`Hand ${i + 1}`, i + 1, h, (d) => setHand(i, d)))}
+      <label className="omakase-toggle" title="農作業を内蔵 starter 方針に任せ、市場注文だけを操作する上級モード">
+        <input type="checkbox" checked={omakase} onChange={(e) => onOmakaseChange(e.target.checked)} />
+        🤖 おまかせ農場 (市場だけ操作)
+      </label>
+      {omakase ? (
+        <p className="action-hints">農作業は自動で行われます。下の市場注文だけ指定して Submit してください。</p>
+      ) : (
+        <>
+          {renderUnit('Farmer', 0, farmer, setFarmer)}
+          {hands.map((h, i) => (
+            <div key={i} className="hand-block">
+              {renderUnit(`Hand ${i + 1}`, i + 1, h, (d) => setHand(i, d))}
+              <select
+                className="role-select"
+                value={roles[i + 1] ?? 'MANUAL'}
+                title="役割を割り当てると毎ターン自動で行動します"
+                onChange={(e) => onRoleChange(i + 1, e.target.value as HandRole)}
+              >
+                {(Object.keys(ROLE_LABELS) as HandRole[]).map((r) => (
+                  <option key={r} value={r}>
+                    {ROLE_LABELS[r]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </>
+      )}
       <div className="action-section">
         <div className="action-section-header">
           <span>Market orders ({orders.length})</span>

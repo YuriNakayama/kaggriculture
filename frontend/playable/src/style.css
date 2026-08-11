@@ -435,3 +435,17 @@ input, select {
   border-radius: 4px;
   font-size: 13px;
 }
+.omakase-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  background: #182a20;
+  border: 1px solid #4a604a;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.hand-block { display: flex; flex-direction: column; gap: 2px; }
+.role-select { margin-left: 66px; font-size: 11px; align-self: flex-start; }
