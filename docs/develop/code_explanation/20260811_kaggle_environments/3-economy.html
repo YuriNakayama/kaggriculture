@@ -1,0 +1,2712 @@
+<title>Kaggriculture ③ 市場と生産の経済</title>
+<style>
+  :root {
+    --paper: #FBFAF7;
+    --surface: #F4F2EB;
+    --ink: #1F2421;
+    --muted: #6B7269;
+    --accent: #2F6B4F;
+    --accent-soft: #E4EDE6;
+    --signal: #A6532A;
+    --signal-soft: #F4E8DF;
+    --rule: #E3E0D6;
+    --rule-soft: #EFEDE5;
+    --code-bg: #F2F0E8;
+
+    --f-display: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+    --f-body: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --f-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+    --measure: 82ch;
+    --wide: 132ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161916;
+      --surface: #1D211D;
+      --ink: #E6E8E1;
+      --muted: #9AA396;
+      --accent: #7FBF98;
+      --accent-soft: #23302A;
+      --signal: #D9906A;
+      --signal-soft: #33251D;
+      --rule: #2C312C;
+      --rule-soft: #232823;
+      --code-bg: #1A1E1A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #161916;
+    --surface: #1D211D;
+    --ink: #E6E8E1;
+    --muted: #9AA396;
+    --accent: #7FBF98;
+    --accent-soft: #23302A;
+    --signal: #D9906A;
+    --signal-soft: #33251D;
+    --rule: #2C312C;
+    --rule-soft: #232823;
+    --code-bg: #1A1E1A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.75;
+    margin: 0;
+    padding: 0 clamp(1.1rem, 3vw, 2.5rem) 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- masthead ---- */
+
+  header.masthead {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: clamp(3rem, 9vw, 5.5rem) 0 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.1rem;
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+
+  .standfirst {
+    color: var(--muted);
+    font-size: 1.03rem;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    margin: 1.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---- sections ---- */
+
+  section { max-width: var(--measure); margin: 0 auto; }
+
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(1.45rem, 3.6vw, 1.95rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 4.5rem 0 0.4rem;
+    padding-top: 2.2rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  h2 .num {
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    flex: none;
+  }
+
+  .deck {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    padding-left: calc(0.78rem + 0.85rem + 0.6ch);
+    font-size: 0.95rem;
+  }
+
+  h3 {
+    font-family: var(--f-body);
+    font-size: 0.79rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 3.2rem 0 1rem;
+  }
+
+  p { margin: 0 0 1.15rem; text-wrap: pretty; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.855em;
+    background: var(--code-bg);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  strong { font-weight: 650; }
+
+  /* ---- wide content escapes the measure ---- */
+
+  .wide {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  th:last-child, td:last-child { padding-right: 0; }
+  td:first-child, th:first-child { padding-left: 0; }
+
+  thead th {
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--ink);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td code { background: none; padding: 0; }
+  .num-col { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .var, .writer, .mono-col {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .ln {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--f-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding-bottom: 0.7rem;
+  }
+  caption b { color: var(--ink); font-weight: 600; }
+
+  pre {
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1.2rem 1.35rem;
+    margin: 0;
+    overflow-x: auto;
+    tab-size: 2;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .tree { color: var(--muted); }
+  .tree b { color: var(--ink); font-weight: 600; }
+  .tree i { color: var(--accent); font-style: normal; }
+  .tree u { color: var(--signal); text-decoration: none; }
+
+  /* ---- figures ---- */
+
+  figure {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto 2.4rem;
+  }
+  /* Diagrams are drawn on a ~700-unit grid; letting them scale past that
+     inflates the stroke and type without adding information. */
+  figure svg {
+    display: block;
+    width: 100%;
+    max-width: 940px;
+    height: auto;
+    margin: 0 auto;
+    color: var(--ink);
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-top: 0.9rem;
+    text-wrap: pretty;
+  }
+  .svg-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .svg-scroll svg { min-width: 560px; }
+
+  /* ---- callouts ---- */
+
+  .note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 1.05rem 1.3rem;
+    margin: 1.8rem 0;
+    font-size: 0.94rem;
+  }
+  .note p:last-child { margin-bottom: 0; }
+  .note .label {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  .warn { background: var(--signal-soft); border-left-color: var(--signal); }
+  .warn .label { color: var(--signal); }
+
+  /* ---- chips ---- */
+
+  .dir {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.12rem 0.42rem;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .dir-up   { background: var(--accent-soft); color: var(--accent); }
+  .dir-down { background: var(--signal-soft); color: var(--signal); }
+  .dir-set  { background: var(--code-bg); color: var(--muted); }
+
+  .scope {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .scope-shared { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- product cards ---- */
+
+  .card {
+    max-width: min(var(--wide), 100%);
+    margin: 2rem auto;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .card > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    padding: 0.85rem 1.2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+  }
+  .card h4 {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .card .tag {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 2px;
+    background: var(--code-bg);
+    color: var(--muted);
+  }
+  .card .tag-good { background: var(--accent-soft); color: var(--accent); }
+  .card .tag-bad  { background: var(--signal-soft); color: var(--signal); }
+  .card .verdict {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .card-body { padding: 1.1rem 1.2rem 1.3rem; }
+
+  /* timeline */
+  .tl {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    gap: 0;
+    margin: 0 0 1.2rem;
+    font-size: 0.9rem;
+  }
+  .tl dt {
+    font-family: var(--f-mono);
+    font-size: 0.76rem;
+    color: var(--accent);
+    padding: 0.4rem 0.8rem 0.4rem 0;
+    border-right: 2px solid var(--rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tl dd {
+    margin: 0;
+    padding: 0.4rem 0 0.4rem 1rem;
+    border-left: 0;
+    position: relative;
+  }
+  .tl dd::before {
+    content: "";
+    position: absolute;
+    left: -5px; top: 0.85rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .tl dd.pay::before  { background: var(--signal); }
+  .tl dd.wait::before { background: var(--rule); }
+  .tl .op {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    padding: 0.06em 0.35em;
+    border-radius: 3px;
+  }
+  .tl small { color: var(--muted); display: block; font-size: 0.82rem; }
+
+  /* money line */
+  .money {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .money div { background: var(--surface); padding: 0.6rem 0.8rem; }
+  .money dt {
+    font-family: var(--f-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.2rem;
+  }
+  .money dd {
+    margin: 0;
+    font-size: 1.02rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .money dd.neg { color: var(--signal); }
+  .money dd.pos { color: var(--accent); }
+  .money dd small { display: block; font-size: 0.72rem; font-weight: 400; color: var(--muted); }
+
+  /* ---- glossary ---- */
+
+  dl.glossary {
+    max-width: min(var(--wide), 100%);
+    margin: 1.6rem auto 2.4rem;
+    display: grid;
+    grid-template-columns: minmax(9rem, 18rem) 1fr;
+    gap: 0;
+    border-top: 1.5px solid var(--ink);
+  }
+  dl.glossary dt {
+    font-family: var(--f-mono);
+    font-size: 0.82rem;
+    padding: 0.75rem 1.2rem 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 500;
+  }
+  dl.glossary dd {
+    margin: 0;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  dl.glossary dd .en {
+    color: var(--muted);
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+  }
+  @media (max-width: 34rem) {
+    dl.glossary { grid-template-columns: 1fr; }
+    dl.glossary dt { border-bottom: none; padding-bottom: 0.15rem; color: var(--accent); }
+    dl.glossary dd { padding-top: 0.15rem; }
+  }
+
+  /* ---- step list ---- */
+
+  ol.steps {
+    counter-reset: step;
+    list-style: none;
+    margin: 1.6rem 0 2rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 0 0.9rem;
+    align-items: baseline;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 0.28rem;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.steps .title { font-weight: 650; }
+  ol.steps .body { color: var(--muted); font-size: 0.93rem; display: block; margin-top: 0.15rem; }
+  ol.steps .body code { color: var(--ink); }
+
+  ul.plain {
+    margin: 1.2rem 0 1.8rem;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  ul.plain li::marker { color: var(--accent); }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 1.8rem 0 2rem;
+    overflow: hidden;
+  }
+  .strip div { background: var(--surface); padding: 0.95rem 1.1rem; }
+  .strip dt {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.3rem;
+  }
+  .strip dd {
+    margin: 0;
+    font-size: 1.3rem;
+    font-family: var(--f-display);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+  .strip dd small { font-size: 0.78rem; font-family: var(--f-body); color: var(--muted); display: block; margin-top: 0.15rem; }
+
+  footer {
+    max-width: var(--measure);
+    margin: 5rem auto 0;
+    padding-top: 1.8rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<style>
+  /* ---- series navigation ---- */
+  .series {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 1.1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+  }
+  .series a, .series span {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .series a:hover { border-color: var(--accent); color: var(--accent); }
+  .series .here {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .pager {
+    max-width: var(--measure);
+    margin: 4rem auto 0;
+    padding-top: 2rem;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+  .pager a {
+    flex: 1 1 14rem;
+    display: block;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    text-decoration: none;
+    background: var(--surface);
+  }
+  .pager a:hover { border-color: var(--accent); }
+  .pager .dir {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: none;
+    padding: 0;
+    margin-bottom: 0.3rem;
+  }
+  .pager .t {
+    display: block;
+    font-family: var(--f-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .pager .n { text-align: right; }
+  .toc {
+    max-width: var(--measure);
+    margin: 2rem auto 0;
+    padding: 1.1rem 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .toc h2 {
+    all: unset;
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+  .toc ol { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .toc li::marker { color: var(--accent); font-family: var(--f-mono); font-size: 0.8rem; }
+  .toc a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .toc a:hover { border-color: var(--accent); color: var(--accent); }
+  @media print { .series, .pager { display: none; } }
+</style>
+
+<header class="masthead">
+  <p class="eyebrow">実装分析 / kaggle-environments</p>
+  <h1>③ 市場と生産の経済</h1>
+  <p class="standfirst">価格がどう決まり、何をどれだけ作れば、いくらで売れるのか。</p>
+  <ul class="meta">
+    <li><b>対象</b> envs/kaggriculture/kaggriculture.py</li>
+    <li><b>ルール本体</b> 1,073 行</li>
+    <li><b>フレームワーク</b> core.py 772 行</li>
+  </ul>
+  <nav class="series" aria-label="この資料の構成">
+<a href="1-environment.html">① 環境の仕組み</a>
+<a href="2-interface.html">② 観測と行動</a>
+<span class="here" aria-current="page">③ 市場と生産</span>
+</nav>
+</header>
+
+<div class="toc">
+  <h2>このページの内容</h2>
+  <ol>
+      <li><a href="#s00">00 在庫と価格の基礎</a></li>
+      <li><a href="#s01">01 商品ごとの値動き</a></li>
+      <li><a href="#s02">02 売却のタイミング</a></li>
+      <li><a href="#s03">03 商品を作る</a></li>
+      <li><a href="#s04">04 生産の仕組み（詳細）</a></li>
+  </ol>
+</div>
+
+
+<section id="s00">
+  <h2><span class="num">00</span> 在庫と価格の基礎</h2>
+  <p class="deck">2 種類の在庫を区別し、価格計算のロジックを追う。</p>
+
+<h3>2 種類の「在庫」を区別する</h3>
+
+  <p>
+    この環境には名前が似た在庫が 2 つあり、混同すると価格の動きが読めなくなる。
+    <strong>持ち物としての在庫</strong>と、<strong>値段を決める世界全体の在庫</strong>は別物である。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 300" role="img"
+           aria-label="倉庫在庫は各プレイヤー固有で相手から見えない。市場在庫は世界に一つで両者が共有し、価格を決める。">
+        <defs>
+          <marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+          <marker id="ar7a" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="var(--accent)"></polygon>
+          </marker>
+        </defs>
+
+        <!-- player sheds -->
+        <rect x="14" y="30" width="180" height="72" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.4"></rect>
+        <text x="104" y="52" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--signal)">自分の倉庫在庫</text>
+        <text x="104" y="70" text-anchor="middle" font-size="10" font-family="monospace" fill="var(--signal)">private["shed"]</text>
+        <text x="104" y="88" text-anchor="middle" font-size="10" fill="var(--signal)">例：メロン 12 個</text>
+
+        <rect x="14" y="196" width="180" height="72" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3"></rect>
+        <text x="104" y="218" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">相手の倉庫在庫</text>
+        <text x="104" y="236" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.7">観測に含まれない</text>
+        <text x="104" y="254" text-anchor="middle" font-size="10" fill="var(--signal)">見えない ＝ 推定するしかない</text>
+
+        <line x1="196" y1="66" x2="274" y2="120" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#ar7a)"></line>
+        <text x="228" y="82" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--accent)">売る</text>
+        <line x1="196" y1="232" x2="274" y2="178" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ar7)"></line>
+        <text x="228" y="222" text-anchor="middle" font-size="9.5" fill="currentColor">相手も売る</text>
+
+        <!-- market -->
+        <rect x="276" y="106" width="180" height="86" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"></rect>
+        <text x="366" y="130" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--accent)">市場在庫</text>
+        <text x="366" y="148" text-anchor="middle" font-size="10" font-family="monospace" fill="var(--accent)">market["inventory"]</text>
+        <text x="366" y="166" text-anchor="middle" font-size="10" fill="var(--accent)">世界に 1 つだけ</text>
+        <text x="366" y="183" text-anchor="middle" font-size="10" fill="var(--accent)">初期値は全商品 10,000</text>
+
+        <text x="366" y="212" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">町が定期的に買って減らす</text>
+        <path d="M 366 218 L 366 240" fill="none" stroke="currentColor" stroke-width="1.1" marker-end="url(#ar7)"></path>
+        <rect x="300" y="242" width="132" height="30" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1"></rect>
+        <text x="366" y="262" text-anchor="middle" font-size="10" fill="currentColor">町の需要</text>
+
+        <line x1="458" y1="149" x2="516" y2="149" stroke="var(--accent)" stroke-width="1.8" marker-end="url(#ar7a)"></line>
+        <text x="487" y="141" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--accent)">決める</text>
+
+        <rect x="518" y="106" width="168" height="86" rx="2" fill="var(--paper)" stroke="var(--accent)" stroke-width="1.4"></rect>
+        <text x="602" y="132" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--accent)">価格</text>
+        <text x="602" y="152" text-anchor="middle" font-size="10" fill="currentColor">在庫だけの関数</text>
+        <text x="602" y="170" text-anchor="middle" font-size="10" fill="currentColor">時間も需要も</text>
+        <text x="602" y="185" text-anchor="middle" font-size="10" fill="currentColor">直接には影響しない</text>
+
+        <text x="14" y="20" font-size="12" font-weight="600" fill="currentColor">持ち物としての在庫（プレイヤーごと）と、値段を決める在庫（世界に 1 つ）</text>
+        <text x="518" y="212" font-size="10" fill="currentColor" opacity="0.75">町の需要は在庫を減らすことで</text>
+        <text x="518" y="227" font-size="10" fill="currentColor" opacity="0.75">間接的に価格を押し上げる</text>
+      </svg>
+    </div>
+    <figcaption>
+      倉庫在庫は「自分が何個持っているか」、市場在庫は「世界にどれだけ出回っているか」。
+      売却はこの 2 つを<strong>同時に動かす</strong> —— 倉庫が 1 減り、市場が 1 増える。
+      価格を決めるのは後者だけなので、<strong>自分の売却が自分の売値を下げる</strong>。
+    </figcaption>
+  </figure>
+
+  <div class="wide">
+    <table>
+      <caption><b>2 つの在庫の対比</b></caption>
+      <thead>
+        <tr><th></th><th>倉庫在庫</th><th>市場在庫</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>意味</strong></td>
+          <td>自分が今持っている個数</td>
+          <td>その商品が世界にどれだけ出回っているか</td>
+        </tr>
+        <tr>
+          <td><strong>置き場所</strong></td>
+          <td class="mono-col">private["shed"]</td>
+          <td class="mono-col">market["inventory"]</td>
+        </tr>
+        <tr>
+          <td><strong>数</strong></td>
+          <td>プレイヤーごとに 1 つずつ（計 2 つ）</td>
+          <td><strong>世界に 1 つだけ。両者が共有する</strong></td>
+        </tr>
+        <tr>
+          <td><strong>初期値</strong></td>
+          <td>全商品 0 個</td>
+          <td>全商品 10,000 個</td>
+        </tr>
+        <tr>
+          <td><strong>上限</strong></td>
+          <td>合計 100 個（超過分は捨てられる）</td>
+          <td>上限なし</td>
+        </tr>
+        <tr>
+          <td><strong>相手から</strong></td>
+          <td><span class="dir dir-down">見えない</span></td>
+          <td><span class="dir dir-up">見える</span>（観測に含まれる）</td>
+        </tr>
+        <tr>
+          <td><strong>価格への影響</strong></td>
+          <td>なし。何個持っていても値段は変わらない</td>
+          <td><strong>これだけが価格を決める</strong></td>
+        </tr>
+        <tr>
+          <td><strong>売却したとき</strong></td>
+          <td><span class="dir dir-down">1 減る</span></td>
+          <td><span class="dir dir-up">1 増える</span> → 価格が下がる</td>
+        </tr>
+        <tr>
+          <td><strong>終了時の価値</strong></td>
+          <td><strong>0。売れ残りは得点にならない</strong></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>価格はどう決まるか</h3>
+
+  <p>
+    価格は市場在庫だけの関数である。基準となるのが <strong>10,000 個</strong>という数値で、
+    全商品で共通のこの値を本稿では<strong>均衡在庫</strong>と呼ぶ
+    （コード上の名前は <code>I0</code>）。
+    市場在庫がちょうど均衡在庫に等しいとき、価格は商品ごとに決められた<strong>基準価格</strong>に一致する。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 300" role="img"
+           aria-label="価格曲線。均衡在庫1万個を境に、下回れば値上がり、上回れば値下がりする。">
+        <defs>
+          <marker id="ar8" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <!-- axes -->
+        <line x1="70" y1="248" x2="640" y2="248" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar8)"></line>
+        <line x1="70" y1="248" x2="70" y2="34" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar8)"></line>
+        <text x="644" y="252" font-size="10.5" fill="currentColor">市場在庫</text>
+        <text x="70" y="26" text-anchor="middle" font-size="10.5" fill="currentColor">価格</text>
+
+        <!-- equilibrium line -->
+        <line x1="355" y1="40" x2="355" y2="256" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="5 4"></line>
+        <text x="355" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)">均衡在庫 10,000</text>
+        <circle cx="355" cy="150" r="4" fill="var(--accent)"></circle>
+        <line x1="70" y1="150" x2="355" y2="150" stroke="var(--accent)" stroke-width="0.9" stroke-dasharray="3 3" opacity="0.6"></line>
+        <text x="66" y="154" text-anchor="end" font-size="10" fill="var(--accent)">基準価格</text>
+
+        <!-- curve: below (rising to the left), above (falling to the right) -->
+        <path d="M 90 56 C 150 78, 250 122, 355 150" fill="none" stroke="currentColor" stroke-width="2.2"></path>
+        <path d="M 355 150 C 400 186, 440 232, 520 240" fill="none" stroke="var(--signal)" stroke-width="2.2"></path>
+        <line x1="520" y1="240" x2="636" y2="240" stroke="var(--signal)" stroke-width="2.2"></line>
+
+        <!-- floor -->
+        <line x1="70" y1="240" x2="640" y2="240" stroke="var(--signal)" stroke-width="0.9" stroke-dasharray="3 3" opacity="0.55"></line>
+        <text x="66" y="244" text-anchor="end" font-size="10" fill="var(--signal)">$1</text>
+        <text x="578" y="232" text-anchor="middle" font-size="10" font-weight="600" fill="var(--signal)">下限。これ以下にならない</text>
+
+        <!-- annotations -->
+        <rect x="96" y="70" width="176" height="52" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1" opacity="0.96"></rect>
+        <text x="184" y="90" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor">品薄（在庫が均衡未満）</text>
+        <text x="184" y="107" text-anchor="middle" font-size="10" fill="currentColor">基準より高く売れる</text>
+
+        <rect x="392" y="86" width="196" height="52" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1" opacity="0.96"></rect>
+        <text x="490" y="106" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--signal)">供給過多（在庫が均衡超）</text>
+        <text x="490" y="123" text-anchor="middle" font-size="10" fill="var(--signal)">基準より安くしか売れない</text>
+
+        <!-- direction of selling -->
+        <line x1="380" y1="196" x2="452" y2="196" stroke="var(--signal)" stroke-width="1.4" marker-end="url(#ar8)"></line>
+        <text x="416" y="212" text-anchor="middle" font-size="9.5" fill="var(--signal)">売るほど右へ進む</text>
+
+        <text x="70" y="292" font-size="10" fill="currentColor" opacity="0.7">左右で曲線の形が違う。どちらの形になるかは商品ごとに決められている。</text>
+      </svg>
+    </div>
+    <figcaption>
+      価格曲線の全体像。均衡在庫を境に左右で<strong>別々の曲線</strong>が使われ、
+      左（品薄）では基準価格より高く、右（供給過多）では安くなる。
+      売却は在庫を右へ動かすので、売り進むほど条件が悪化する。
+    </figcaption>
+  </figure>
+
+  <h3>価格計算のロジック</h3>
+
+  <p>
+    価格関数（ルール本体 179 行）を、実際の定数を入れた形で書き下すと以下になる。
+    <strong>入力は市場在庫だけ</strong>で、日付・所持金・相手の状態は一切関与しない。
+  </p>
+
+  <div class="wide">
+<pre><code><i># ── 使われる 5 つの曲線 ───────────────────────────────</i>
+def 曲線(種類, x):
+    x = max(0, x)
+    linear → x           <i># そのまま</i>
+    sq     → x * x       <i># 2 乗。急激</i>
+    sqrt   → √x          <i># 平方根。緩やか</i>
+    log    → ln(1 + x)   <i># 対数。最も緩やか。x=0 で 0 になるよう 1 を足す</i>
+    log10  → log₁₀(1 + x)
+
+<i># ── 増幅率は「T 個売ったら target 割動く」から逆算する ──────</i>
+増幅率 = target × 基準価格 / 曲線(種類, T)
+<i>#        ↑ここが設計の要。増幅率を直接決めるのではなく、</i>
+<i>#          「1 区画分（T 個）を売り切ったときの下落幅」を指定している</i>
+
+<i># ── 価格 ───────────────────────────────────────</i>
+def 価格(市場在庫):
+    if 市場在庫 &lt; 10000:                       <i># ── 品薄側 ──</i>
+        差 = 10000 - 市場在庫
+        p = 基準価格 + 増幅率_下 × 曲線(種類_下, 差)
+    else:                                     <i># ── 供給過多側 ──</i>
+        差 = 市場在庫 - 10000
+        p = 基準価格 - 増幅率_上 × 曲線(種類_上, 差)
+
+    return max(1, round(p))                   <i># 下限 $1、整数に丸める</i></code></pre>
+  </div>
+
+  <div class="note">
+    <span class="label">T が意味を決めている</span>
+    <p>
+      <code>T</code> は「1 区画（5×5）を 24 日間フル稼働させたときの生産量」で、
+      商品ごとに違う（苺 100、小麦 400 など）。
+      <code>target</code> は「その T 個を売ったら基準価格の何割ぶん動くか」。
+      たとえば苺は <code>above_target = 1.60</code> なので、
+      <strong>100 個売ると基準価格の 1.6 倍ぶん下がる</strong> ——
+      基準が $120 なので $192 下がることになり、当然 $1 の床に突き当たる。
+      <strong>「1 区画で作れる量」が価格設計の物差しになっている</strong>のがこの環境の核心である。
+    </p>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>9 商品の全パラメータ</b> — 増幅率は上の式から計算した実際の値</caption>
+      <thead>
+        <tr>
+          <th>商品</th><th class="num-col">基準価格</th><th class="num-col">T</th>
+          <th>品薄側</th><th class="num-col">下 target</th><th class="num-col">増幅率</th>
+          <th>過多側</th><th class="num-col">上 target</th><th class="num-col">増幅率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>小麦</td><td class="num-col">$25</td><td class="num-col">400</td>
+            <td class="mono-col">sqrt</td><td class="num-col">0.80</td><td class="num-col">1.000</td>
+            <td class="mono-col">log</td><td class="num-col">0.20</td><td class="num-col">0.834</td></tr>
+        <tr><td>人参</td><td class="num-col">$35</td><td class="num-col">450</td>
+            <td class="mono-col">log</td><td class="num-col">0.20</td><td class="num-col">1.145</td>
+            <td class="mono-col">sqrt</td><td class="num-col">0.70</td><td class="num-col">1.155</td></tr>
+        <tr><td>トマト</td><td class="num-col">$60</td><td class="num-col">200</td>
+            <td class="mono-col">linear</td><td class="num-col">0.40</td><td class="num-col">0.120</td>
+            <td class="mono-col">sqrt</td><td class="num-col">0.60</td><td class="num-col">2.546</td></tr>
+        <tr><td>苺</td><td class="num-col">$120</td><td class="num-col">100</td>
+            <td class="mono-col">sqrt</td><td class="num-col">0.70</td><td class="num-col">8.400</td>
+            <td class="mono-col">linear</td><td class="num-col">1.60</td><td class="num-col">1.920</td></tr>
+        <tr><td>メロン</td><td class="num-col">$250</td><td class="num-col">300</td>
+            <td class="mono-col">log</td><td class="num-col">0.20</td><td class="num-col">8.761</td>
+            <td class="mono-col">sq</td><td class="num-col">3.60</td><td class="num-col">0.0100</td></tr>
+        <tr><td>卵</td><td class="num-col">$50</td><td class="num-col">332</td>
+            <td class="mono-col">linear</td><td class="num-col">0.40</td><td class="num-col">0.060</td>
+            <td class="mono-col">log</td><td class="num-col">0.20</td><td class="num-col">1.722</td></tr>
+        <tr><td>牛乳</td><td class="num-col">$160</td><td class="num-col">122</td>
+            <td class="mono-col">sqrt</td><td class="num-col">0.60</td><td class="num-col">8.691</td>
+            <td class="mono-col">linear</td><td class="num-col">1.60</td><td class="num-col">2.098</td></tr>
+        <tr><td>羊毛</td><td class="num-col">$200</td><td class="num-col">105</td>
+            <td class="mono-col">log</td><td class="num-col">0.20</td><td class="num-col">8.577</td>
+            <td class="mono-col">sq</td><td class="num-col">3.20</td><td class="num-col">0.0581</td></tr>
+        <tr><td>肥料</td><td class="num-col">$100</td><td class="num-col">200</td>
+            <td class="mono-col">linear</td><td class="num-col">0.40</td><td class="num-col">0.200</td>
+            <td class="mono-col">linear</td><td class="num-col">0.40</td><td class="num-col">0.200</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">増幅率の絶対値を比べても意味がない</span>
+    <p>
+      メロンの増幅率 0.0100 は小麦の 0.834 よりずっと小さいが、
+      メロンのほうが遥かに急落する。<strong>曲線の種類が違うため</strong>で、
+      メロンは 2 乗（差 100 なら 10,000 倍）、小麦は対数（差 100 でも 4.6 倍）だからである。
+      崩れやすさは <strong>曲線の種類で決まり、増幅率はその微調整</strong>と読むのが正しい。
+    </p>
+  </div>
+
+  </section>
+
+<section id="s01">
+  <h2><span class="num">01</span> 商品ごとの値動き</h2>
+  <p class="deck">9 商品が実際にどう崩れるか。すべて計算した値。</p>
+
+<h3>商品ごとの解説</h3>
+
+  <p>
+    以下はすべて、上の式に実際の定数を入れて計算した値である。
+    「床まで」は均衡から何個売ると $1 になるか、
+    「T 売却の総収入」は T 個を 1 個ずつ売り切ったときの合計額で、
+    括弧内は<strong>値崩れしなかった場合（基準価格 × T）に対する割合</strong>である。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>9 商品の実測特性</b></caption>
+      <thead>
+        <tr>
+          <th>商品</th><th class="num-col">基準</th>
+          <th class="num-col">+10</th><th class="num-col">+50</th><th class="num-col">+100</th>
+          <th class="num-col">床まで</th><th class="num-col">半値まで</th>
+          <th class="num-col">T 売却の総収入</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>小麦</td><td class="num-col">$25</td>
+          <td class="num-col">$23</td><td class="num-col">$22</td><td class="num-col">$21</td>
+          <td class="num-col">—</td><td class="num-col">—</td>
+          <td class="num-col">$8,313 <span class="ln">(83%)</span></td>
+        </tr>
+        <tr>
+          <td>卵</td><td class="num-col">$50</td>
+          <td class="num-col">$46</td><td class="num-col">$43</td><td class="num-col">$42</td>
+          <td class="num-col">—</td><td class="num-col">—</td>
+          <td class="num-col">$13,839 <span class="ln">(83%)</span></td>
+        </tr>
+        <tr>
+          <td>肥料</td><td class="num-col">$100</td>
+          <td class="num-col">$98</td><td class="num-col">$90</td><td class="num-col">$80</td>
+          <td class="num-col">493</td><td class="num-col">248</td>
+          <td class="num-col">$16,020 <span class="ln">(80%)</span></td>
+        </tr>
+        <tr>
+          <td>トマト</td><td class="num-col">$60</td>
+          <td class="num-col">$52</td><td class="num-col">$42</td><td class="num-col">$35</td>
+          <td class="num-col">529</td><td class="num-col">135</td>
+          <td class="num-col">$7,221 <span class="ln">(60%)</span></td>
+        </tr>
+        <tr>
+          <td>人参</td><td class="num-col">$35</td>
+          <td class="num-col">$31</td><td class="num-col">$27</td><td class="num-col">$23</td>
+          <td class="num-col">842</td><td class="num-col">230</td>
+          <td class="num-col">$8,418 <span class="ln">(53%)</span></td>
+        </tr>
+        <tr>
+          <td><strong>羊毛</strong></td><td class="num-col">$200</td>
+          <td class="num-col">$194</td><td class="num-col">$55</td><td class="num-col"><strong>$1</strong></td>
+          <td class="num-col"><strong>59</strong></td><td class="num-col">42</td>
+          <td class="num-col">$7,974 <span class="ln">(38%)</span></td>
+        </tr>
+        <tr>
+          <td><strong>メロン</strong></td><td class="num-col">$250</td>
+          <td class="num-col">$249</td><td class="num-col">$225</td><td class="num-col">$150</td>
+          <td class="num-col"><strong>158</strong></td><td class="num-col">112</td>
+          <td class="num-col">$26,627 <span class="ln">(36%)</span></td>
+        </tr>
+        <tr>
+          <td><strong>苺</strong></td><td class="num-col">$120</td>
+          <td class="num-col">$101</td><td class="num-col">$24</td><td class="num-col"><strong>$1</strong></td>
+          <td class="num-col"><strong>62</strong></td><td class="num-col">31</td>
+          <td class="num-col">$3,847 <span class="ln">(32%)</span></td>
+        </tr>
+        <tr>
+          <td><strong>牛乳</strong></td><td class="num-col">$160</td>
+          <td class="num-col">$139</td><td class="num-col">$55</td><td class="num-col"><strong>$1</strong></td>
+          <td class="num-col"><strong>76</strong></td><td class="num-col">38</td>
+          <td class="num-col">$6,227 <span class="ln">(32%)</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>3 つの型に分かれる</b></caption>
+      <thead>
+        <tr><th>型</th><th>商品</th><th>性格</th><th>売り方</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>崩れない</strong><br><span class="ln">対数</span></td>
+          <td>小麦 $25<br>卵 $50</td>
+          <td>いくら売っても床に届かない。T 個売っても定価の <strong>83%</strong> を保つ。
+              小麦は動物の餌にも使うため自家消費先がある</td>
+          <td>まとめ売りしてよい。<strong>売り時を考えなくてよい唯一の型</strong></td>
+        </tr>
+        <tr>
+          <td><strong>素直に減る</strong><br><span class="ln">線形・平方根</span></td>
+          <td>肥料 $100<br>トマト $60<br>人参 $35</td>
+          <td>売った分だけ緩やかに下がる。床は遠い（500〜850 個）ので
+              1 区画分では到達しない</td>
+          <td>ある程度まとめてよいが、分割すると効率が上がる</td>
+        </tr>
+        <tr>
+          <td><strong>急落する</strong><br><span class="ln">2 乗・線形（高単価）</span></td>
+          <td>メロン $250<br>羊毛 $200<br>牛乳 $160<br>苺 $120</td>
+          <td><strong>床に届く個数が 1 区画の生産量より少ない</strong>。
+              作り切ると必ず一部を $1 で捨てることになる</td>
+          <td>少量ずつ、町の需要が吸うのを待ちながら売る</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">高単価は「儲かる」ではなく「上限が高い」</span>
+    <p>
+      T 個を売り切ったときの総収入を見ると、
+      <strong>メロンは 300 個で $26,627 と全商品中の最高</strong>である。定価比では 36% しか回収できていないのに、
+      それでも小麦の $8,313 の 3 倍を超える。
+      つまり<strong>「崩れやすい ＝ 弱い」ではない</strong> —— 単価が高い商品は、
+      値崩れしてもなお総額で上回りうる。
+    </p>
+    <p>
+      逆に苺は定価 $120 と高めでも T が 100 と小さく、総収入 $3,847 で全商品中の最低になる。
+      判断材料は単価でも崩れやすさでもなく、<strong>単価 × 生産量 × 売り切れる割合</strong>の積である。
+    </p>
+  </div>
+
+  <h3>9 商品の下落曲線を重ねる</h3>
+
+  <p>
+    横軸は<strong>均衡在庫から何個売ったか</strong>、縦軸は<strong>基準価格に対する割合</strong>。
+    単価が違う商品を比べるため縦軸を正規化してある（上端が定価、下端が 0）。
+    すべて価格関数で実際に計算した値である。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 400" role="img"
+           aria-label="9商品の価格下落曲線。小麦と卵はほぼ水平、苺・牛乳・羊毛は50個以内に床へ落ちる。">
+        <defs>
+          <marker id="arC" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <g transform="translate(56,26)">
+          <!-- grid -->
+          <g stroke="currentColor" stroke-width="0.6" opacity="0.16">
+            <line x1="0" y1="0" x2="560" y2="0"></line>
+            <line x1="0" y1="70" x2="560" y2="70"></line>
+            <line x1="0" y1="140" x2="560" y2="140"></line>
+            <line x1="0" y1="210" x2="560" y2="210"></line>
+            <line x1="140" y1="0" x2="140" y2="280"></line>
+            <line x1="280" y1="0" x2="280" y2="280"></line>
+            <line x1="420" y1="0" x2="420" y2="280"></line>
+          </g>
+
+          <!-- y labels -->
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="end">
+            <text x="-8" y="4">定価</text>
+            <text x="-8" y="74">75%</text>
+            <text x="-8" y="144">50%</text>
+            <text x="-8" y="214">25%</text>
+            <text x="-8" y="284">$1</text>
+          </g>
+          <!-- x labels -->
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="middle">
+            <text x="0" y="298">0</text>
+            <text x="140" y="298">40</text>
+            <text x="280" y="298">80</text>
+            <text x="420" y="298">120</text>
+            <text x="560" y="298">160 個</text>
+          </g>
+
+          <!-- axes -->
+          <line x1="0" y1="0" x2="0" y2="280" stroke="currentColor" stroke-width="1.2"></line>
+          <line x1="0" y1="280" x2="566" y2="280" stroke="currentColor" stroke-width="1.2" marker-end="url(#arC)"></line>
+
+          <!-- curves: flat group (muted) -->
+          <path d="M 0,0 L 14,11 L 28,22 L 42,22 L 56,22 L 70,34 L 84,34 L 98,34 L 112,34 L 126,34 L 140,34 L 154,34 L 168,34 L 182,34 L 196,34 L 210,34 L 224,34 L 238,45 L 252,45 L 266,45 L 280,45 L 294,45 L 308,45 L 322,45 L 336,45 L 350,45 L 364,45 L 378,45 L 392,45 L 406,45 L 420,45 L 434,45 L 448,45 L 462,45 L 476,45 L 490,45 L 504,45 L 518,45 L 532,45 L 546,45 L 560,45"
+                fill="none" stroke="currentColor" stroke-width="2" opacity="0.85"></path>
+          <text x="566" y="48" font-size="10.5" font-weight="600" fill="currentColor">小麦</text>
+
+          <path d="M 0,0 L 14,17 L 28,22 L 42,22 L 56,28 L 70,28 L 84,34 L 98,34 L 112,34 L 126,34 L 140,34 L 154,39 L 168,39 L 182,39 L 196,39 L 210,39 L 224,39 L 238,39 L 252,39 L 266,39 L 280,45 L 294,45 L 308,45 L 322,45 L 336,45 L 350,45 L 364,45 L 378,45 L 392,45 L 406,45 L 420,45 L 434,45 L 448,45 L 462,45 L 476,45 L 490,50 L 504,50 L 518,50 L 532,50 L 546,50 L 560,50"
+                fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 3" opacity="0.7"></path>
+          <text x="566" y="62" font-size="10.5" fill="currentColor" opacity="0.8">卵</text>
+
+          <path d="M 0,0 L 14,3 L 28,6 L 42,6 L 56,8 L 70,11 L 84,14 L 98,17 L 112,17 L 126,20 L 140,22 L 154,25 L 168,28 L 182,28 L 196,31 L 210,34 L 224,36 L 238,39 L 252,39 L 266,42 L 280,45 L 294,48 L 308,50 L 322,50 L 336,53 L 350,56 L 364,59 L 378,62 L 392,62 L 406,64 L 420,67 L 434,70 L 448,73 L 462,73 L 476,76 L 490,78 L 504,81 L 518,84 L 532,84 L 546,87 L 560,90"
+                fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.5"></path>
+          <text x="566" y="93" font-size="10.5" fill="currentColor" opacity="0.65">肥料</text>
+
+          <path d="M 0,0 L 14,16 L 28,24 L 42,32 L 56,40 L 70,40 L 84,48 L 98,48 L 112,56 L 126,56 L 140,56 L 154,64 L 168,64 L 182,64 L 196,72 L 210,72 L 224,72 L 238,80 L 252,80 L 266,80 L 280,80 L 294,88 L 308,88 L 322,88 L 336,88 L 350,96 L 364,96 L 378,96 L 392,96 L 406,96 L 420,104 L 434,104 L 448,104 L 462,104 L 476,104 L 490,112 L 504,112 L 518,112 L 532,112 L 546,112 L 560,120"
+                fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.5"></path>
+          <text x="566" y="123" font-size="10.5" fill="currentColor" opacity="0.65">人参</text>
+
+          <path d="M 0,0 L 14,23 L 28,33 L 42,42 L 56,47 L 70,51 L 84,56 L 98,61 L 112,65 L 126,70 L 140,75 L 154,79 L 168,84 L 182,84 L 196,89 L 210,93 L 224,93 L 238,98 L 252,103 L 266,103 L 280,107 L 294,107 L 308,112 L 322,112 L 336,117 L 350,117 L 364,121 L 378,121 L 392,126 L 406,126 L 420,131 L 434,131 L 448,135 L 462,135 L 476,140 L 490,140 L 504,145 L 518,145 L 532,145 L 546,149 L 560,149"
+                fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.5"></path>
+          <text x="566" y="152" font-size="10.5" fill="currentColor" opacity="0.65">トマト</text>
+
+          <!-- crash group (signal colour) -->
+          <path d="M 0,0 L 14,0 L 28,1 L 42,1 L 56,3 L 70,4 L 84,7 L 98,9 L 112,11 L 126,15 L 140,18 L 154,21 L 168,26 L 182,30 L 196,35 L 210,40 L 224,46 L 238,52 L 252,58 L 266,65 L 280,72 L 294,80 L 308,86 L 322,95 L 336,103 L 350,112 L 364,121 L 378,131 L 392,140 L 406,151 L 420,161 L 434,172 L 448,184 L 462,195 L 476,207 L 490,220 L 504,232 L 518,245 L 532,259 L 546,272 L 560,279"
+                fill="none" stroke="var(--signal)" stroke-width="2.4"></path>
+          <text x="500" y="272" font-size="10.5" font-weight="600" fill="var(--signal)">メロン</text>
+
+          <path d="M 0,0 L 14,1 L 28,6 L 42,11 L 56,21 L 70,32 L 84,46 L 98,64 L 112,83 L 126,105 L 140,130 L 154,157 L 168,188 L 182,220 L 196,255 L 210,279 L 224,279 L 238,279 L 252,279 L 266,279 L 280,279 L 294,279 L 308,279 L 322,279 L 336,279 L 350,279 L 364,279 L 378,279 L 392,279 L 406,279 L 420,279 L 434,279 L 448,279 L 462,279 L 476,279 L 490,279 L 504,279 L 518,279 L 532,279 L 546,279 L 560,279"
+                fill="none" stroke="var(--signal)" stroke-width="2.4"></path>
+          <text x="216" y="272" font-size="10.5" font-weight="600" fill="var(--signal)">羊毛</text>
+
+          <path d="M 0,0 L 14,14 L 28,30 L 42,44 L 56,60 L 70,74 L 84,88 L 98,103 L 112,117 L 126,133 L 140,147 L 154,161 L 168,177 L 182,191 L 196,206 L 210,220 L 224,234 L 238,250 L 252,264 L 266,278 L 280,278 L 294,278 L 308,278 L 322,278 L 336,278 L 350,278 L 364,278 L 378,278 L 392,278 L 406,278 L 420,278 L 434,278 L 448,278 L 462,278 L 476,278 L 490,278 L 504,278 L 518,278 L 532,278 L 546,278 L 560,278"
+                fill="none" stroke="var(--signal)" stroke-width="1.8" stroke-dasharray="6 3"></path>
+          <text x="272" y="258" font-size="10.5" fill="var(--signal)">牛乳</text>
+
+          <path d="M 0,0 L 14,19 L 28,35 L 42,54 L 56,72 L 70,89 L 84,107 L 98,126 L 112,142 L 126,161 L 140,180 L 154,196 L 168,215 L 182,233 L 196,252 L 210,268 L 224,278 L 238,278 L 252,278 L 266,278 L 280,278 L 294,278 L 308,278 L 322,278 L 336,278 L 350,278 L 364,278 L 378,278 L 392,278 L 406,278 L 420,278 L 434,278 L 448,278 L 462,278 L 476,278 L 490,278 L 504,278 L 518,278 L 532,278 L 546,278 L 560,278"
+                fill="none" stroke="var(--signal)" stroke-width="1.8" stroke-dasharray="2 3"></path>
+          <text x="150" y="248" font-size="10.5" fill="var(--signal)">苺</text>
+
+          <!-- floor -->
+          <line x1="0" y1="280" x2="560" y2="280" stroke="var(--signal)" stroke-width="1" opacity="0.5"></line>
+
+          <!-- annotation band -->
+          <rect x="0" y="0" width="196" height="280" fill="var(--signal)" opacity="0.05"></rect>
+          <text x="98" y="-10" text-anchor="middle" font-size="10" fill="var(--signal)">この幅で 4 商品が床に落ちる</text>
+        </g>
+
+        <text x="14" y="392" font-size="10.5" fill="currentColor" opacity="0.7">縦軸は基準価格に対する割合（商品ごとに正規化）。横軸は均衡在庫からの累計売却個数。</text>
+      </svg>
+    </div>
+    <figcaption>
+      9 商品の下落曲線を重ねたもの。<strong>小麦と卵はほぼ水平</strong>で、160 個売っても定価の 8 割を保つ。
+      対して<strong>苺・牛乳・羊毛は 60〜80 個で床に着く</strong>。
+      メロンだけは形が違い、序盤はほぼ水平なのに 100 個を超えると急降下する（2 乗曲線）。
+    </figcaption>
+  </figure>
+
+  <div class="note">
+    <span class="label">メロンの形が特殊</span>
+    <p>
+      2 乗曲線は差が小さいうちは効かない。メロンは
+      <strong>+50 個までは定価の 9 割を保つのに、+158 個で床</strong>に着く。
+      つまり<strong>「安全な量」がはっきり存在し、その先で崖になる</strong>タイプで、
+      線形の苺・牛乳（最初から一定の傾きで下がる）とは売り方の考え方が変わる。
+    </p>
+  </div>
+
+  <h3>実際の金額で見る — 価格帯ごとの比較</h3>
+
+  <p>
+    上のグラフは正規化してあるため、<strong>「どちらが高く売れるか」は読み取れない</strong>。
+    そこで縦軸を実際のドル額にしたものを、価格帯の近い商品どうしで 3 組に分けて示す。
+    縦軸・横軸ともに正規化していないので、<strong>線の高さがそのまま手取り単価</strong>になる。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 640 320" role="img"
+           aria-label="低価格帯4商品の実額グラフ。トマトが最も高い位置から下がり、卵と交差する。">
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">低価格帯 — 小麦 $25 / 人参 $35 / 卵 $50 / トマト $60</text>
+
+        <g transform="translate(56,32)">
+          <g stroke="currentColor" stroke-width="0.6" opacity="0.16">
+            <line x1="0" y1="0" x2="520" y2="0"></line>
+            <line x1="0" y1="80" x2="520" y2="80"></line>
+            <line x1="0" y1="160" x2="520" y2="160"></line>
+            <line x1="130" y1="0" x2="130" y2="240"></line>
+            <line x1="260" y1="0" x2="260" y2="240"></line>
+            <line x1="390" y1="0" x2="390" y2="240"></line>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="end">
+            <text x="-8" y="4">$90</text>
+            <text x="-8" y="84">$60</text>
+            <text x="-8" y="164">$30</text>
+            <text x="-8" y="244">$0</text>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="middle">
+            <text x="0" y="260">0</text>
+            <text x="130" y="260">40</text>
+            <text x="260" y="260">80</text>
+            <text x="390" y="260">120</text>
+            <text x="520" y="260">160 個</text>
+          </g>
+          <line x1="0" y1="0" x2="0" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+          <line x1="0" y1="240" x2="524" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+
+          <path d="M 0,80 L 13,93 L 26,99 L 39,104 L 52,107 L 65,109 L 78,112 L 91,115 L 104,117 L 117,120 L 130,123 L 143,125 L 156,128 L 169,128 L 182,131 L 195,133 L 208,133 L 221,136 L 234,139 L 247,139 L 260,141 L 273,141 L 286,144 L 299,144 L 312,147 L 325,147 L 338,149 L 351,149 L 364,152 L 377,152 L 390,155 L 403,155 L 416,157 L 429,157 L 442,160 L 455,160 L 468,163 L 481,163 L 494,163 L 507,165 L 520,165"
+                fill="none" stroke="var(--signal)" stroke-width="2.2"></path>
+          <text x="526" y="168" font-size="10.5" font-weight="600" fill="var(--signal)">トマト</text>
+
+          <path d="M 0,107 L 13,115 L 26,117 L 39,117 L 52,120 L 65,120 L 78,123 L 91,123 L 104,123 L 117,123 L 130,123 L 143,125 L 156,125 L 169,125 L 182,125 L 195,125 L 208,125 L 221,125 L 234,125 L 247,125 L 260,128 L 273,128 L 286,128 L 299,128 L 312,128 L 325,128 L 338,128 L 351,128 L 364,128 L 377,128 L 390,128 L 403,128 L 416,128 L 429,128 L 442,128 L 455,131 L 468,131 L 481,131 L 494,131 L 507,131 L 520,131"
+                fill="none" stroke="var(--accent)" stroke-width="2.2"></path>
+          <text x="526" y="134" font-size="10.5" font-weight="600" fill="var(--accent)">卵</text>
+
+          <path d="M 0,147 L 13,152 L 26,155 L 39,157 L 52,160 L 65,160 L 78,163 L 91,163 L 104,165 L 117,165 L 130,165 L 143,168 L 156,168 L 169,168 L 182,171 L 195,171 L 208,171 L 221,173 L 234,173 L 247,173 L 260,173 L 273,176 L 286,176 L 299,176 L 312,176 L 325,179 L 338,179 L 351,179 L 364,179 L 377,179 L 390,181 L 403,181 L 416,181 L 429,181 L 442,181 L 455,184 L 468,184 L 481,184 L 494,184 L 507,184 L 520,187"
+                fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 3" opacity="0.8"></path>
+          <text x="526" y="190" font-size="10.5" fill="currentColor" opacity="0.85">人参</text>
+
+          <path d="M 0,173 L 13,176 L 26,179 L 39,179 L 52,179 L 65,181 L 78,181 L 91,181 L 104,181 L 117,181 L 130,181 L 143,181 L 156,181 L 169,181 L 182,181 L 195,181 L 208,181 L 221,184 L 234,184 L 247,184 L 260,184 L 273,184 L 286,184 L 299,184 L 312,184 L 325,184 L 338,184 L 351,184 L 364,184 L 377,184 L 390,184 L 403,184 L 416,184 L 429,184 L 442,184 L 455,184 L 468,184 L 481,184 L 494,184 L 507,184 L 520,184"
+                fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.6"></path>
+          <text x="526" y="178" font-size="10.5" fill="currentColor" opacity="0.7">小麦</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      トマトは定価 $60 と最高だが下がり方も最も速く、<strong>38 個で卵と並ぶ</strong>（ともに $44）。
+      それ以降はトマトを売り続けるより卵のほうが単価が高い。
+      小麦と人参は差が縮まり続け、137 個でようやく並ぶ。
+    </figcaption>
+  </figure>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 640 320" role="img"
+           aria-label="中価格帯3商品の実額グラフ。牛乳と苺は急落し、100個前後で肥料に逆転される。">
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">中価格帯 — 肥料 $100 / 苺 $120 / 牛乳 $160</text>
+
+        <g transform="translate(56,32)">
+          <g stroke="currentColor" stroke-width="0.6" opacity="0.16">
+            <line x1="0" y1="0" x2="520" y2="0"></line>
+            <line x1="0" y1="80" x2="520" y2="80"></line>
+            <line x1="0" y1="160" x2="520" y2="160"></line>
+            <line x1="130" y1="0" x2="130" y2="240"></line>
+            <line x1="260" y1="0" x2="260" y2="240"></line>
+            <line x1="390" y1="0" x2="390" y2="240"></line>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="end">
+            <text x="-8" y="4">$180</text>
+            <text x="-8" y="84">$120</text>
+            <text x="-8" y="164">$60</text>
+            <text x="-8" y="244">$0</text>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="middle">
+            <text x="0" y="260">0</text>
+            <text x="130" y="260">40</text>
+            <text x="260" y="260">80</text>
+            <text x="390" y="260">120</text>
+            <text x="520" y="260">160 個</text>
+          </g>
+          <line x1="0" y1="0" x2="0" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+          <line x1="0" y1="240" x2="524" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+
+          <path d="M 0,27 L 13,37 L 26,49 L 39,60 L 52,72 L 65,83 L 78,93 L 91,105 L 104,116 L 117,128 L 130,139 L 143,149 L 156,161 L 169,172 L 182,184 L 195,195 L 208,205 L 221,217 L 234,228 L 247,239 L 260,239 L 273,239 L 286,239 L 299,239 L 312,239 L 325,239 L 338,239 L 351,239 L 364,239 L 377,239 L 390,239 L 403,239 L 416,239 L 429,239 L 442,239 L 455,239 L 468,239 L 481,239 L 494,239 L 507,239 L 520,239"
+                fill="none" stroke="var(--signal)" stroke-width="2.4"></path>
+          <text x="252" y="232" font-size="10.5" font-weight="600" fill="var(--signal)">牛乳</text>
+
+          <path d="M 0,80 L 13,91 L 26,100 L 39,111 L 52,121 L 65,131 L 78,141 L 91,152 L 104,161 L 117,172 L 130,183 L 143,192 L 156,203 L 169,213 L 182,224 L 195,233 L 208,239 L 221,239 L 234,239 L 247,239 L 260,239 L 273,239 L 286,239 L 299,239 L 312,239 L 325,239 L 338,239 L 351,239 L 364,239 L 377,239 L 390,239 L 403,239 L 416,239 L 429,239 L 442,239 L 455,239 L 468,239 L 481,239 L 494,239 L 507,239 L 520,239"
+                fill="none" stroke="var(--signal)" stroke-width="1.8" stroke-dasharray="4 3"></path>
+          <text x="150" y="234" font-size="10.5" fill="var(--signal)">苺</text>
+
+          <path d="M 0,107 L 13,108 L 26,109 L 39,109 L 52,111 L 65,112 L 78,113 L 91,115 L 104,115 L 117,116 L 130,117 L 143,119 L 156,120 L 169,120 L 182,121 L 195,123 L 208,124 L 221,125 L 234,125 L 247,127 L 260,128 L 273,129 L 286,131 L 299,131 L 312,132 L 325,133 L 338,135 L 351,136 L 364,136 L 377,137 L 390,139 L 403,140 L 416,141 L 429,141 L 442,143 L 455,144 L 468,145 L 481,147 L 494,147 L 507,148 L 520,149"
+                fill="none" stroke="var(--accent)" stroke-width="2.4"></path>
+          <text x="526" y="152" font-size="10.5" font-weight="600" fill="var(--accent)">肥料</text>
+
+          <!-- crossing markers (verified: strawberry 12, milk 32) -->
+          <circle cx="104" cy="115" r="3.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle>
+          <text x="112" y="106" font-size="9.5" fill="currentColor">32 個で牛乳が肥料を下回る</text>
+          <circle cx="39" cy="110" r="3.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle>
+          <text x="47" y="88" font-size="9.5" fill="currentColor">12 個で苺が肥料を下回る</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      定価では牛乳 $160 &gt; 苺 $120 &gt; 肥料 $100 の順だが、
+      <strong>苺は 12 個、牛乳は 32 個で肥料に抜かれる</strong>。
+      肥料は線形かつ緩やかなので、80 個売った時点では
+      <strong>肥料だけが $80 台を保ち、牛乳と苺は $1 に落ちている</strong>。
+    </figcaption>
+  </figure>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 640 320" role="img"
+           aria-label="高価格帯2商品の実額グラフ。メロンは羊毛より高く、崩れ始めるのも遅い。">
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">高価格帯 — 羊毛 $200 / メロン $250</text>
+
+        <g transform="translate(56,32)">
+          <g stroke="currentColor" stroke-width="0.6" opacity="0.16">
+            <line x1="0" y1="0" x2="520" y2="0"></line>
+            <line x1="0" y1="60" x2="520" y2="60"></line>
+            <line x1="0" y1="120" x2="520" y2="120"></line>
+            <line x1="0" y1="180" x2="520" y2="180"></line>
+            <line x1="130" y1="0" x2="130" y2="240"></line>
+            <line x1="260" y1="0" x2="260" y2="240"></line>
+            <line x1="390" y1="0" x2="390" y2="240"></line>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="end">
+            <text x="-8" y="4">$260</text>
+            <text x="-8" y="64">$195</text>
+            <text x="-8" y="124">$130</text>
+            <text x="-8" y="184">$65</text>
+            <text x="-8" y="244">$0</text>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="middle">
+            <text x="0" y="260">0</text>
+            <text x="130" y="260">50</text>
+            <text x="260" y="260">100</text>
+            <text x="390" y="260">150</text>
+            <text x="520" y="260">200 個</text>
+          </g>
+          <line x1="0" y1="0" x2="0" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+          <line x1="0" y1="240" x2="524" y2="240" stroke="currentColor" stroke-width="1.2"></line>
+
+          <path d="M 0,9 L 10,9 L 21,10 L 31,10 L 42,12 L 52,13 L 62,15 L 73,17 L 83,18 L 94,21 L 104,24 L 114,27 L 125,30 L 135,34 L 146,38 L 156,42 L 166,47 L 177,52 L 187,57 L 198,63 L 208,68 L 218,75 L 229,80 L 239,88 L 250,94 L 260,102 L 270,109 L 281,117 L 291,125 L 302,134 L 312,142 L 322,151 L 333,161 L 343,170 L 354,180 L 364,190 L 374,200 L 385,211 L 395,222 L 406,234 L 416,239 L 426,239 L 437,239 L 447,239 L 458,239 L 468,239 L 478,239 L 489,239 L 499,239 L 510,239 L 520,239"
+                fill="none" stroke="var(--accent)" stroke-width="2.6"></path>
+          <text x="330" y="152" font-size="10.5" font-weight="600" fill="var(--accent)">メロン</text>
+
+          <path d="M 0,55 L 10,56 L 21,59 L 31,63 L 42,69 L 52,77 L 62,86 L 73,98 L 83,110 L 94,125 L 104,141 L 114,159 L 125,179 L 135,200 L 146,223 L 156,239 L 166,239 L 177,239 L 187,239 L 198,239 L 208,239 L 218,239 L 229,239 L 239,239 L 250,239 L 260,239 L 270,239 L 281,239 L 291,239 L 302,239 L 312,239 L 322,239 L 333,239 L 343,239 L 354,239 L 364,239 L 374,239 L 385,239 L 395,239 L 406,239 L 416,239 L 429,239 L 442,239 L 455,239 L 468,239 L 481,239 L 494,239 L 507,239 L 520,239"
+                fill="none" stroke="var(--signal)" stroke-width="2.4"></path>
+          <text x="120" y="212" font-size="10.5" font-weight="600" fill="var(--signal)">羊毛</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>
+      どちらも 2 乗曲線だが、<strong>メロンは羊毛より常に上にある</strong>。
+      羊毛が $1 に落ちる 59 個の時点で、メロンはまだ $230 前後を保っている。
+      158 個で両方 $1 に並ぶだけで、<strong>羊毛がメロンを上回る数量は存在しない</strong>。
+    </figcaption>
+  </figure>
+
+  <div class="wide">
+    <table>
+      <caption><b>実額で見た順位の入れ替わり</b></caption>
+      <thead>
+        <tr><th>比較</th><th>定価の順</th><th>入れ替わる地点</th><th>それ以降</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>苺 vs 肥料</td>
+          <td>苺 $120 &gt; 肥料 $100</td>
+          <td class="num-col">12 個</td>
+          <td><strong>ほぼ即座に肥料が上回る</strong>（$97 対 $98）</td>
+        </tr>
+        <tr>
+          <td>牛乳 vs 肥料</td>
+          <td>牛乳 $160 &gt; 肥料 $100</td>
+          <td class="num-col">32 個</td>
+          <td>肥料が上回る（$93 対 $94）</td>
+        </tr>
+        <tr>
+          <td>トマト vs 卵</td>
+          <td>トマト $60 &gt; 卵 $50</td>
+          <td class="num-col">38 個</td>
+          <td>卵が上回る（$44 対 $44 で並ぶ）</td>
+        </tr>
+        <tr>
+          <td>人参 vs 小麦</td>
+          <td>人参 $35 &gt; 小麦 $25</td>
+          <td class="num-col">137 個</td>
+          <td>ようやく並ぶ（$21 対 $21）</td>
+        </tr>
+        <tr>
+          <td>メロン vs 羊毛</td>
+          <td>メロン $250 &gt; 羊毛 $200</td>
+          <td class="num-col">158 個</td>
+          <td><strong>両方 $1 に落ちて並ぶだけ</strong>。逆転はしない</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">定価の順位はすぐ意味を失う</span>
+    <p>
+      苺は肥料より 2 割高いのに、<strong>12 個売った時点で逆転される</strong>。
+      牛乳も 32 個で肥料を下回る。
+      定価が意味を持つのは<strong>ごく少量を売るときだけ</strong>で、
+      それ以上を扱うなら「何個売る前提か」を決めないと商品の優劣は決まらない。
+    </p>
+    <p>
+      唯一の例外がメロンで、羊毛に対して<strong>どの数量でも優位が崩れない</strong>。
+      同じ 2 乗曲線でも、定価が高くかつ T が大きい（300 対 105）ぶんだけ余裕がある。
+    </p>
+  </div>
+
+  <h3>対数目盛なら 9 商品を 1 枚に載せられる</h3>
+
+  <p>
+    定価は $25 から $250 まで 10 倍の開きがあるが、
+    縦軸を<strong>対数目盛</strong>にすると全商品を 1 枚に収めても線が潰れない。
+    縦軸は実際のドル額のまま（正規化はしていない）で、
+    <strong>目盛の間隔だけが等倍ではなく等比</strong>になっている。
+    高さの順位はそのまま単価の順位であり、線の交差は実際の逆転を意味する。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 400" role="img"
+           aria-label="対数目盛で9商品の価格を1枚に重ねたグラフ。上位ほど高単価で、崩れる商品は右端で急降下する。">
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">全 9 商品 — 縦軸は対数目盛（実額）</text>
+
+        <g transform="translate(56,30)">
+          <!-- log gridlines -->
+          <g stroke="currentColor" stroke-width="0.6" opacity="0.16">
+            <line x1="0" y1="0" x2="560" y2="0"></line>
+            <line x1="0" y1="58" x2="560" y2="58"></line>
+            <line x1="0" y1="121" x2="560" y2="121"></line>
+            <line x1="0" y1="179" x2="560" y2="179"></line>
+            <line x1="0" y1="242" x2="560" y2="242"></line>
+            <line x1="140" y1="0" x2="140" y2="300"></line>
+            <line x1="280" y1="0" x2="280" y2="300"></line>
+            <line x1="420" y1="0" x2="420" y2="300"></line>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="end">
+            <text x="-8" y="4">$300</text>
+            <text x="-8" y="62">$100</text>
+            <text x="-8" y="125">$30</text>
+            <text x="-8" y="183">$10</text>
+            <text x="-8" y="246">$3</text>
+            <text x="-8" y="304">$1</text>
+          </g>
+          <g font-size="10" fill="currentColor" opacity="0.75" text-anchor="middle">
+            <text x="0" y="320">0</text>
+            <text x="140" y="320">40</text>
+            <text x="280" y="320">80</text>
+            <text x="420" y="320">120</text>
+            <text x="560" y="320">160 個</text>
+          </g>
+          <line x1="0" y1="0" x2="0" y2="300" stroke="currentColor" stroke-width="1.2"></line>
+          <line x1="0" y1="300" x2="564" y2="300" stroke="currentColor" stroke-width="1.2"></line>
+
+          <!-- crash group -->
+          <path d="M 0,10 L 14,10 L 28,10 L 42,10 L 56,10 L 70,10 L 84,11 L 98,11 L 112,12 L 126,12 L 140,13 L 154,14 L 168,15 L 182,16 L 196,17 L 210,18 L 224,19 L 238,20 L 252,22 L 266,23 L 280,25 L 294,27 L 308,29 L 322,31 L 336,34 L 350,36 L 364,39 L 378,43 L 392,46 L 406,50 L 420,55 L 434,60 L 448,66 L 462,72 L 476,80 L 490,90 L 504,102 L 518,119 L 532,145 L 546,198 L 560,300"
+                fill="none" stroke="var(--signal)" stroke-width="2.6"></path>
+          <text x="470" y="74" font-size="10.5" font-weight="600" fill="var(--signal)">メロン</text>
+
+          <path d="M 0,21 L 14,22 L 28,22 L 42,23 L 56,25 L 70,28 L 84,31 L 98,35 L 112,40 L 126,46 L 140,54 L 154,65 L 168,80 L 182,102 L 196,148 L 210,300"
+                fill="none" stroke="var(--signal)" stroke-width="2.2"></path>
+          <text x="186" y="132" font-size="10.5" font-weight="600" fill="var(--signal)">羊毛</text>
+
+          <path d="M 0,33 L 14,36 L 28,39 L 42,42 L 56,46 L 70,49 L 84,53 L 98,57 L 112,62 L 126,67 L 140,72 L 154,78 L 168,86 L 182,93 L 196,103 L 210,115 L 224,129 L 238,151 L 252,184 L 266,300"
+                fill="none" stroke="var(--signal)" stroke-width="1.8" stroke-dasharray="6 3"></path>
+          <text x="242" y="180" font-size="10.5" fill="var(--signal)">牛乳</text>
+
+          <path d="M 0,48 L 14,52 L 28,55 L 42,59 L 56,64 L 70,68 L 84,74 L 98,80 L 112,86 L 126,93 L 140,102 L 154,112 L 168,125 L 182,142 L 196,169 L 210,215 L 224,300"
+                fill="none" stroke="var(--signal)" stroke-width="1.8" stroke-dasharray="2 3"></path>
+          <text x="150" y="196" font-size="10.5" fill="var(--signal)">苺</text>
+
+          <!-- stable group -->
+          <path d="M 0,58 L 14,58 L 28,59 L 42,59 L 56,59 L 70,60 L 84,60 L 98,61 L 112,61 L 126,62 L 140,62 L 154,63 L 168,63 L 182,63 L 196,64 L 210,65 L 224,65 L 238,66 L 252,66 L 266,66 L 280,67 L 294,68 L 308,68 L 322,68 L 336,69 L 350,70 L 364,70 L 378,71 L 392,71 L 406,72 L 420,72 L 434,73 L 448,74 L 462,74 L 476,74 L 490,75 L 504,76 L 518,77 L 532,77 L 546,77 L 560,78"
+                fill="none" stroke="var(--accent)" stroke-width="2.4"></path>
+          <text x="566" y="81" font-size="10.5" font-weight="600" fill="var(--accent)">肥料</text>
+
+          <path d="M 0,85 L 14,89 L 28,91 L 42,93 L 56,94 L 70,95 L 84,96 L 98,97 L 112,99 L 126,100 L 140,101 L 154,102 L 168,103 L 182,103 L 196,105 L 210,106 L 224,106 L 238,107 L 252,109 L 266,109 L 280,110 L 294,110 L 308,112 L 322,112 L 336,113 L 350,113 L 364,115 L 378,115 L 392,116 L 406,116 L 420,118 L 434,118 L 448,119 L 462,119 L 476,121 L 490,121 L 504,123 L 518,123 L 532,123 L 546,125 L 560,125"
+                fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.85"></path>
+          <text x="566" y="128" font-size="10.5" fill="currentColor">トマト</text>
+
+          <path d="M 0,94 L 14,97 L 28,99 L 42,99 L 56,100 L 70,100 L 84,101 L 98,101 L 112,101 L 126,101 L 140,101 L 154,102 L 168,102 L 182,102 L 196,102 L 210,102 L 224,102 L 238,102 L 252,102 L 266,102 L 280,103 L 294,103 L 308,103 L 322,103 L 336,103 L 350,103 L 364,103 L 378,103 L 392,103 L 406,103 L 420,103 L 434,103 L 448,103 L 462,103 L 476,103 L 490,105 L 504,105 L 518,105 L 532,105 L 546,105 L 560,105"
+                fill="none" stroke="var(--accent)" stroke-width="2.0" stroke-dasharray="5 3"></path>
+          <text x="566" y="108" font-size="10.5" font-weight="600" fill="var(--accent)">卵</text>
+
+          <path d="M 0,113 L 14,116 L 28,118 L 42,119 L 56,121 L 70,121 L 84,123 L 98,123 L 112,125 L 126,125 L 140,125 L 154,127 L 168,127 L 182,127 L 196,129 L 210,129 L 224,129 L 238,131 L 252,131 L 266,131 L 280,131 L 294,133 L 308,133 L 322,133 L 336,133 L 350,135 L 364,135 L 378,135 L 392,135 L 406,135 L 420,137 L 434,137 L 448,137 L 462,137 L 476,137 L 490,140 L 504,140 L 518,140 L 532,140 L 546,140 L 560,142"
+                fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.7"></path>
+          <text x="566" y="145" font-size="10.5" fill="currentColor" opacity="0.85">人参</text>
+
+          <path d="M 0,131 L 14,133 L 28,135 L 42,135 L 56,135 L 70,137 L 84,137 L 98,137 L 112,137 L 126,137 L 140,137 L 154,137 L 168,137 L 182,137 L 196,137 L 210,137 L 224,137 L 238,140 L 252,140 L 266,140 L 280,140 L 294,140 L 308,140 L 322,140 L 336,140 L 350,140 L 364,140 L 378,140 L 392,140 L 406,140 L 420,140 L 434,140 L 448,140 L 462,140 L 476,140 L 490,140 L 504,140 L 518,140 L 532,140 L 546,140 L 560,140"
+                fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.55"></path>
+          <text x="566" y="134" font-size="10.5" fill="currentColor" opacity="0.7">小麦</text>
+        </g>
+
+        <text x="14" y="392" font-size="10" fill="currentColor" opacity="0.7">目盛は等比（$1 → $3 → $10 → $30 → $100 → $300）。線が下端に触れた点が $1 の下限に到達した位置。</text>
+      </svg>
+    </div>
+    <figcaption>
+      対数目盛にすると 9 商品が 1 枚に収まる。
+      <strong>崩れる 4 商品（赤）は右下へ落ち、崩れない 5 商品（緑・黒）はほぼ水平に走る</strong>。
+      対数では一定の傾きが「一定の割合で下がる」を意味するので、
+      水平に近いほど値持ちがよいと直接読める。
+    </figcaption>
+  </figure>
+
+  <div class="wide">
+    <table>
+      <caption><b>160 個売った時点の価格</b> — 上のグラフ右端の値</caption>
+      <thead>
+        <tr><th>商品</th><th class="num-col">定価</th><th class="num-col">160 個後</th><th class="num-col">残存率</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>肥料</td><td class="num-col">$100</td><td class="num-col">$68</td><td class="num-col">68%</td></tr>
+        <tr><td>卵</td><td class="num-col">$50</td><td class="num-col">$41</td><td class="num-col">82%</td></tr>
+        <tr><td>トマト</td><td class="num-col">$60</td><td class="num-col">$28</td><td class="num-col">47%</td></tr>
+        <tr><td>小麦</td><td class="num-col">$25</td><td class="num-col">$21</td><td class="num-col">84%</td></tr>
+        <tr><td>人参</td><td class="num-col">$35</td><td class="num-col">$20</td><td class="num-col">57%</td></tr>
+        <tr><td><strong>メロン</strong></td><td class="num-col">$250</td><td class="num-col"><strong>$1</strong></td><td class="num-col">0.4%</td></tr>
+        <tr><td><strong>羊毛</strong></td><td class="num-col">$200</td><td class="num-col"><strong>$1</strong></td><td class="num-col">0.5%</td></tr>
+        <tr><td><strong>牛乳</strong></td><td class="num-col">$160</td><td class="num-col"><strong>$1</strong></td><td class="num-col">0.6%</td></tr>
+        <tr><td><strong>苺</strong></td><td class="num-col">$120</td><td class="num-col"><strong>$1</strong></td><td class="num-col">0.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">対数目盛で読めること・読めないこと</span>
+    <p>
+      <strong>読めるようになるもの</strong> — 全商品の単価の上下関係が一度に見え、
+      交差点がそのまま逆転点として読める。傾きが「割合の変化」になるので、
+      値持ちのよさを商品間で直接比べられる。
+    </p>
+    <p>
+      <strong>読みにくくなるもの</strong> — 下端付近が引き伸ばされるため、
+      $1 と $3 の差が $100 と $300 の差と同じ高さに見える。
+      実際には前者はほぼ無価値、後者は大きな違いである。
+      <strong>収入の絶対額を比べるには、前掲の実額グラフのほうが適している</strong>。
+    </p>
+  </div>
+
+  </section>
+
+<section id="s02">
+  <h2><span class="num">02</span> 売却のタイミング</h2>
+  <p class="deck">いつ価格が引き直され、どう売れば手取りが増えるか。</p>
+
+<h3>いつ価格が引き直されるか</h3>
+
+  <p>
+    価格は<strong>売却 1 個ごと</strong>に再計算される。
+    ここでの「1 個」はターンでも注文でもなく、<strong>約定 1 単位</strong>である。
+    以下はその処理順を実際に追ったもの。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 260" role="img"
+           aria-label="売却の約定順序。両者に同じ価格を提示してから同時に約定し、その後で価格を引き直す。">
+        <defs>
+          <marker id="arT" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">両者がメロンを 5 個ずつ売った実際の流れ</text>
+
+        <g font-size="10">
+          <!-- columns header -->
+          <text x="40"  y="44" text-anchor="middle" font-weight="600" fill="currentColor">約定</text>
+          <text x="150" y="44" text-anchor="middle" font-weight="600" fill="currentColor">提示価格</text>
+          <text x="300" y="44" text-anchor="middle" font-weight="600" fill="var(--accent)">自分が受け取る</text>
+          <text x="450" y="44" text-anchor="middle" font-weight="600" fill="currentColor">相手が受け取る</text>
+          <text x="600" y="44" text-anchor="middle" font-weight="600" fill="currentColor">直後の在庫</text>
+          <line x1="14" y1="52" x2="686" y2="52" stroke="currentColor" stroke-width="1"></line>
+
+          <g fill="currentColor">
+            <text x="40"  y="72" text-anchor="middle">1 個目</text>
+            <text x="150" y="72" text-anchor="middle">$250</text>
+            <text x="300" y="72" text-anchor="middle" fill="var(--accent)" font-weight="600">$250</text>
+            <text x="450" y="72" text-anchor="middle">$250</text>
+            <text x="600" y="72" text-anchor="middle">10,002</text>
+
+            <text x="40"  y="94" text-anchor="middle">2 個目</text>
+            <text x="150" y="94" text-anchor="middle">$250</text>
+            <text x="300" y="94" text-anchor="middle" fill="var(--accent)" font-weight="600">$250</text>
+            <text x="450" y="94" text-anchor="middle">$250</text>
+            <text x="600" y="94" text-anchor="middle">10,004</text>
+
+            <text x="40"  y="116" text-anchor="middle">3 個目</text>
+            <text x="150" y="116" text-anchor="middle">$250</text>
+            <text x="300" y="116" text-anchor="middle" fill="var(--accent)" font-weight="600">$250</text>
+            <text x="450" y="116" text-anchor="middle">$250</text>
+            <text x="600" y="116" text-anchor="middle">10,006</text>
+
+            <text x="40"  y="138" text-anchor="middle">4 個目</text>
+            <text x="150" y="138" text-anchor="middle">$250</text>
+            <text x="300" y="138" text-anchor="middle" fill="var(--accent)" font-weight="600">$250</text>
+            <text x="450" y="138" text-anchor="middle">$250</text>
+            <text x="600" y="138" text-anchor="middle">10,008</text>
+
+            <text x="40"  y="160" text-anchor="middle">5 個目</text>
+            <text x="150" y="160" text-anchor="middle">$249</text>
+            <text x="300" y="160" text-anchor="middle" fill="var(--accent)" font-weight="600">$249</text>
+            <text x="450" y="160" text-anchor="middle">$249</text>
+            <text x="600" y="160" text-anchor="middle">10,010</text>
+          </g>
+
+          <line x1="14" y1="172" x2="686" y2="172" stroke="currentColor" stroke-width="1"></line>
+          <text x="40"  y="192" text-anchor="middle" font-weight="600" fill="currentColor">合計</text>
+          <text x="300" y="192" text-anchor="middle" font-weight="600" fill="var(--accent)">$1,249</text>
+          <text x="450" y="192" text-anchor="middle" font-weight="600" fill="currentColor">$1,249</text>
+          <text x="600" y="192" text-anchor="middle" fill="currentColor">10,010</text>
+        </g>
+
+        <text x="14" y="222" font-size="10.5" font-weight="600" fill="var(--accent)">両者の手取りは 1 円まで一致する — 先手・後手の有利不利はない。</text>
+        <text x="14" y="242" font-size="10.5" fill="var(--signal)">ただし在庫は 2 個ずつ進むので、相手がいる分だけ早く値が下がる。</text>
+      </svg>
+    </div>
+    <figcaption>
+      実測値。両者に<strong>同じ在庫から算出した同じ価格</strong>を提示し、両方を約定させてから在庫を更新する。
+      このため<strong>手取りは完全に同額</strong>になり、注文を先に出したほうが得をするということはない。
+    </figcaption>
+  </figure>
+
+  <div class="wide">
+    <table>
+      <caption><b>価格が引き直される瞬間</b></caption>
+      <thead>
+        <tr><th>タイミング</th><th>頻度</th><th>何が起きるか</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>約定 1 個ごと</td>
+          <td>売買 1 単位ごと</td>
+          <td>在庫が動き、<strong>次の 1 個は新しい価格で約定する</strong></td>
+        </tr>
+        <tr>
+          <td>注文 1 件の完了後</td>
+          <td>市場注文ごと</td>
+          <td><code>obs["market"]["prices"]</code> が書き換わる</td>
+        </tr>
+        <tr>
+          <td>町の消費の直後</td>
+          <td>4 ターン / 24 ターンごと</td>
+          <td>在庫が減り、<strong>価格が戻る</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>分割売却は効くのか — 実測</h3>
+
+  <p>
+    メロン 50 個を売る際、<strong>分け方を変えて手取りを比較した</strong>結果である。
+    在庫はすべて均衡（10,000）から始めている。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>同じ 50 個をどう売るか</b> — 実際に環境を動かして計測</caption>
+      <thead>
+        <tr><th>売り方</th><th class="num-col">手取り</th><th>結論</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 ターンで一度に 50 個</td>
+          <td class="num-col">$12,098</td>
+          <td rowspan="2">同じターン内で分けても<strong>まったく変わらない</strong>。
+              注文と注文の間に在庫を戻すものが何もないため</td>
+        </tr>
+        <tr>
+          <td>1 ターンで 1 個 × 50 注文</td>
+          <td class="num-col">$12,098</td>
+        </tr>
+        <tr>
+          <td>毎ターン 10 個ずつ（5 ターン）</td>
+          <td class="num-col">$12,121</td>
+          <td rowspan="3">ターンをまたぐと<strong>町が在庫を吸う分だけ回復する</strong>。
+              ただし間隔が短いと効果は小さい</td>
+        </tr>
+        <tr>
+          <td>毎ターン 1 個ずつ（50 ターン）</td>
+          <td class="num-col">$12,141</td>
+        </tr>
+        <tr>
+          <td>4 ターンおきに 1 個（200 ターン）</td>
+          <td class="num-col">$12,230</td>
+        </tr>
+        <tr>
+          <td><strong>24 ターンおきに 1 個（50 日）</strong></td>
+          <td class="num-col"><strong>$12,500</strong></td>
+          <td><strong>全量を定価で売り切れる</strong>。町の消費が売却に完全に追いつくため
+              在庫が均衡から動かない</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">分割の効果は「時間」からしか来ない</span>
+    <p>
+      同一ターン内でいくら注文を刻んでも手取りは 1 円も変わらない。
+      <strong>価格が回復するのは町が在庫を吸ったときだけ</strong>で、
+      それはターンの経過によってしか起きないからである。
+    </p>
+    <p>
+      逆に言えば、<strong>売却ペースを町の消費速度以下に抑えれば価格は下がらない</strong>。
+      町の需要はおおむね 1 商品あたり 1 日 7 個前後（町全体で 1 個 + 店 1 軒につき 6 個）なので、
+      これが「値を崩さずに売れる速度」の目安になる。
+      ただし季節は 30 日しかなく、倉庫は 100 個しか持てない。
+      <strong>売り切る速度と値を守る速度が両立しない</strong>ところに、この競技の中心的な葛藤がある。
+    </p>
+  </div>
+
+  <div class="note">
+    <span class="label">相手の売却がどれだけ効くか</span>
+    <p>
+      メロン 50 個を売るとき、<strong>自分だけなら $12,098、相手も同時に 50 個売ると $10,883</strong>。
+      約 10% の目減りである。相手の在庫は観測できないので、
+      この差は<strong>事前には計算できない</strong>。
+      崩れやすい商品ほどこの不確実性が大きくなる。
+    </p>
+  </div>
+
+  <h3>品薄側 — 買い戻しで価格を上げられるか</h3>
+
+  <p>
+    均衡を下回ると価格は上がる。ただし<strong>買えるのは小麦と肥料の 2 つだけ</strong>なので、
+    この側を能動的に使う手段はほぼない。実際には
+    <strong>町が買って在庫を減らした結果として</strong>ここに入る。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>均衡を下回ったときの価格</b></caption>
+      <thead>
+        <tr><th>商品</th><th class="num-col">基準</th><th class="num-col">−10</th><th class="num-col">−50</th><th class="num-col">−100</th><th class="num-col">−400</th><th>上がり方</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>小麦</td><td class="num-col">$25</td><td class="num-col">$28</td><td class="num-col">$32</td><td class="num-col">$35</td><td class="num-col">$45</td><td>着実に伸びる</td></tr>
+        <tr><td>苺</td><td class="num-col">$120</td><td class="num-col">$147</td><td class="num-col">$179</td><td class="num-col">$204</td><td class="num-col">$288</td><td><strong>10 個の品薄で +$27</strong></td></tr>
+        <tr><td>牛乳</td><td class="num-col">$160</td><td class="num-col">$187</td><td class="num-col">$221</td><td class="num-col">$247</td><td class="num-col">$334</td><td><strong>10 個の品薄で +$27</strong></td></tr>
+        <tr><td>メロン</td><td class="num-col">$250</td><td class="num-col">$271</td><td class="num-col">$284</td><td class="num-col">$290</td><td class="num-col">$303</td><td>すぐ頭打ち（対数）</td></tr>
+        <tr><td>人参</td><td class="num-col">$35</td><td class="num-col">$38</td><td class="num-col">$40</td><td class="num-col">$40</td><td class="num-col">$42</td><td>ほぼ頭打ち</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">崩れやすい商品ほど、品薄では跳ねる</span>
+    <p>
+      苺・牛乳は過多側で急落する一方、<strong>品薄側では 10 個で $27 も上がる</strong>。
+      同じ商品が両側で敏感に動くということで、
+      <strong>町が在庫を吸った直後に少量売る</strong>のが最も条件のよい売り方になる。
+      メロンと人参は品薄側が対数なので、待っても価格はさほど伸びない。
+    </p>
+  </div>
+
+  <h3>売却個数と価格の対応</h3>
+
+  <p>均衡在庫から売り進めたときの価格の推移。上の式で計算した値である。</p>
+
+  <div class="wide">
+    <table>
+      <caption><b>均衡からの売却個数 → そのときの価格</b></caption>
+      <thead>
+        <tr>
+          <th>商品</th>
+          <th class="num-col">±0</th><th class="num-col">+10</th><th class="num-col">+50</th>
+          <th class="num-col">+100</th><th class="num-col">+200</th><th class="num-col">+400</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>小麦</td>
+          <td class="num-col">$25</td><td class="num-col">$23</td><td class="num-col">$22</td>
+          <td class="num-col">$21</td><td class="num-col">$21</td><td class="num-col">$20</td>
+        </tr>
+        <tr>
+          <td>人参</td>
+          <td class="num-col">$35</td><td class="num-col">$31</td><td class="num-col">$27</td>
+          <td class="num-col">$23</td><td class="num-col">$19</td><td class="num-col">$12</td>
+        </tr>
+        <tr>
+          <td>苺</td>
+          <td class="num-col">$120</td><td class="num-col">$101</td><td class="num-col">$24</td>
+          <td class="num-col"><strong>$1</strong></td><td class="num-col"><strong>$1</strong></td><td class="num-col"><strong>$1</strong></td>
+        </tr>
+        <tr>
+          <td>羊毛</td>
+          <td class="num-col">$200</td><td class="num-col">$194</td><td class="num-col">$55</td>
+          <td class="num-col"><strong>$1</strong></td><td class="num-col"><strong>$1</strong></td><td class="num-col"><strong>$1</strong></td>
+        </tr>
+        <tr>
+          <td>メロン</td>
+          <td class="num-col">$250</td><td class="num-col">$249</td><td class="num-col">$225</td>
+          <td class="num-col">$150</td><td class="num-col"><strong>$1</strong></td><td class="num-col"><strong>$1</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    メロンの行が 2 乗曲線の性格をよく表している。+50 個までは $225 と粘るのに、
+    +100 で $150、+200 では床に落ちる。<strong>崩れ始めると一気に崩れる</strong>。
+    小麦は逆に +400 個売ってもまだ $20 を保つ。
+  </p>
+
+  </section>
+
+<section id="s03">
+  <h2><span class="num">03</span> 商品を作る</h2>
+  <p class="deck">初期投資から売却までを商品ごとに。</p>
+
+<h3>商品を作るまでの手順</h3>
+
+  <p>
+    ここまでは「売るとどうなるか」を見てきた。
+    最後に<strong>その商品をどう手に入れるか</strong>を整理する。
+    9 商品は入手経路で 3 つに分かれる。
+  </p>
+
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 700 260" role="img"
+           aria-label="9商品の入手経路。作物5種は畑から、畜産物3種は動物から、肥料は動物の副産物または購入。">
+        <defs>
+          <marker id="arP" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon points="0,0 10,5 0,10" fill="currentColor"></polygon>
+          </marker>
+        </defs>
+
+        <text x="14" y="18" font-size="11.5" font-weight="600" fill="currentColor">9 商品はどこから来るか</text>
+
+        <!-- crops -->
+        <rect x="14" y="34" width="150" height="62" rx="2" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"></rect>
+        <text x="89" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent)">畑で育てる</text>
+        <text x="89" y="74" text-anchor="middle" font-size="10" fill="var(--accent)">種を買って植える</text>
+        <text x="89" y="89" text-anchor="middle" font-size="10" fill="var(--accent)">道具も建物も不要</text>
+
+        <line x1="168" y1="65" x2="216" y2="65" stroke="currentColor" stroke-width="1.3" marker-end="url(#arP)"></line>
+        <rect x="218" y="34" width="264" height="62" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="350" y="58" text-anchor="middle" font-size="10.5" fill="currentColor">小麦 $25 / 人参 $35 / トマト $60</text>
+        <text x="350" y="76" text-anchor="middle" font-size="10.5" fill="currentColor">苺 $120 / メロン $250</text>
+        <text x="350" y="90" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.7">5 商品</text>
+
+        <!-- animals -->
+        <rect x="14" y="110" width="150" height="76" rx="2" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.5"></rect>
+        <text x="89" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="var(--signal)">動物を飼う</text>
+        <text x="89" y="150" text-anchor="middle" font-size="10" fill="var(--signal)">小屋か牧場を建て</text>
+        <text x="89" y="165" text-anchor="middle" font-size="10" fill="var(--signal)">動物を買って置く</text>
+        <text x="89" y="180" text-anchor="middle" font-size="10" fill="var(--signal)">毎日 小麦 1 個の餌</text>
+
+        <line x1="168" y1="146" x2="216" y2="146" stroke="currentColor" stroke-width="1.3" marker-end="url(#arP)"></line>
+        <rect x="218" y="110" width="264" height="76" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="350" y="134" text-anchor="middle" font-size="10.5" fill="currentColor">ガチョウ → 卵 $50</text>
+        <text x="350" y="152" text-anchor="middle" font-size="10.5" fill="currentColor">牛 → 牛乳 $160</text>
+        <text x="350" y="170" text-anchor="middle" font-size="10.5" fill="currentColor">羊 → 羊毛 $200</text>
+
+        <!-- fertilizer -->
+        <rect x="14" y="200" width="150" height="46" rx="2" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></rect>
+        <text x="89" y="220" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">動物の副産物</text>
+        <text x="89" y="236" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.75">または市場で購入</text>
+
+        <line x1="168" y1="222" x2="216" y2="222" stroke="currentColor" stroke-width="1.3" marker-end="url(#arP)"></line>
+        <rect x="218" y="200" width="264" height="46" rx="2" fill="var(--paper)" stroke="currentColor" stroke-width="1.2"></rect>
+        <text x="350" y="220" text-anchor="middle" font-size="10.5" fill="currentColor">肥料 $100</text>
+        <text x="350" y="236" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.7">動物 1 匹につき 1 日 1 個</text>
+
+        <!-- wheat feeds animals -->
+        <path d="M 486 66 Q 600 66 600 146 Q 600 172 486 148" fill="none" stroke="var(--signal)" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arP)"></path>
+        <text x="612" y="110" font-size="10" font-weight="600" fill="var(--signal)">小麦は</text>
+        <text x="612" y="125" font-size="10" font-weight="600" fill="var(--signal)">餌にも要る</text>
+      </svg>
+    </div>
+    <figcaption>
+      入手経路は 3 系統。<strong>畜産は農耕の上に乗っている</strong> ——
+      動物は毎日小麦 1 個を食べるので、
+      卵・牛乳・羊毛を作るには小麦の生産か購入が前提になる。
+    </figcaption>
+  </figure>
+
+  <h3>商品別 — 投資から売却までの一本道</h3>
+
+  <p>
+    以下は<strong>1 マス（動物は 1 匹）を 1 サイクル回したとき</strong>の流れである。
+    金額はすべて実際に計算した値で、売上は<strong>均衡在庫から 1 個ずつ売った合計</strong>
+    （売るほど値が下がる効果を織り込み済み）。
+    手数は移動を除いた作業回数、水やりは「初日 + 以降 1 日おき」で数えている。
+  </p>
+
+  <div class="card">
+    <header>
+      <h4>小麦</h4>
+      <span class="tag">作物</span>
+      <span class="tag tag-good">値崩れしない</span>
+      <span class="verdict">最短で回り、動物の餌にもなる基礎資材</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>事前</dt>
+        <dd class="pay"><span class="op">["BUY_SEED", "WHEAT", 1]</span>
+          <small>種代 $10 を支払う。倉庫は経由しない</small></dd>
+        <dt>0 日目</dt>
+        <dd><span class="op">["PLANT", "WHEAT"]</span> → 同じ日に <span class="op">["WATER"]</span>
+          <small>植えた日に水をやらないと翌朝に枯れる</small></dd>
+        <dt>1–3 日目</dt>
+        <dd class="wait"><span class="op">["WATER"]</span> を 1 日おきに
+          <small>2 日目から収穫量が伸び始める</small></dd>
+        <dt>4 日目</dt>
+        <dd><span class="op">["HARVEST"]</span> → 4 個が手持ちへ。マスは空きに戻る
+          <small>5 日目には枯れるので、この日が最終期限</small></dd>
+        <dt>売却</dt>
+        <dd>倉庫脇で <span class="op">["DROP"]</span> → <span class="op">["SELL", "WHEAT", 4]</span>
+          <small>$25 → $24 と下がりつつ 4 個で $97</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$10</dd></div>
+        <div><dt>所要</dt><dd>4 日</dd></div>
+        <div><dt>手数</dt><dd>5 手</dd></div>
+        <div><dt>収穫</dt><dd>4 個</dd></div>
+        <div><dt>売上</dt><dd>$97<small>平均 $24/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">$87<small>1 日あたり $22</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>人参</h4>
+      <span class="tag">作物</span>
+      <span class="tag">やや値崩れする</span>
+      <span class="verdict">全作物で最短の 3 日サイクル</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>事前</dt>
+        <dd class="pay"><span class="op">["BUY_SEED", "CARROT", 1]</span>
+          <small>種代 $20</small></dd>
+        <dt>0 日目</dt>
+        <dd><span class="op">["PLANT", "CARROT"]</span> → 同じ日に <span class="op">["WATER"]</span></dd>
+        <dt>1–2 日目</dt>
+        <dd class="wait"><span class="op">["WATER"]</span> を 1 日おきに</dd>
+        <dt>3 日目</dt>
+        <dd><span class="op">["HARVEST"]</span> → 3 個
+          <small>4 日目には枯れる。猶予が 1 日しかない</small></dd>
+        <dt>売却</dt>
+        <dd><span class="op">["SELL", "CARROT", 3]</span>
+          <small>$35 → $34 と下がり 3 個で $102</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$20</dd></div>
+        <div><dt>所要</dt><dd>3 日</dd></div>
+        <div><dt>手数</dt><dd>5 手</dd></div>
+        <div><dt>収穫</dt><dd>3 個</dd></div>
+        <div><dt>売上</dt><dd>$102<small>平均 $34/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">$82<small>1 日あたり $27</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>メロン</h4>
+      <span class="tag">作物</span>
+      <span class="tag tag-bad">大量だと急落</span>
+      <span class="verdict">単価も総額も最強。ただし量を捌けるかが全て</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>事前</dt>
+        <dd class="pay"><span class="op">["BUY_SEED", "MELON", 1]</span>
+          <small>種代 $80。作物では 2 番目に高い</small></dd>
+        <dt>0 日目</dt>
+        <dd><span class="op">["PLANT", "MELON"]</span> → 同じ日に <span class="op">["WATER"]</span></dd>
+        <dt>1–5 日目</dt>
+        <dd class="wait">水やりのみ。<strong>収穫量は 1 個のまま動かない</strong>
+          <small>この期間は投資を寝かせている状態</small></dd>
+        <dt>6–11 日目</dt>
+        <dd><span class="op">["WATER"]</span> が収穫量に加算される期間
+          <small>1 日 1 個ずつ増え、10 日目に上限の 6 個へ</small></dd>
+        <dt>12 日目</dt>
+        <dd><span class="op">["HARVEST"]</span> → 6 個
+          <small>13 日目に枯れる</small></dd>
+        <dt>売却</dt>
+        <dd><span class="op">["SELL", "MELON", 6]</span>
+          <small>$250 のまま 6 個。少量なら値が動かない</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$80</dd></div>
+        <div><dt>所要</dt><dd>12 日</dd></div>
+        <div><dt>手数</dt><dd>9 手</dd></div>
+        <div><dt>収穫</dt><dd>6 個</dd></div>
+        <div><dt>売上</dt><dd>$1,500<small>平均 $250/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">$1,420<small>1 日あたり $118</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>トマト</h4>
+      <span class="tag">作物 / 継続</span>
+      <span class="tag">やや値崩れする</span>
+      <span class="verdict">植え直し不要。水やりで増えないので手が軽い</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>事前</dt>
+        <dd class="pay"><span class="op">["BUY_SEED", "TOMATO", 1]</span>
+          <small>種代 $50</small></dd>
+        <dt>0 日目</dt>
+        <dd><span class="op">["PLANT", "TOMATO"]</span> → 同じ日に <span class="op">["WATER"]</span></dd>
+        <dt>1–6 日目</dt>
+        <dd class="wait">水やりを 1 日おきに。<strong>収穫量は 0 のまま</strong>
+          <small>継続作物は水やりで増えない。枯らさないためだけの作業</small></dd>
+        <dt>7 日目〜</dt>
+        <dd>1 日 1 個ずつ自動で実る
+          <small>7 日目に 1 個、8 日目に 2 個 … 10 日目に上限の 4 個</small></dd>
+        <dt>随時</dt>
+        <dd><span class="op">["HARVEST"]</span> — <strong>マスは空かず、そのまま実り続ける</strong>
+          <small>植え直しの手も種代も要らない</small></dd>
+        <dt>11 日目</dt>
+        <dd class="wait">最終生産を終えると寿命が設定され、12 日目に枯れる</dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$50</dd></div>
+        <div><dt>所要</dt><dd>11 日</dd></div>
+        <div><dt>手数</dt><dd>12 手</dd></div>
+        <div><dt>収穫</dt><dd>4 個</dd></div>
+        <div><dt>売上</dt><dd>$229<small>平均 $57/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">$179<small>1 日あたり $16</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>苺</h4>
+      <span class="tag">作物 / 継続</span>
+      <span class="tag tag-bad">62 個で床</span>
+      <span class="verdict">最も投資が重く、最も回収が遅い</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>事前</dt>
+        <dd class="pay"><span class="op">["BUY_SEED", "STRAWBERRY", 1]</span>
+          <small>種代 $100 — 全作物で最高</small></dd>
+        <dt>0 日目</dt>
+        <dd><span class="op">["PLANT", "STRAWBERRY"]</span> → 同じ日に <span class="op">["WATER"]</span></dd>
+        <dt>1–8 日目</dt>
+        <dd class="wait">水やりのみ。9 日間ずっと収穫量 0
+          <small>継続作物なので水やりでは増えない</small></dd>
+        <dt>9 日目〜</dt>
+        <dd><strong>2 日に 1 個</strong>ずつ実る
+          <small>9 日目に 1 個、11 日目に 2 個、13 日目に 3 個 …</small></dd>
+        <dt>15 日目</dt>
+        <dd>4 個目が実って打ち止め
+          <small>1 サイクルに半月かかる</small></dd>
+        <dt>売却</dt>
+        <dd><span class="op">["SELL", "STRAWBERRY", 4]</span>
+          <small>$120 → $114 と下がり 4 個で $468</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$100</dd></div>
+        <div><dt>所要</dt><dd>15 日</dd></div>
+        <div><dt>手数</dt><dd>14 手</dd></div>
+        <div><dt>収穫</dt><dd>4 個</dd></div>
+        <div><dt>売上</dt><dd>$468<small>平均 $117/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">$368<small>1 日あたり $25</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>卵 — ガチョウ</h4>
+      <span class="tag">畜産</span>
+      <span class="tag tag-good">値崩れしない</span>
+      <span class="verdict">毎日産む。畜産で唯一、量を増やしても単価が保てる</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>0 日目</dt>
+        <dd>空きマスで <span class="op">["BUILD_COOP"]</span>
+          <small>建築費は無料</small></dd>
+        <dt>0 日目</dt>
+        <dd class="pay">市場で <span class="op">["BUY_ANIMAL", "GOOSE", 1]</span> → $300 が倉庫へ
+          <small>買っただけでは稼働しない</small></dd>
+        <dt>0 日目</dt>
+        <dd>倉庫脇で <span class="op">["PICKUP", "GOOSE", 1]</span> → 小屋の上で <span class="op">["PLACE", "GOOSE"]</span>
+          <small>ここでようやく稼働開始</small></dd>
+        <dt>毎日</dt>
+        <dd class="pay"><span class="op">["FEED"]</span> — <strong>手持ちの小麦 1 個</strong>を消費
+          <small>2 日連続で忘れると逃げる。<span class="op">["CARE"]</span> は任意で次回産出 +1</small></dd>
+        <dt>3 日目〜</dt>
+        <dd><strong>毎日 1 個</strong>の卵。上限 4 個まで溜まる
+          <small><span class="op">["HARVEST"]</span> で回収。溜めすぎると頭打ちになる</small></dd>
+        <dt>30 日目</dt>
+        <dd>累計 27 個
+          <small><span class="op">["COLLECT_FERTILIZER"]</span> で肥料も 1 日 1 個</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$300</dd></div>
+        <div><dt>餌 30 日</dt><dd class="neg">小麦 30 個</dd></div>
+        <div><dt>初収穫</dt><dd>3 日目</dd></div>
+        <div><dt>30 日産出</dt><dd>27 個</dd></div>
+        <div><dt>売上</dt><dd>$1,239<small>平均 $46/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">約 $190<small>餌を $750 で買った場合</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>牛乳 — 牛</h4>
+      <span class="tag">畜産</span>
+      <span class="tag tag-bad">76 個で床</span>
+      <span class="verdict">2 日に 1 個。畜産で最大の売上だが餌代が重い</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>0 日目</dt>
+        <dd>空きマスで <span class="op">["BUILD_PASTURE"]</span></dd>
+        <dt>0 日目</dt>
+        <dd class="pay"><span class="op">["BUY_ANIMAL", "COW", 1]</span> → $400
+          <small>→ <span class="op">["PICKUP"]</span> → <span class="op">["PLACE", "COW"]</span> で稼働</small></dd>
+        <dt>毎日</dt>
+        <dd class="pay"><span class="op">["FEED"]</span> — 小麦 1 個
+          <small>生産間隔が 2 日あるので、間の日の <span class="op">["CARE"]</span> が効きやすい</small></dd>
+        <dt>7 日目〜</dt>
+        <dd><strong>2 日に 1 個</strong>の牛乳。上限 6 個</dd>
+        <dt>30 日目</dt>
+        <dd>累計 12 個</dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$400</dd></div>
+        <div><dt>餌 30 日</dt><dd class="neg">小麦 30 個</dd></div>
+        <div><dt>初収穫</dt><dd>7 日目</dd></div>
+        <div><dt>30 日産出</dt><dd>12 個</dd></div>
+        <div><dt>売上</dt><dd>$1,782<small>平均 $149/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">約 $630<small>餌を $750 で買った場合</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>羊毛 — 羊</h4>
+      <span class="tag">畜産</span>
+      <span class="tag tag-bad">59 個で床</span>
+      <span class="verdict">3 日に 1 個と最も遅く、初期費用は最高</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>0 日目</dt>
+        <dd>空きマスで <span class="op">["BUILD_PASTURE"]</span></dd>
+        <dt>0 日目</dt>
+        <dd class="pay"><span class="op">["BUY_ANIMAL", "SHEEP", 1]</span> → $500
+          <small>→ <span class="op">["PICKUP"]</span> → <span class="op">["PLACE", "SHEEP"]</span></small></dd>
+        <dt>毎日</dt>
+        <dd class="pay"><span class="op">["FEED"]</span> — 小麦 1 個
+          <small>3 日間隔なので <span class="op">["CARE"]</span> を 2 回積める</small></dd>
+        <dt>5 日目〜</dt>
+        <dd><strong>3 日に 1 個</strong>の羊毛。上限 6 個</dd>
+        <dt>30 日目</dt>
+        <dd>累計 9 個</dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd class="neg">−$500</dd></div>
+        <div><dt>餌 30 日</dt><dd class="neg">小麦 30 個</dd></div>
+        <div><dt>初収穫</dt><dd>5 日目</dd></div>
+        <div><dt>30 日産出</dt><dd>9 個</dd></div>
+        <div><dt>売上</dt><dd>$1,788<small>平均 $199/個</small></dd></div>
+        <div><dt>純利</dt><dd class="pos">約 $540<small>餌を $750 で買った場合</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h4>肥料</h4>
+      <span class="tag">副産物</span>
+      <span class="tag tag-good">493 個で床</span>
+      <span class="verdict">種代も日数も不要。動物を飼っていれば自動で溜まる</span>
+    </header>
+    <div class="card-body">
+      <dl class="tl">
+        <dt>前提</dt>
+        <dd>動物が 1 匹以上、小屋か牧場で稼働していること</dd>
+        <dt>毎日</dt>
+        <dd><span class="op">["COLLECT_FERTILIZER"]</span> — 1 手で 1 個
+          <small><strong>「あり / なし」の 2 状態なので蓄積しない。</strong>回収しない日の分は消える</small></dd>
+        <dt>代替</dt>
+        <dd class="pay">市場で <span class="op">["BUY_PRODUCT", "FERTILIZER", n]</span>
+          <small>小麦と並ぶ「買える 2 商品」の 1 つ。約 $100</small></dd>
+        <dt>使い道</dt>
+        <dd>畑で <span class="op">["FERTILIZE"]</span> — 3 日間、水やりと日次生産が 2 倍
+          <small>売らずに使えば収穫量に化ける</small></dd>
+      </dl>
+      <dl class="money">
+        <div><dt>初期投資</dt><dd>$0</dd></div>
+        <div><dt>所要</dt><dd>—</dd></div>
+        <div><dt>手数</dt><dd>1 手 / 個</dd></div>
+        <div><dt>産出</dt><dd>1 個 / 日 / 匹</dd></div>
+        <div><dt>単価</dt><dd>$100</dd></div>
+        <div><dt>純利</dt><dd class="pos">全額<small>原価ゼロの副産物</small></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <h3>一覧で比べる</h3>
+
+  <div class="wide">
+    <table>
+      <caption><b>1 サイクルあたりの投資対効果</b>（1 マス / 1 匹・実測値）</caption>
+      <thead>
+        <tr>
+          <th>商品</th><th class="num-col">初期投資</th><th class="num-col">日数</th>
+          <th class="num-col">手数</th><th class="num-col">産出</th>
+          <th class="num-col">売上</th><th class="num-col">純利</th><th class="num-col">1 日あたり</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>メロン</strong></td><td class="num-col">$80</td><td class="num-col">12</td>
+          <td class="num-col">9</td><td class="num-col">6</td>
+          <td class="num-col">$1,500</td><td class="num-col"><strong>$1,420</strong></td><td class="num-col"><strong>$118</strong></td>
+        </tr>
+        <tr>
+          <td>人参</td><td class="num-col">$20</td><td class="num-col">3</td>
+          <td class="num-col">5</td><td class="num-col">3</td>
+          <td class="num-col">$102</td><td class="num-col">$82</td><td class="num-col">$27</td>
+        </tr>
+        <tr>
+          <td>苺</td><td class="num-col">$100</td><td class="num-col">15</td>
+          <td class="num-col">14</td><td class="num-col">4</td>
+          <td class="num-col">$468</td><td class="num-col">$368</td><td class="num-col">$25</td>
+        </tr>
+        <tr>
+          <td>小麦</td><td class="num-col">$10</td><td class="num-col">4</td>
+          <td class="num-col">5</td><td class="num-col">4</td>
+          <td class="num-col">$97</td><td class="num-col">$87</td><td class="num-col">$22</td>
+        </tr>
+        <tr>
+          <td>トマト</td><td class="num-col">$50</td><td class="num-col">11</td>
+          <td class="num-col">12</td><td class="num-col">4</td>
+          <td class="num-col">$229</td><td class="num-col">$179</td><td class="num-col">$16</td>
+        </tr>
+        <tr>
+          <td>牛乳<span class="ln"> 30 日</span></td><td class="num-col">$400</td><td class="num-col">30</td>
+          <td class="num-col">約 45</td><td class="num-col">12</td>
+          <td class="num-col">$1,782</td><td class="num-col">約 $630</td><td class="num-col">約 $21</td>
+        </tr>
+        <tr>
+          <td>羊毛<span class="ln"> 30 日</span></td><td class="num-col">$500</td><td class="num-col">30</td>
+          <td class="num-col">約 42</td><td class="num-col">9</td>
+          <td class="num-col">$1,788</td><td class="num-col">約 $540</td><td class="num-col">約 $18</td>
+        </tr>
+        <tr>
+          <td>卵<span class="ln"> 30 日</span></td><td class="num-col">$300</td><td class="num-col">30</td>
+          <td class="num-col">約 60</td><td class="num-col">27</td>
+          <td class="num-col">$1,239</td><td class="num-col">約 $190</td><td class="num-col">約 $6</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">この表は「1 マスだけ」の話 — 規模を上げると崩れる</span>
+    <p>
+      上の売上はすべて<strong>その 1 マス分だけを売った</strong>場合である。
+      実際には 1 区画 25 マスを同じ作物にすることになり、同時期に大量の在庫が出る。
+      25 マス分をまとめて売ったときの平均単価は次のように落ちる。
+    </p>
+  </div>
+
+  <div class="wide">
+    <table>
+      <caption><b>1 マス vs 1 区画（25 マス）の平均単価</b></caption>
+      <thead>
+        <tr>
+          <th>作物</th><th class="num-col">1 マスの平均単価</th>
+          <th class="num-col">25 マスの平均単価</th><th class="num-col">下落</th>
+          <th class="num-col">25 マスの純利</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>小麦</td><td class="num-col">$24</td><td class="num-col">$22</td>
+          <td class="num-col">−10%</td><td class="num-col">$1,943</td>
+        </tr>
+        <tr>
+          <td>人参</td><td class="num-col">$34</td><td class="num-col">$28</td>
+          <td class="num-col">−16%</td><td class="num-col">$1,630</td>
+        </tr>
+        <tr>
+          <td><strong>メロン</strong></td><td class="num-col">$250</td><td class="num-col">$176</td>
+          <td class="num-col">−30%</td><td class="num-col"><strong>$24,369</strong></td>
+        </tr>
+        <tr>
+          <td>トマト</td><td class="num-col">$57</td><td class="num-col">$43</td>
+          <td class="num-col">−25%</td><td class="num-col">$3,068</td>
+        </tr>
+        <tr>
+          <td><strong>苺</strong></td><td class="num-col">$117</td><td class="num-col">$38</td>
+          <td class="num-col"><strong>−67%</strong></td><td class="num-col">$1,347</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">規模を上げたときの順位</span>
+    <p>
+      1 マスなら苺は純利 $368 で人参の 4 倍以上だが、
+      <strong>25 マスにすると苺 $1,347 に対し人参は $1,630 で逆転する</strong>。
+      苺は種代が $2,500 かかるうえ平均単価が 3 分の 1 に落ちるためである。
+    </p>
+    <p>
+      メロンだけは 25 マス（150 個）でも純利 $24,369 と桁が違う。30% 下落してもなお圧倒的で、
+      <strong>この環境で「作るもの」を 1 つ選ぶならメロンが基準線になる</strong>。
+      ただしこれは<strong>相手が同時に売ってこない前提</strong>の数字である。
+    </p>
+  </div>
+
+  </section>
+
+<section id="s04">
+  <h2><span class="num">04</span> 生産の仕組み（詳細）</h2>
+  <p class="deck">上のカードの根拠となる実測データと命令一覧。</p>
+
+<h3>成長の推移（実測）</h3>
+
+  <p>
+    上の日程の根拠となった計測結果である。
+    <strong>毎日欠かさず水やりをした</strong>ときの、その日の終わりに<strong>収穫できる個数</strong>を示す。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>植えた日を 0 日目としたときの収穫可能量</b>（肥料なし・毎日水やり）</caption>
+      <thead>
+        <tr>
+          <th>作物</th>
+          <th class="num-col">0</th><th class="num-col">2</th><th class="num-col">3</th>
+          <th class="num-col">4</th><th class="num-col">6</th><th class="num-col">8</th>
+          <th class="num-col">10</th><th class="num-col">12</th><th class="num-col">13</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>小麦</td>
+          <td class="num-col">1</td><td class="num-col">2</td><td class="num-col">3</td>
+          <td class="num-col"><strong>4</strong></td><td class="num-col" colspan="5">枯れる（5 日目に雑草化）</td>
+        </tr>
+        <tr>
+          <td>人参</td>
+          <td class="num-col">1</td><td class="num-col">2</td><td class="num-col"><strong>3</strong></td>
+          <td class="num-col" colspan="6">枯れる（4 日目に雑草化）</td>
+        </tr>
+        <tr>
+          <td>メロン</td>
+          <td class="num-col">1</td><td class="num-col">1</td><td class="num-col">1</td>
+          <td class="num-col">1</td><td class="num-col">2</td><td class="num-col">4</td>
+          <td class="num-col"><strong>6</strong></td><td class="num-col">6</td><td class="num-col">枯</td>
+        </tr>
+        <tr>
+          <td>トマト<span class="ln"> 継続</span></td>
+          <td class="num-col">0</td><td class="num-col">0</td><td class="num-col">0</td>
+          <td class="num-col">0</td><td class="num-col">0</td><td class="num-col">2</td>
+          <td class="num-col"><strong>4</strong></td><td class="num-col">枯</td><td class="num-col">—</td>
+        </tr>
+        <tr>
+          <td>苺<span class="ln"> 継続</span></td>
+          <td class="num-col">0</td><td class="num-col">0</td><td class="num-col">0</td>
+          <td class="num-col">0</td><td class="num-col">0</td><td class="num-col">0</td>
+          <td class="num-col">1</td><td class="num-col">2</td><td class="num-col">3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn note">
+    <span class="label">植えた当日に水をやらないと枯れる</span>
+    <p>
+      植えた瞬間、そのマスの「連続未水やり日数」は <strong>0 ではなく 1</strong> から始まる
+      （<code>_new_plant</code> 209 行）。
+      つまり<strong>植えた日のうちに水をやらないと、その日の終わりに 2 に達して雑草になる</strong>。
+      実測でも、翌日に水をやる方針では全作物が 1 日で全滅した。
+      <strong>植える手と水やりの手は同じ日に確保しなければならない。</strong>
+    </p>
+  </div>
+
+  <h3>水やりは毎日必要か</h3>
+
+  <p>
+    <strong>枯らさないだけなら 1 日おきで足りる</strong>。
+    枯れる条件は「連続 2 日の未水やり」なので、1 日空ける程度では雑草にならない。
+    ただし<strong>収穫量は作物によって減る</strong>。以下は実測値である。
+  </p>
+
+  <div class="wide">
+    <table>
+      <caption><b>毎日 water と 1 日おき water の比較</b>（肥料なし・実測）</caption>
+      <thead>
+        <tr>
+          <th>作物</th>
+          <th class="num-col">毎日の収量</th><th class="num-col">1 日おきの収量</th>
+          <th class="num-col">水やり回数<span class="ln"> 毎日 / 隔日</span></th>
+          <th>差</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>トマト</strong><span class="ln"> 継続</span></td>
+          <td class="num-col">4</td><td class="num-col"><strong>4</strong></td>
+          <td class="num-col">12 → 6</td>
+          <td><span class="dir dir-up">減らない</span> 手数が半分で済む</td>
+        </tr>
+        <tr>
+          <td><strong>苺</strong><span class="ln"> 継続</span></td>
+          <td class="num-col">4</td><td class="num-col"><strong>4</strong></td>
+          <td class="num-col">16 → 8</td>
+          <td><span class="dir dir-up">減らない</span> 手数が半分で済む</td>
+        </tr>
+        <tr>
+          <td>メロン</td>
+          <td class="num-col">6</td><td class="num-col">5</td>
+          <td class="num-col">13 → 7</td>
+          <td><span class="dir dir-down">−1 個</span></td>
+        </tr>
+        <tr>
+          <td>小麦</td>
+          <td class="num-col">4</td><td class="num-col">3</td>
+          <td class="num-col">5 → 3</td>
+          <td><span class="dir dir-down">−1 個</span></td>
+        </tr>
+        <tr>
+          <td>人参</td>
+          <td class="num-col">3</td><td class="num-col">2</td>
+          <td class="num-col">4 → 2</td>
+          <td><span class="dir dir-down">−1 個</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">継続作物は水やりで増えない</span>
+    <p>
+      水やりが収穫量を増やすのは<strong>1 回で消える作物（小麦・人参・メロン）だけ</strong>である
+      （<code>_apply_unit_action</code> 425 行の <code>if not crop_data["ongoing"]</code>）。
+      トマトと苺は日次生産で自動的に実るので、<strong>水やりは「枯らさないための維持作業」でしかない</strong>。
+      したがって継続作物では、<strong>1 日おきに切り替えると手数が半分になり、収量は変わらない</strong>。
+    </p>
+  </div>
+
+  <div class="warn note">
+    <span class="label">2 日おきは成立しない</span>
+    <p>
+      実測すると、2 日おき（3 日に 1 回）では<strong>メロンが 2 日目で雑草化した</strong>。
+      未水やりが 2 日連続した時点で判定に引っかかるためで、
+      <strong>「1 日空ける」は許されるが「2 日空ける」は許されない</strong>。
+      安全側の運用は隔日までである。
+    </p>
+    <p>
+      なお植えた当日だけは例外で、<strong>必ず水をやる必要がある</strong>（下の警告を参照）。
+      「初日 + 以降 1 日おき」が最小の手数になる。
+    </p>
+  </div>
+
+  <div class="wide">
+<pre><code><i># 水やりの判定ロジック（_daily_refresh_plants 764 行）</i>
+
+1 日の終わりに、各作物のマスについて:
+
+    if 今日 水をやった:
+        連続未水やり = 0
+    else:
+        連続未水やり += 1
+
+    水やり済みフラグ = False          <i># 翌日また水をやれる状態に戻す</i>
+
+    if 連続未水やり &gt;= 2:
+        このマスは雑草になる           <i># ここで作物が失われる</i>
+
+<i># つまり「1 日おき」なら 連続未水やり は 0 → 1 → 0 → 1 … と振動し</i>
+<i># 2 に到達しないため枯れない</i></code></pre>
+  </div>
+
+  <h3>作物の作業手順</h3>
+
+  <div class="wide">
+<pre><code><i># 1 マスあたりの手順（すべて、そのマスの上に立って行う）</i>
+
+  ┌─ 事前 ──────────────────────────────────
+  │  市場で  ["BUY_SEED", 作物名, 個数]        <i># 倉庫を通らない</i>
+  │
+  ├─ 0 日目 ────────────────────────────────
+  │  空きマスへ移動して  ["PLANT", 作物名]      <i># 種を 1 消費</i>
+  │  </i><u>同じ日のうちに</u><i>  ["WATER"]              <i># これを飛ばすと枯れる</i>
+  │
+  ├─ 以降、最低でも 1 日おき ──────────────────
+  │  ["WATER"]                                <i># 1 日 1 回まで。</i><u>2 日連続で忘れると雑草</u>
+  │                                           <i># 継続作物は隔日で収量が落ちない（前掲）</i>
+  │  （任意）["FERTILIZE"]                     <i># 手持ちの肥料 1 個、3 日間 効果 2 倍</i>
+  │
+  ├─ 収穫日 ────────────────────────────────
+  │  ["HARVEST"]                              <i># 手持ちへ。1 回で消える作物はマスが空く</i>
+  │
+  └─ 売却まで ──────────────────────────────
+     倉庫の脇へ移動して  ["DROP"]              <i># または日の終わりに自動で移る</i>
+     市場で  ["SELL", 品目, 個数]              <i># </i><u>倉庫の分しか売れない</u></code></pre>
+  </div>
+
+  <h3>動物まわりの補足</h3>
+
+  <p>
+    上のカードで示した手順を、命令の形でまとめておく。
+    <strong>買っただけでは生産が始まらず、倉庫から取り出して小屋に置く必要がある</strong>点が
+    作物との最大の違いになる。
+  </p>
+
+  <div class="wide">
+<pre><code><i># 動物 1 匹を稼働させるまで（4 手 + 移動）</i>
+
+  1. 空きマスで  ["BUILD_COOP"]  または  ["BUILD_PASTURE"]   <i># 費用は無料</i>
+  2. 市場で      ["BUY_ANIMAL", 動物名, 1]                    <i># 倉庫に入る</i>
+  3. 倉庫の脇で  ["PICKUP", 動物名, 1]                        <i># 手持ちへ</i>
+  4. 小屋の上で  ["PLACE", 動物名]                            <i># ここで初めて稼働</i>
+
+<i># 稼働後、毎日必要な作業</i>
+
+  ["FEED"]                 <i># </i><u>手持ちの小麦を 1 個消費</u><i>。2 日忘れると逃げる</i>
+  ["CARE"]                 <i># 任意。餌もやった日なら次の生産が +1</i>
+  ["HARVEST"]              <i># 溜まった産物を手持ちへ</i>
+  ["COLLECT_FERTILIZER"]   <i># 任意。1 日 1 個たまる</i></code></pre>
+  </div>
+
+  <div class="warn note">
+    <span class="label">餌代を差し引くと見え方が変わる</span>
+    <p>
+      どの動物も<strong>1 日 1 個の小麦</strong>を食べる。30 日ぶんを均衡価格 $25 で買えば $750 で、
+      これは初期費用と同じ桁になる。<strong>牛の 30 日の売上 $1,920 に対し、
+      初期 $400 + 餌 $750 = $1,150 が原価</strong>という計算になる。
+    </p>
+    <p>
+      さらに、羊毛と牛乳は<strong>60〜76 個で $1 に落ちる</strong>崩れやすい商品である。
+      羊 1 匹の 30 日産出は 9 個なので単体なら問題ないが、
+      複数飼えばすぐ床に近づく。
+      一方ガチョウの卵は<strong>崩れない対数曲線</strong>なので、数を増やしても単価が保てる。
+    </p>
+  </div>
+
+  <div class="note">
+    <span class="label">世話ボーナスの仕組み</span>
+    <p>
+      <code>["CARE"]</code> は<strong>その場では何も起きない</strong>。
+      餌もやった日に限り内部カウンタが 1 増え、
+      <strong>次の生産日にまとめて上乗せされる</strong>（<code>pending_care_bonus</code>）。
+      牛や羊のように生産間隔が 2〜3 日ある動物では、
+      その間の世話が積み上がって次の産出に反映される仕組みになっている。
+    </p>
+  </div>
+
+  <h3>肥料 — 唯一の副産物</h3>
+
+  <div class="wide">
+    <table>
+      <caption><b>肥料の 2 つの入手経路</b></caption>
+      <thead>
+        <tr><th>経路</th><th>手順</th><th>コスト</th><th>備考</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>動物から回収</td>
+          <td class="mono-col">["COLLECT_FERTILIZER"]</td>
+          <td>1 手のみ</td>
+          <td>動物 1 匹につき 1 日 1 個。<strong>「あり / なし」の 2 状態で管理されるため蓄積せず、
+              回収しなかった日のぶんは失われる</strong></td>
+        </tr>
+        <tr>
+          <td>市場で購入</td>
+          <td class="mono-col">["BUY_PRODUCT", "FERTILIZER", n]</td>
+          <td>$100 前後</td>
+          <td><strong>小麦と並んで、買える 2 商品のうちの 1 つ</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    肥料は<strong>売ってもよいし、畑に使ってもよい</strong>。
+    <code>["FERTILIZE"]</code> で施すと 3 日間、水やりと日次生産の効果が 2 倍になる。
+    値崩れしにくい線形曲線（493 個で床）なので、
+    <strong>売却先としても安定している</strong>。
+  </p>
+
+  <h3>市場在庫を戻す力 — 町の需要</h3>
+
+  <p>
+    売却で増えた市場在庫を減らすのは<strong>町</strong>だけである。
+    町は 2 系統の需要を持ち、どちらも市場在庫を直接減らす。
+    在庫が減れば価格は均衡へ、さらには均衡未満へと戻っていく。
+  </p>
+
+  <div class="wide">
+    <table>
+      <thead>
+        <tr><th>需要</th><th>周期</th><th>買うもの</th><th>増え方</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>町全体</td>
+          <td>24 ターン（1 日）ごと</td>
+          <td>肥料以外の全商品を 1 個ずつ</td>
+          <td>一定。増えない</td>
+        </tr>
+        <tr>
+          <td>個々の店</td>
+          <td>4 ターンごと</td>
+          <td>その店の扱う商品を 1 個ずつ（1 品目のみの店は 2 個）</td>
+          <td><strong>3 日ごとに 1 店ずつ増え、減らない</strong>（上限 8 店）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="label">需要は後半ほど厚くなる</span>
+    <p>
+      店は解禁されるだけで閉店しないため、<strong>季節が進むほど市場在庫が吸われる速度が上がる</strong>。
+      同じ 100 個でも、序盤に売れば値を潰し、終盤なら町が吸ってくれる分だけ有利になりうる。
+      ただし<strong>どの店が解禁されるかは乱数で決まり、盤面の状態にも左右される</strong>（<a href="1-environment.html">① 落とし穴</a>）。
+      需要の中身を先読みして作付けを決める、という戦略は成立しにくい。
+    </p>
+  </div>
+
+  <div class="warn note">
+    <span class="label">売り時の問題が最後に残る</span>
+    <p>
+      終了時に売れ残った在庫は <strong>0 点</strong>である。
+      一方でまとめ売りは価格を潰す。しかも相手も同じ市場在庫に売り込んでおり、
+      その手持ちは観測に含まれない。
+      結果として、<strong>「いつ・どれだけ売るか」は相手の在庫の推定と切り離せない問題</strong>になる。
+      季節の終わりは生産の問題ではなく、売り抜けの問題として立ち現れる。
+    </p>
+  </div>
+</section>
+
+<nav class="pager" aria-label="前後のページ">
+<a href="2-interface.html"><span class="dir">← 前のページ</span><span class="t">② 観測と行動</span></a>
+</nav>
+<footer>
+  解析対象 — <code>kaggle_environments/envs/kaggriculture/kaggriculture.py</code>（1,073 行）および
+  <code>kaggle_environments/core.py</code>（772 行）。行番号は同ファイル内の位置を指す。
+  数値はすべて実際に環境を実行して計測したもの。
+</footer>
