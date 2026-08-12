@@ -50,8 +50,14 @@ UV_SYNC_ELAPSED=$(( $(date +%s) - UV_SYNC_START ))
 echo "[onstart] uv sync elapsed=${UV_SYNC_ELAPSED}s (container-local)"
 # Sanity check: site-packages actually usable. Catches partial installs
 # or future MFS-style breakage early so 50/60 don't have to retry.
-if ! backend/.venv/bin/python -c "import pyarrow, torch, numpy, sklearn" 2>&1; then
-  echo "[onstart] FATAL: venv import smoke failed post uv sync" >&2
+#
+# 検査対象は pyproject が実際に持つ依存だけに絞る。以前は torch / sklearn を
+# 直接 import していたが、どちらも本リポジトリの依存ではなく (sklearn は
+# どの group にも無い)、venv が健全でも必ず ModuleNotFoundError で exit 1 して
+# いた。torch は family によって入る/入らないが分かれるため、ここでは見ない。
+SMOKE_MODS="pyarrow, numpy, polars"
+if ! backend/.venv/bin/python -c "import ${SMOKE_MODS}" 2>&1; then
+  echo "[onstart] FATAL: venv import smoke failed post uv sync (${SMOKE_MODS})" >&2
   exit 1
 fi
 
