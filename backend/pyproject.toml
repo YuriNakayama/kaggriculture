@@ -18,6 +18,15 @@ dependencies = [
     "dvc[s3]>=3.50",
 ]
 
+[project.optional-dependencies]
+# RunPod の onstart (40_uv_and_dvc_pull.sh) が
+#   uv sync --no-default-groups --extra torch-cu124
+# で参照する。RunPod の image は cu1241 なので CUDA 12.4 build を合わせる。
+# default group の torch-cpu とは排他 (だから --no-default-groups が付く)。
+torch-cu124 = [
+    "torch>=2.4",
+]
+
 [dependency-groups]
 dev = [
     "mypy>=1.11",
@@ -31,6 +40,16 @@ dev = [
 gpu = ["runpod>=1.7"]
 nn = [
     "torch>=2.4",
+]
+# CPU build の torch。reinforce family は GPU 計算を JAX が担うため torch は
+# CPU で足り、cuda group (cudnn) との衝突も避けられる。
+torch-cpu = [
+    "torch>=2.4",
+]
+# JAX の CUDA build。onstart が `uv sync --group cuda` で入れる。
+# jax 本体は kaggle-environments が依存として持ち込むが、CUDA plugin は別途要る。
+cuda = [
+    "jax[cuda12]>=0.11; sys_platform == 'linux'",
 ]
 
 [build-system]
