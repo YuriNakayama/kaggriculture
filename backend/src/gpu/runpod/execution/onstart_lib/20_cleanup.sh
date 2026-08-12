@@ -135,5 +135,25 @@ if [ "${RUNPOD_MODE}" = "oneshot" ]; then
   trap cleanup_destroy EXIT
 else
   echo "[onstart] interactive mode: skipping cleanup_destroy EXIT trap"
+  # docker_args で ENTRYPOINT を上書きしているため、この bash がコンテナの
+  # main process になる。つまり **この後どこかで exit すると、コンテナごと
+  # 死んで RunPod に再起動される**。interactive はまさに「準備段階が失敗した
+  # 環境に入って調べたい」用途なので、後段 (uv sync / DVC pull / CUDA group 等)
+  # の `exit 1` でコンテナが落ちると SSH で入る手段そのものが消える。
+  #
+  # 実測 (2026-08-12): stage 40 の `exit 1` により uptime が
+  # -6 → 4 → 2 → -10 と再起動を繰り返し、SSH 成功率 0-8/30、16KB の転送すら
+  # 不能という症状になっていた。対照実験では素の pod / docker_args のみの pod は
+  # いずれも uptime 単調増加で安定しており、原因は onstart 側だった。
+  #
+  # そこで EXIT を捕まえて sleep infinity に落とす。準備段階が途中で失敗しても
+  # コンテナは生き続け、SSH で入って原因を直接調べられる。
+  hold_for_debug() {
+    local code=$?
+    echo "[onstart] interactive hold: onstart exited code=${code}; keeping pod alive for SSH"
+    mark "51_interactive_hold_after_exit_${code}" || true
+    exec sleep infinity
+  }
+  trap hold_for_debug EXIT
 fi
 
