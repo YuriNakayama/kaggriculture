@@ -1,5 +1,15 @@
 # Progress marker — write a tiny file to S3 at each step so we can debug
 # without SSH access. AWS env vars are injected by create_pod.
+#
+# `:-` は必須。00_prelude.sh が `set -u` を張っているため、未定義変数を裸で
+# 展開するとこの行でスクリプトが即死する。ここは onstart のほぼ先頭かつ trap
+# 設定より前なので、死ぬと marker も sshd も残らず「pod は RUNNING だが SSH
+# 不能」という無言の失敗になる。実際 KAGGRICULTURE_DVC_BUCKET は launcher の
+# env dict に入っておらず、これが再起動ループの直接原因だった (2026-08-12)。
+KAGGRICULTURE_DVC_BUCKET="${KAGGRICULTURE_DVC_BUCKET:-}"
+if [ -z "${KAGGRICULTURE_DVC_BUCKET}" ]; then
+  echo "[onstart] WARN: KAGGRICULTURE_DVC_BUCKET unset; S3 markers disabled" >&2
+fi
 S3_MARKER_PREFIX="s3://${KAGGRICULTURE_DVC_BUCKET}/remote/runpod_progress/<RUN_ID>"
 S3_ARTIFACT_PREFIX="s3://${KAGGRICULTURE_DVC_BUCKET}/remote/runpod_artifacts/<RUN_ID>"
 mark() {
@@ -7,6 +17,9 @@ mark() {
   local ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   local body="ts=${ts} step=${step} pod=${INSTANCE_ID}"
   echo "[onstart] mark step=${step}"
+  if [ -z "${KAGGRICULTURE_DVC_BUCKET}" ]; then
+    return 0  # bucket 未設定なら S3 送信はスキップ (log には残る)
+  fi
   if command -v aws >/dev/null 2>&1; then
     # 初回 mark のみ stderr を表示する (silent failure を見逃さない)。
     # 2 回目以降は log を汚さないために suppress。

@@ -190,6 +190,26 @@ def _run_preflight_smoke(case: str) -> None:
     console.print("[green]preflight:[/] smoke train OK.")
 
 
+def _dvc_bucket() -> str:
+    """`.dvc/config` の s3 remote から bucket 名を取り出す。
+
+    onstart は S3 に progress marker を書くため、この値を env で渡す必要がある。
+    渡し忘れると `set -u` 下の onstart 冒頭 (S3_MARKER_PREFIX の展開) で即死し、
+    marker も sshd も残らない無言の失敗になる。2026-08-12 に「pod は RUNNING
+    だが SSH 不能」という再起動ループの直接原因として観測した。
+    見つからなければ空文字を返し、onstart 側は marker 送信を skip する。
+    """
+    cfg = _repo_root() / ".dvc" / "config"
+    if not cfg.is_file():
+        return ""
+    for line in cfg.read_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("url") and "s3://" in stripped:
+            # 例: url = s3://kaggriculture-dvc-286854171013/remote
+            return stripped.split("s3://", 1)[1].split("/", 1)[0].strip()
+    return ""
+
+
 def _build_sdk(api_key: str) -> Any:
     """RunPod SDK を初期化して返す (module-level state なので module 自体を返す)。"""
     runpod_sdk.api_key = api_key
@@ -514,6 +534,7 @@ def train(
         "KAGGRICULTURE_CASE_FAMILY": _case_family(case),
         "KAGGRICULTURE_CASE_SUBDIR": _case_subdir(case),
         "KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
+        "KAGGRICULTURE_DVC_BUCKET": _dvc_bucket(),
     }
     # GIT_PAT は onstart の git push (.dvc メタコミット) で必要。.env か shell env
     # から取得し、無ければ警告して continue (push はスキップされる)。
@@ -805,6 +826,7 @@ def dev_cmd(
         "KAGGRICULTURE_GIT_BRANCH": branch,
         "KAGGRICULTURE_CASE": case,
         "KAGGRICULTURE_RUNPOD_OFFER_SNAPSHOT_B64": snapshot_b64,
+        "KAGGRICULTURE_DVC_BUCKET": _dvc_bucket(),
         "KAGGRICULTURE_RUNPOD_MODE": "interactive",
     }
     git_pat = load_git_pat()
