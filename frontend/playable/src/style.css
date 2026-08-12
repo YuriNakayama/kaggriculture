@@ -464,3 +464,8 @@ input, select {
   border-radius: 4px;
 }
 .sell-estimate { font-size: 11px; color: #9fc3e8; margin: 0 0 0 4px; }
+.smart-bar-buttons .day-auto {
+  background: #3a552a;
+  border-color: #6a8a4a;
+  font-weight: 700;
+}

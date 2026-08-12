@@ -8,7 +8,15 @@ import { HUD } from './HUD';
 import { mergeMarket, omakaseAction } from './omakase';
 import { SmartCommandBar, type AutoStatus } from './SmartCommandBar';
 import { useHandRoles } from './useHandRoles';
-import { assignCommand, autoActions, commandTargets, queueSize, type SmartCommand, type TaskQueues } from './smartTasks';
+import {
+  assignCommand,
+  autoActions,
+  commandTargets,
+  dailyRoutineQueues,
+  queueSize,
+  type SmartCommand,
+  type TaskQueues,
+} from './smartTasks';
 import { TileActionMenu } from './TileActionMenu';
 import { useBoardPlay } from './useBoardPlay';
 import { useGameWorker, type SetupResult } from './useGameWorker';
@@ -65,7 +73,14 @@ export function GameScreen({ setup, onExit }: Props) {
   // Live queues during an auto-run, for path overlays on the board.
   const [runQueues, setRunQueues] = useState<TaskQueues>({});
 
-  const runAuto = async (label: string, initialQueues: TaskQueues, untilMorning: boolean) => {
+  const runAuto = async (
+    label: string,
+    initialQueues: TaskQueues,
+    untilMorning: boolean,
+    // 毎ターン、キューが尽きたら再生成する (1日オート用)。設定時は
+    // 収穫可能での注意停止を行わない — ルーチン自身が収穫するため。
+    regenerate?: (s: NonNullable<typeof state>) => TaskQueues
+  ) => {
     if (humanPlayerId === null || !state || state.done) return;
     if (auto.running) return; // 二重起動防止 (自動進行中の追加タップは無視)
     autoStopRef.current = false;
@@ -93,6 +108,7 @@ export function GameScreen({ setup, onExit }: Props) {
         nextQueues = {};
         idle = false;
       } else {
+        if (regenerate && queueSize(queues) === 0) queues = regenerate(s);
         const r = autoActions(s, humanPlayerId, queues);
         action = { ...r.action, market: [] };
         nextQueues = r.nextQueues;
@@ -114,7 +130,7 @@ export function GameScreen({ setup, onExit }: Props) {
           break;
         }
         const harvestNow = commandTargets(s, humanPlayerId, 'HARVEST_ALL').length;
-        if (harvestNow > startHarvest) {
+        if (!regenerate && harvestNow > startHarvest) {
           note = `収穫可能が ${harvestNow} 件になったので停止`;
           break;
         }
@@ -261,6 +277,11 @@ export function GameScreen({ setup, onExit }: Props) {
                 )
               }
               onUntilMorning={() => void runAuto('翌朝まで自動進行', {}, true)}
+              onDayAuto={() =>
+                void runAuto('1日オート (農作業を自動消化)', dailyRoutineQueues(state, humanPlayerId), true, (s) =>
+                  dailyRoutineQueues(s, humanPlayerId)
+                )
+              }
               onNextTurn={() => {
                 const action = draft.buildAction();
                 draft.afterSubmit(action);

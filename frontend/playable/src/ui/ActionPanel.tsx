@@ -193,11 +193,14 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
             setOrders(next);
           }}
         >
-          {CROP_IDS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
+          {CROP_IDS.map((c) => {
+            const info = marketLegal.buySeed[c];
+            return (
+              <option key={c} value={c} disabled={!info?.legal}>
+                {c} (${info?.cost ?? '?'}){info?.legal ? '' : ' ✕資金不足'}
+              </option>
+            );
+          })}
         </select>
       )}
       {draft.kind === 'BUY_PRODUCT' && (
@@ -209,11 +212,14 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
             setOrders(next);
           }}
         >
-          {(['WHEAT', 'FERTILIZER'] as ShedItemId[]).map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
+          {(['WHEAT', 'FERTILIZER'] as const).map((p) => {
+            const info = marketLegal.buyProduct[p];
+            return (
+              <option key={p} value={p} disabled={!info?.legal}>
+                {p} (${info?.cost ?? '?'}){info?.legal ? '' : ' ✕資金不足'}
+              </option>
+            );
+          })}
         </select>
       )}
       {draft.kind === 'BUY_ANIMAL' && (
@@ -225,11 +231,14 @@ export function ActionPanel({ state, player, busy, draft, roles, onRoleChange, o
             setOrders(next);
           }}
         >
-          {ANIMAL_IDS.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
+          {ANIMAL_IDS.map((a) => {
+            const info = marketLegal.buyAnimal[a];
+            return (
+              <option key={a} value={a} disabled={!info?.legal}>
+                {a} (${info?.cost ?? '?'}){info?.legal ? '' : ' ✕資金不足'}
+              </option>
+            );
+          })}
         </select>
       )}
       {draft.kind === 'SELL' && (

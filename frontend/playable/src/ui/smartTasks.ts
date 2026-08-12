@@ -161,3 +161,40 @@ export function autoActions(
 export function queueSize(queues: TaskQueues): number {
   return Object.values(queues).reduce((a, q) => a + q.length, 0);
 }
+
+/**
+ * 1日分のルーチン: 収穫 → 水やり → 世話 → 雑草 の順に全ターゲットを
+ * 全ユニットへ配分し、持ち物のあるユニットには最後に倉庫収納を積む。
+ * 自動進行側が毎ターン再生成して呼ぶことで「湧いた仕事」も拾う。
+ */
+export function dailyRoutineQueues(state: GameState, player: number): TaskQueues {
+  const queues: TaskQueues = {};
+  const units = unitPositions(state, player);
+  const cursor: Position[] = units.map((p) => [p[0], p[1]]);
+  const dist = (a: Position, b: Position) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+
+  const ordered: { target: Position; op: UnitAction }[] = [
+    ...commandTargets(state, player, 'HARVEST_ALL'),
+    ...commandTargets(state, player, 'WATER_ALL'),
+    ...commandTargets(state, player, 'TEND_ANIMALS'),
+    ...commandTargets(state, player, 'CLEAR_WEEDS'),
+  ];
+  for (const t of ordered) {
+    let best = 0;
+    let bestCost = Infinity;
+    for (let u = 0; u < units.length; u++) {
+      const cost = dist(cursor[u], t.target) + (queues[u]?.length ?? 0) * 2;
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = u;
+      }
+    }
+    (queues[best] ??= []).push({ kind: 'op-at', target: t.target, op: t.op });
+    cursor[best] = t.target;
+  }
+  units.forEach((_, u) => {
+    const inv = state.privates[player].inventories[u] ?? {};
+    if (Object.values(inv).some((n) => (n ?? 0) > 0)) (queues[u] ??= []).push({ kind: 'deposit' });
+  });
+  return queues;
+}

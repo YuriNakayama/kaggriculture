@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { step } from '../../engine/interpreter';
 import { initGameState, resolveConfig } from '../../engine/state';
 import type { GameState, PlantTile } from '../../engine/types';
-import { assignCommand, autoActions, commandTargets, queueSize } from '../smartTasks';
+import { assignCommand, autoActions, commandTargets, dailyRoutineQueues, queueSize } from '../smartTasks';
 
 const config = resolveConfig({ seed: 5 });
 const PASS = { farmer: ['PASS'] as ['PASS'], hands: [], market: [] };
@@ -60,6 +60,28 @@ describe('smart commands on the real engine', () => {
     const done = runQueues(s, 0, queues);
     expect(done.privates[0].shed.WHEAT ?? 0).toBe(4);
     expect(done.privates[0].inventories[0].WHEAT ?? 0).toBe(0);
+  });
+
+  it('dailyRoutineQueues waters, digs weeds, and deposits in one run', () => {
+    let s = initGameState(2, config, 5);
+    s.privates[0].inventories[0] = { WHEAT: 2 };
+    s.farms[0].tiles[1][1] = {
+      kind: 'PLANT',
+      crop: 'WHEAT',
+      planted_day: 0,
+      watered_today: false,
+      consecutive_unwatered: 0,
+      yield_units: 0,
+      max_lifespan_step: 9999,
+      fertilized_until_day: -1,
+    } as PlantTile;
+    s.farms[0].tiles[2][3] = { kind: 'WEED' };
+    const queues = dailyRoutineQueues(s, 0);
+    expect(queueSize(queues)).toBeGreaterThanOrEqual(3); // water + weed + deposit
+    const done = runQueues(s, 0, queues);
+    expect((done.farms[0].tiles[1][1] as PlantTile).watered_today).toBe(true);
+    expect(done.farms[0].tiles[2][3]).toBeNull();
+    expect(done.privates[0].shed.WHEAT ?? 0).toBe(2);
   });
 
   it('autoActions passes when idle', () => {

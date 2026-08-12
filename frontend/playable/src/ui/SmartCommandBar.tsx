@@ -21,6 +21,7 @@ interface Props {
   auto: AutoStatus;
   onCommand(cmd: SmartCommand): void;
   onUntilMorning(): void;
+  onDayAuto(): void;
   onNextTurn(): void;
   onStop(): void;
 }
@@ -33,11 +34,20 @@ const COMMANDS: { cmd: SmartCommand; label: string; help: string }[] = [
   { cmd: 'DEPOSIT_ALL', label: '📦 収納', help: '全ユニットの持ち物を倉庫へ運ぶ' },
 ];
 
-export function SmartCommandBar({ state, player, busy, auto, onCommand, onUntilMorning, onNextTurn, onStop }: Props) {
+export function SmartCommandBar({ state, player, busy, auto, onCommand, onUntilMorning, onDayAuto, onNextTurn, onStop }: Props) {
   return (
     <div className="smart-bar">
       <div className="smart-bar-title">スマートコマンド (自動で移動・実行)</div>
       <div className="smart-bar-buttons">
+        <button
+          type="button"
+          className="day-auto"
+          title="収穫→水やり→世話→雑草→収納を全ユニットで自動分担し、新しく湧いた仕事も拾いながら翌朝まで進める。1日1タップの基本ボタン"
+          disabled={busy || auto.running || state.done}
+          onClick={onDayAuto}
+        >
+          🌅 1日オート
+        </button>
         {COMMANDS.map(({ cmd, label, help }) => {
           const n = cmd === 'DEPOSIT_ALL' ? undefined : commandTargets(state, player, cmd).length;
           return (
