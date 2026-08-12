@@ -2,7 +2,10 @@
 name = "kaggriculture"
 version = "0.1.0"
 description = "Agents for the Kaggle Kaggriculture farming-sim competition"
-readme = "../README.md"
+# readme は指定しない。リポジトリ root の README.md は backend/ の外にあり、
+# hatchling が "Readme path must be within the project directory" で build を
+# 拒否する (uv run / uv sync が丸ごと失敗し、pod 上の onstart も止まる)。
+# パッケージは PyPI に出さないので、この metadata は無くて困らない。
 requires-python = ">=3.13,<3.14"
 authors = [{ name = "Yuri Nakayama" }]
 dependencies = [
