@@ -37,3 +37,15 @@ module "github_actions_oidc" {
   # applied with -target without dragging the bucket resources along.
   dvc_bucket_arn = "arn:aws:s3:::${var.dvc_bucket_name}"
 }
+
+# Amplify Hosting for the playable frontend (frontend/ + amplify.yml), served
+# at https://<playable_subdomain>.<playable_domain>. Static hosting only.
+module "amplify_hosting" {
+  source              = "../../module/application/amplify_hosting"
+  prefix              = var.resource_prefix
+  github_repo         = var.github_repo
+  github_access_token = var.amplify_github_access_token
+  branch_name         = "main"
+  domain_name         = var.playable_domain
+  subdomain_prefix    = var.playable_subdomain
+}

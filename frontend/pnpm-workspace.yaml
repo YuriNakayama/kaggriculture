@@ -1,0 +1,7 @@
+packages:
+  - web/core
+  - playable
+  - default
+
+onlyBuiltDependencies:
+  - esbuild

@@ -1,0 +1,17 @@
+{
+  "name": "kaggriculture-frontend",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "build": "pnpm --filter @kaggle-environments/core build && pnpm --filter @kaggle-environments/kaggriculture-visualizer build && node scripts/copy-replay.mjs && pnpm --filter @kaggle-environments/kaggriculture-playable-visualizer build",
+    "test": "pnpm --filter @kaggle-environments/kaggriculture-playable-visualizer test"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1",
+    "typescript": "^5.9.3",
+    "vite-plugin-checker": "^0.11.0",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vite-plugin-singlefile": "^2.0.0",
+    "vite-tsconfig-paths": "^5.1.4"
+  }
+}
