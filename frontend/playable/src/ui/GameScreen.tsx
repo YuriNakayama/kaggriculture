@@ -67,6 +67,7 @@ export function GameScreen({ setup, onExit }: Props) {
 
   const runAuto = async (label: string, initialQueues: TaskQueues, untilMorning: boolean) => {
     if (humanPlayerId === null || !state || state.done) return;
+    if (auto.running) return; // 二重起動防止 (自動進行中の追加タップは無視)
     autoStopRef.current = false;
     let s = state;
     let queues = initialQueues;
