@@ -27,21 +27,28 @@ import jax.numpy as jnp
 from . import env as E
 from .state import MAX_UNITS, initial_state
 
-#: CPU で公式 engine と一致することを確認済みの状態ダイジェスト。
-#: ローカル (M2 Max, CPU backend) で再現を確認している。
+#: CPU backend で得た状態ダイジェスト。GPU が CPU と同じ値を出すかを見る
+#: **クロスバックエンド比較**に使う。
+#:
+#: 注意: これは公式 engine との一致を直接示すものではない。engine との等価性は
+#: tests/e2e/src/simulate/test_jaxenv_{equivalence,animals,limits}.py が
+#: 毎ターン全状態を突合して担保しており、この digest はあくまで
+#: 「その検証を通った CPU 実装と GPU 実装がビット単位で一致するか」を見る。
+#:
+#: 形状に依存するため、MAX_UNITS などを変えたら再生成が要る。
 EXPECTED_DIGEST: dict[str, str] = {
     "animal": "e202c0cf84a7cd41",
     "animal_shed": "3158570784fcab36",
-    "carried": "2d07a41ae9927700",
-    "crop": "ee506e29a41b3a8b",
-    "kind": "5c22a5e65fe57d08",
+    "carried": "f7b586904e367814",
+    "crop": "f00c1a38cc8472e3",
+    "kind": "04c4952f7c458fe4",
     "lands_bought": "3110ab1939d07217",
-    "market_inv": "7cf5da2bd2566757",
-    "money": "2b4ff02479a20654",
-    "seeds": "546dba8e52359fd4",
-    "shed": "460cb091b241731c",
-    "unit_active": "2435b3bb50cad942",
-    "yield_units": "41cc89efb05c356d",
+    "market_inv": "ba4f2f7a87ea60f9",
+    "money": "6aaf65b8a4fcace0",
+    "seeds": "660a1702a8fafe06",
+    "shed": "1a0295f4bf5986c5",
+    "unit_active": "6a447a15e0acfd4e",
+    "yield_units": "244e612807cb2403",
 }
 
 #: 忠実性チェックは RNG を無効化した決定的な設定で行う (CPU 側と同条件)。

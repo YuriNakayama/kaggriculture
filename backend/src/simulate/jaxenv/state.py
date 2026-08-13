@@ -162,10 +162,22 @@ LAND_ORDER = (QUAD_NE, QUAD_SW, QUAD_SE)
 LAND_PRICES = jnp.array([1000, 2000, 4000], dtype=jnp.int32)
 
 #: Maximum units (farmer + hands) a player can control simultaneously.
-#: The engine has no hard cap; cost is ``fib(n)`` which passes the $3000 start
-#: around the 16th hire of a day, and hands reset daily. 16 slots is well past
-#: anything affordable within a single day's budget.
-MAX_UNITS = 16
+#: Slot 0 is the main farmer, so the hand capacity is ``MAX_UNITS - 1``.
+#:
+#: The engine has no hard cap. Hire cost is ``fib(n)`` for the n-th hire of the
+#: day and resets daily, so the ceiling is set by how much a player can spend in
+#: one day. Measured cumulative cost:
+#:
+#:     $3,000 (starting money) -> 16 hands
+#:     $10,000                 -> 18 hands
+#:     $50,000                 -> 22 hands
+#:     $1,000,000              -> 28 hands
+#:
+#: An earlier value of 16 was wrong: it left only 15 hand slots while the engine
+#: reaches 16 on the starting money alone, and a differential test caught the
+#: divergence at the boundary. 32 covers 28 hands with headroom; fib growth makes
+#: anything beyond that unreachable (the 29th hire alone costs ~$832k).
+MAX_UNITS = 32
 
 #: Town shops, alphabetically sorted to match ``rng.choice(sorted(SHOPS))``.
 SHOP_NAMES = (
