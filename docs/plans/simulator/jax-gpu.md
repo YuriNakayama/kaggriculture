@@ -416,3 +416,100 @@ image を替える、といった対策は全て「転送さえできれば有�
 
 RunPod 経由での GPU 実測は、利用者側の工夫では到達不能。
 `notebooks/jaxenv_gpu_benchmark.ipynb` (Colab, T4) が現時点で最も確実な経路。
+
+---
+
+# 追記 (2026-08-13): GPU 実測を達成 — CUDA で 279x、忠実性 12/12 一致
+
+フル実装版の GPU 実測に到達した。これまで「RunPod のインフラ障害」と誤認
+していた症状は、すべてリポジトリ側の設定不整合が原因だった (下記)。
+
+## 実測環境
+
+RTX 3090 (COMMUNITY) / `jax 0.11.0` / `device: cuda:0` / `[CudaDevice(id=0)]`
+
+## 1. 忠実性 — GPU 上でも CPU 検証済みの値と完全一致
+
+固定 action 列を 15 日流し、12 個の状態配列の SHA256 を CPU 側 (公式 engine と
+seed 100 本 × 最大 30 日で一致確認済み) の期待値と突合。
+
+**ALL 12 MATCH / MISMATCH 0 件** (`fidelity_ok: true`)
+
+animal, animal_shed, carried, crop, kind, lands_bought, market_inv, money,
+seeds, shed, unit_active, yield_units — 全て一致。
+
+float32 の丸め・scatter 実装差・XLA 最適化による GPU/CPU 差は**観測されなかった**。
+速度を報告する前にこれを通す設計にしており、不一致なら速度は無効としていた。
+
+## 2. スループット (720 step = 1 シーズン)
+
+| batch | wall (s) | compile (s) | env-steps/s | 公式比 |
+|---|---|---|---|---|
+| 1 | 13.416 | 14.8 | 54 | **0.07x** |
+| 64 | 11.317 | 12.7 | 4,072 | 5x |
+| 1,024 | 13.474 | 14.8 | 54,718 | 71x |
+| 8,192 | 34.094 | 35.5 | 172,998 | 225x |
+| 65,536 | 220.135 | 221.9 | 214,350 | **279x** |
+
+CPU (M2 Max, batch 512) の 5,113 steps/s = 6.7x に対し、**CUDA で 214,350
+steps/s = 279x**。CPU 比で約 42 倍。
+
+### 読み方の注意
+
+- **batch 1 は CPU より遅い (0.07x)**。GPU は並列化して初めて効く。
+  少数環境での逐次実行には向かない。
+- **飽和が見えている**。8,192 → 65,536 で batch は 8 倍だがスループットは
+  +24% (172,998 → 214,350)。スイートスポットは 8,192〜65,536 の間。
+- compile は形状ごとに 1 度きり。batch 65,536 で 222s かかるため、
+  学習中に batch を変えるのは高くつく。
+- この計測の行動列は turn-of-day から算出する wheat loop (unit 0 のみ稼働)。
+  ただし `MAX_UNITS=16` / `MAX_MARKET_ORDERS=10` / `MAX_ORDER_UNITS=100` は
+  **行動内容に依らず毎 step 固定トリップで回る**ため、重い行動列でも計算量は
+  大きくは変わらないと予想される (未検証。別途 A/B/C 比較を計画中)。
+- RNG (雑草・ショップ) は無効。本番設定 (`weed_chance=0.005`) では scatter が
+  増えるため、実運用値はこれより下がる見込み (未計測)。
+
+## 3. これまで「インフラ障害」と誤認していた原因
+
+RunPod は正常だった。原因はリポジトリ側の 5 件で、いずれも本ブランチ固有の
+不整合だった。
+
+| # | 内容 | 症状 |
+|---|---|---|
+| 1 | `KAGGRICULTURE_DVC_BUCKET` が env に未注入 | `set -u` 下で onstart 3 行目が即死 → **コンテナ再起動ループ** |
+| 2 | interactive でも `exit` がコンテナを停止 | 失敗時に SSH で入る手段が消える |
+| 3 | `readme = "../README.md"` が hatchling の制約違反 | `uv run` / `uv sync` が丸ごと失敗 |
+| 4 | `torch-cu124` / `cuda` / `torch-cpu` が pyproject に未定義 | `uv sync` が必ず失敗 |
+| 5 | smoke check が存在しない `sklearn` を要求 | venv が健全でも必ず失敗 |
+
+**1 が本丸**。`docker_args` で ENTRYPOINT を上書きしているため onstart の bash が
+コンテナの main process であり、3 行目で死ぬ = コンテナ終了 = 再起動、を
+繰り返していた。trap 設定・marker 送信・sshd 起動のいずれよりも前に死ぬため
+痕跡が残らず、外からは「pod は RUNNING だが SSH 不能」としか見えなかった。
+
+これで過去に観測した症状 (SSH 成功率 1/10〜8/30、16KB の転送不能、pip/uv の
+無言停止、S3 marker 0 件、`runtime.ports` が null) がすべて単一原因で説明できる。
+
+### 切り分けの決め手
+
+対照実験で「素の pod は安定、`dev/runpod` の pod だけ再起動」を示せたこと。
+
+```
+素の base image      uptime 29→58→89      安定
+素の pytorch image   uptime 25→55         安定
+docker_args のみ     uptime 18→49→109     安定
+dev/runpod (onstart) uptime -6,4,2,-10    再起動ループ  ← ここだけ
+```
+
+これを 2 台目で行うべきだった。実際には pod・image・クラウド・GPU 種別を
+替え続けるだけで変数を 1 つずつ潰しておらず、切り分けが大幅に遅れた。
+加えて検証スクリプト自体に 2 件のバグ (`create_pod` への `ports` 未指定、
+シェル変数展開の誤り) があり、誤った計測で誤った結論を出していた。
+
+## 4. 残る改善点
+
+- `cuda` group を `jax[cuda12]` (数 GB) で定義したが、RunPod の pytorch image は
+  CUDA ランタイムを同梱しているので `jax-cuda12-plugin` + `jax-cuda12-pjrt`
+  (合計 約 280MB) で足りる。導入が 25 分 → 数分に短縮できるはず
+- RNG 有効時の実測、行動列 A/B/C 比較、方策 forward を含む学習ループ相当の
+  スループットは未計測
