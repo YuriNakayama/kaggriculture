@@ -71,12 +71,7 @@ Concretely:
 
 ## Imports in submitted code
 
-Measured on the real harness (probe/case1+2, 2026-08-13 — see `.claude/rules/backend/submit.md`): `main.py` is `exec`'d with **no `__name__` / `__file__` / `__package__`**, the agent dir is appended to `sys.path`, and cwd is elsewhere. Production Python is **3.11** (local dev is 3.13 — avoid 3.12+ syntax in `backend/pipeline/**`). Therefore:
-
-- **In `main.py`**: no relative imports (`from .x import` fails — no package context), no `__file__`. Import top-level sibling modules by bare name (`from tasks import assign`), subpackages absolutely (`from pkg.core import f`). Keep `agent` as the **last** callable defined — the harness takes the last one.
-- **Inside a subpackage** (`pkg/…`): relative imports (`from .util import`, `from ..util import`) work, and `__file__` is available — load bundled data files with `Path(__file__).parent / …` from a package module, never from `main.py` and never with a bare relative `open()`.
-- `__init__.py` is stripped from the archive (`EXCLUDE_NAMES`), so subpackages run as namespace packages — measured to work; don't put code in `__init__.py`.
-- Do not import from `backend/src/**` in submitted code — those are dev-only libraries and will not be present in the tarball.
+`main.py` must sit at the **root** of the submission archive and must be importable standalone. Inside `backend/pipeline/<family>/case<N>/`, use **relative imports** between the case's own modules so the same directory works both locally and after packaging. Do not import from `backend/src/**` in submitted code — those are dev-only libraries and will not be present in the tarball.
 
 ## Numeric work
 

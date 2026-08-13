@@ -40,6 +40,18 @@ Ground truth from the real validation image (submissions 55481573 / 55481654);
 | Hierarchy | Subpackages work, incl. relative imports inside them and namespace packages (`__init__.py` is stripped by `build_archive`) | Hierarchical cases are fine; don't rely on `__init__.py` side effects |
 | Libraries | numpy 2.4.6, polars, pandas, scipy, torch 2.6.0+cu124, kaggle_environments 1.32.6 | numpy/torch usable at inference; still keep archives lean |
 
+## Rules a case must follow to be submittable
+
+The single authoritative list of constraints on `backend/pipeline/<family>/case<N>/` code, derived from the measurements above (this section overrides any older import guidance elsewhere):
+
+- **Python 3.11 compatible** — local dev is 3.13; no 3.12+-only syntax in submitted code. `dev/submit --dry-run` verifies under a real 3.11 interpreter.
+- **`main.py`: no relative imports, no `__file__`.** It is `exec`'d with no package context. Import top-level sibling modules by bare name (`from tasks import assign`), subpackages absolutely (`from pkg.core import f`).
+- **`agent` must be the LAST callable defined in `main.py`** — the harness takes the last one.
+- **Subpackages (`pkg/…`) are allowed.** Relative imports (`from .util`, `from ..util`) work *inside* them, and their modules do have `__file__`.
+- **Data files (weights etc.) load via `Path(__file__).parent` of a subpackage module** — never from `main.py` (no `__file__`) and never with a bare relative `open()` (cwd is not the agent dir).
+- **`__init__.py` never ships** (stripped by `EXCLUDE_NAMES`; subpackages run as namespace packages) — don't put code in it. Same for `train.py`: training-only code, never imported at inference.
+- **No imports from `backend/src/**`** — dev-only libraries, absent from the tarball.
+
 ## Pre-submit checklist
 
 Enforce these in `backend/src/submit/` rather than relying on discipline:
