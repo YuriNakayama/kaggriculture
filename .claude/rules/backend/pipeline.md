@@ -11,22 +11,24 @@ paths:
 
 ```
 backend/pipeline/
-  <family>/            rulebase | imitation | reinforce
+  <family>/            rulebase | imitation | reinforce | probe
     case<N>/           one submittable agent variant
       main.py          REQUIRED — defines `agent(obs)`; lands at the archive root
-      <module>.py      supporting modules, imported relatively from main.py
+      <module>.py      top-level siblings, imported by BARE NAME from main.py
+      pkg/…            optional subpackages; relative imports OK inside them
       README.md        what this case does and what changed vs the previous case
 ```
 
-- **family** = the approach. `rulebase` (hand-written heuristics), `imitation` (behaviour cloning from replays), `reinforce` (RL).
+- **family** = the approach. `rulebase` (hand-written heuristics), `imitation` (behaviour cloning from replays), `reinforce` (RL), `probe` (infrastructure measurement agents, not strategies).
 - **case** = one concrete, submittable variant within a family. Cases are append-only: `case1`, `case2`, … A case is a historical record of what was submitted, so **do not rewrite an old case in place** once it has been submitted — create the next case instead.
 
 ## Rules for a case directory
 
-- `main.py` **must** define a module-level `agent(obs)` function. The Kaggle harness imports it from the archive root.
-- Use **relative imports** (`from .policy import choose_action`) between the case's own modules so the directory works both in-place and after packaging.
+- `main.py` **must** define a module-level `agent(obs)` function, as the **last** callable in the file — the harness `exec`s the source and takes the last callable defined.
+- **`main.py` must not use relative imports or `__file__`** — the harness `exec`s it with no package context and no `__file__`. Import top-level siblings by bare name (`from policy import choose_action`), subpackages absolutely (`from pkg.core import f`). Relative imports are fine *inside* subpackages. See `.claude/rules/python.md` for the measured details.
 - **Never import from `backend/src/**`** — those packages do not exist inside the submission tarball.
-- Keep the case self-contained: any model weights must live inside the case directory and be loaded with a path relative to `main.py`.
+- Keep the case self-contained: any model weights must live inside the case directory and be loaded via `Path(__file__).parent` of a **subpackage module** (never `main.py`, which has no `__file__`; the harness cwd is not the agent dir, so bare relative paths fail too).
+- Submitted code must run on **Python 3.11** (the measured harness version) even though local dev is 3.13 — `dev/submit --dry-run` verifies under 3.11.
 - Each case's `README.md` records the hypothesis it tests and the observed result, and links to the corresponding `docs/experiment/` entry.
 
 ## Agent contract

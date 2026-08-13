@@ -26,6 +26,20 @@ kaggle competitions submit kaggriculture -f submission.tar.gz -m "message"
 
 The `-C <dir> .` form is what keeps `main.py` at the root. `tar -czf out.tar.gz backend/pipeline/...` would nest it and the harness would fail to import.
 
+## Measured harness constraints (probe/case1 + probe/case2, 2026-08-13)
+
+Ground truth from the real validation image (submissions 55481573 / 55481654);
+`verify_archive` mirrors these exactly:
+
+| Constraint | Measured value | Consequence for cases |
+|---|---|---|
+| Python | **3.11.13** (local dev: 3.13) | No 3.12+-only syntax in submitted code |
+| `main.py` loading | `exec` with **no** `__name__` / `__file__` / `__package__`; the **last callable** defined becomes the agent | No relative imports and no `__file__` in `main.py`; keep `agent` as the final definition |
+| cwd | `/kaggle/working` — **not** the agent dir | Bare relative `open()` fails; load data via a *package module's* `__file__` |
+| Agent dir | `/kaggle_simulations/agent`, appended to `sys.path` | Top-level siblings import by bare name; subpackages by `import pkg.mod` |
+| Hierarchy | Subpackages work, incl. relative imports inside them and namespace packages (`__init__.py` is stripped by `build_archive`) | Hierarchical cases are fine; don't rely on `__init__.py` side effects |
+| Libraries | numpy 2.4.6, polars, pandas, scipy, torch 2.6.0+cu124, kaggle_environments 1.32.6 | numpy/torch usable at inference; still keep archives lean |
+
 ## Pre-submit checklist
 
 Enforce these in `backend/src/submit/` rather than relying on discipline:
@@ -42,7 +56,7 @@ Enforce these in `backend/src/submit/` rather than relying on discipline:
 dev/submit --case rulebase/case1 --dry-run
 ```
 
-This builds the archive, unpacks it into a temp dir, and in a **separate interpreter** with only that dir importable: imports `main.py` flat, asserts `agent` is the last callable defined (the harness takes the last one), and runs a full 720-turn season against `starter`. No Kaggle API call.
+This builds the archive, unpacks it into a temp dir, and replays the measured harness conditions in an **isolated Python 3.11 interpreter** (provisioned by uv, only `kaggle-environments` installed): `exec`s `main.py` with no `__name__`/`__file__`, asserts `agent` is the last callable defined, uses a cwd that is *not* the agent dir, and runs a full 720-turn season against `starter`. No Kaggle API call.
 
 Do this before every real submission. It catches the nested-`main.py`, stray-`backend/src`-import, and relative-import failures that otherwise burn a slot.
 
@@ -50,7 +64,7 @@ Do this before every real submission. It catches the nested-`main.py`, stray-`ba
 
 ## Submission history
 
-Every real submission is recorded under `data/output/submit/` (DVC-managed) with the case, message, **git sha**, timestamp, archive size, member list, and verification result. This is the audit trail linking a leaderboard score back to the exact code that produced it.
+Every real submission is recorded under `data/output/submit/` (DVC-managed) with the case, message, **git sha + dirty flag**, timestamp, archive size, member list, and verification result. This is the audit trail linking a leaderboard score back to the exact code that produced it — **commit before submitting**, or the recorded sha will not reproduce the archive (the CLI warns on a dirty tree).
 
 ## Quota
 
