@@ -45,12 +45,15 @@ EXPECTED_DIGEST: dict[str, str] = {
 }
 
 #: 忠実性チェックは RNG を無効化した決定的な設定で行う (CPU 側と同条件)。
-_DETERMINISTIC = dict(
-    weed_chance=0.0,
-    shop_sell_interval=4,
-    center_sell_interval=24,
-    shop_unlock_interval=10**6,
-)
+#: `make_step` は引数の型が混在する (float / int) ので dict 展開ではなく
+#: 明示的に呼ぶ。
+def _deterministic_step() -> Any:
+    return E.make_step(
+        weed_chance=0.0,
+        shop_sell_interval=4,
+        center_sell_interval=24,
+        shop_unlock_interval=10**6,
+    )
 
 #: 公式 env.run のスループット (ローカル実測)。速度比の分母。
 OFFICIAL_STEPS_PER_SEC = 768
@@ -140,11 +143,11 @@ def bench(step_fn: Any, batch: int, steps: int) -> dict[str, float]:
     n = jnp.int32(steps)
 
     t0 = time.perf_counter()
-    jax.block_until_ready(rollout(state, n))
+    jax.block_until_ready(rollout(state, n))  # type: ignore[no-untyped-call]
     compile_sec = time.perf_counter() - t0
 
     t0 = time.perf_counter()
-    jax.block_until_ready(rollout(state, n))
+    jax.block_until_ready(rollout(state, n))  # type: ignore[no-untyped-call]
     wall = time.perf_counter() - t0
 
     sps = batch * steps / wall
@@ -166,7 +169,7 @@ def main() -> int:
     print(f"device: {device} ({device.platform})", flush=True)
     print(f"jax: {jax.__version__}", flush=True)
 
-    step_fn = E.make_step(**_DETERMINISTIC)
+    step_fn = _deterministic_step()
 
     print("\n=== 忠実性 (CPU 検証済みダイジェストとの突合) ===", flush=True)
     ok, got = check_fidelity(step_fn)
@@ -176,7 +179,10 @@ def main() -> int:
     print(f"  --> {'ALL 12 MATCH' if ok else 'MISMATCH あり'}", flush=True)
 
     print("\n=== スループット ===", flush=True)
-    header = f"{'batch':>7} {'wall(s)':>9} {'compile(s)':>11} {'env-steps/s':>14} {'vs official':>12}"
+    header = (
+        f"{'batch':>7} {'wall(s)':>9} {'compile(s)':>11} "
+        f"{'env-steps/s':>14} {'vs official':>12}"
+    )
     print(header, flush=True)
     rows = []
     for b in args.batches:
