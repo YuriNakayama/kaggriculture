@@ -16,6 +16,7 @@ from .packaging import (
     DAILY_SUBMISSION_LIMIT,
     SubmitError,
     build_archive,
+    git_state,
     record_submission,
     submissions_today,
     submit_to_kaggle,
@@ -82,6 +83,14 @@ def main(
                     f"{used}/{DAILY_SUBMISSION_LIMIT} submissions already recorded "
                     "today. Kaggle scores only the latest submissions, so spending "
                     "the last slot is rarely what you want. Pass --force to override."
+                )
+
+            _, dirty = git_state()
+            if dirty:
+                typer.echo(
+                    "   WARNING: working tree is dirty — the recorded git sha "
+                    "will not reproduce this archive. Commit first for a clean "
+                    "audit trail."
                 )
 
             typer.echo(f"== submitting ({used + 1}/{DAILY_SUBMISSION_LIMIT} today) ==")

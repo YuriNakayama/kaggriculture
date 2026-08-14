@@ -8,17 +8,32 @@ the submission slot is spent:
 2. **The archive must be self-contained.** Anything imported from
    `backend/src/**` exists locally but not in the tarball.
 
-:func:`verify_archive` reproduces the harness's loading conditions closely
-enough to catch both — including the fact that ``kaggle_environments`` ``exec``s
-the source with neither ``__name__`` nor ``__file__`` defined, so a relative
-import raises ``KeyError`` rather than ``ImportError`` there.
+:func:`verify_archive` reproduces the harness's loading conditions, which were
+measured on the real validation image via ``probe/case1`` / ``probe/case2``
+(2026-08-13, submissions 55481573 / 55481654):
+
+- Python **3.11** (local dev is 3.13 — 3.12+ syntax fails only in production)
+- ``main.py`` is ``exec``'d with **no** ``__name__`` / ``__file__`` /
+  ``__package__`` in globals, and the harness takes the **last** callable
+  defined in the module as the agent
+- cwd is ``/kaggle/working``, *not* the agent dir; the agent dir
+  (``/kaggle_simulations/agent``) is appended to ``sys.path`` — so bare
+  relative ``open()`` fails, and data files must be resolved through the
+  ``__file__`` of a bundled *package module* (main.py has none)
+- subpackage hierarchies work, including relative imports inside packages and
+  namespace packages (``__init__.py`` is stripped from the archive)
+- available libs: numpy 2.4.6, polars, pandas, scipy, torch 2.6.0+cu124,
+  kaggle_environments 1.32.6
+
+The verification episode therefore runs in an **isolated Python 3.11
+interpreter** (provisioned by uv) with only ``kaggle-environments`` installed,
+from a cwd that is not the unpacked dir.
 """
 
 from __future__ import annotations
 
 import json
 import subprocess
-import sys
 import tarfile
 import tempfile
 from dataclasses import dataclass
@@ -32,13 +47,25 @@ PIPELINE_ROOT = BACKEND_ROOT / "pipeline"
 #: Submission history lives under the DVC-managed output layer.
 HISTORY_DIR = REPO_ROOT / "data" / "output" / "submit"
 
+#: Python version of the Kaggle validation image (measured by probe/case1).
+#: Local dev runs 3.13, so verification must run under this version or a
+#: 3.12+-only construct passes dry-run and dies in production.
+PROD_PYTHON = "3.11"
+
+#: kaggle-environments version on the validation image (measured). Kept in
+#: sync with the pin in ``backend/pyproject.toml``.
+PROD_KAGGLE_ENVIRONMENTS = "1.32.6"
+
 #: Never ship these into the archive.
 #:
-#: `train.py` is deliberately excluded: it imports torch, which is a
-#: training-only dependency and is not guaranteed to exist in the harness.
-#: Shipping it risks an import-time failure for code the agent never calls.
-#: A case that genuinely needs a module at inference time must not name it
-#: `train.py`.
+#: `train.py` is deliberately excluded: it is training-only code. (The
+#: validation image does ship torch — measured 2.6.0+cu124 — but bundling
+#: training modules bloats the archive and risks import-time failures for
+#: code the agent never calls.) A module needed at inference must not be
+#: named `train.py`.
+#:
+#: `__init__.py` is stripped, so subpackages travel as namespace packages —
+#: measured to work on the harness, including relative imports inside them.
 EXCLUDE_NAMES = frozenset(
     {"__pycache__", "__init__.py", ".DS_Store", ".pytest_cache", "train.py"}
 )
@@ -94,47 +121,64 @@ def build_archive(case: str, out_path: Path) -> Archive:
 
 
 def verify_archive(archive: Archive, *, steps: int = 720) -> dict[str, object]:
-    """Unpack into a temp dir and run one episode there.
+    """Unpack into a temp dir and run one episode the way the harness would.
 
-    Runs in a subprocess with only the unpacked directory importable, so a
-    stray `backend/src` import or a package-relative import surfaces here
-    rather than on Kaggle.
+    Faithful to the measured production conditions (see module docstring):
+    Python 3.11 with only ``kaggle-environments`` installed, ``main.py``
+    ``exec``'d with no ``__name__`` / ``__file__``, the unpacked dir
+    *appended* to ``sys.path``, and a cwd that is **not** the unpacked dir.
+    A stray ``backend/src`` import, a relative import in ``main.py``, a bare
+    relative ``open()``, or 3.12+-only syntax all surface here rather than
+    on Kaggle.
     """
     with tempfile.TemporaryDirectory() as tmp:
-        unpacked = Path(tmp) / "unpacked"
+        unpacked = Path(tmp) / "agent"  # ~ /kaggle_simulations/agent
+        working = Path(tmp) / "working"  # ~ /kaggle/working (harness cwd)
         unpacked.mkdir()
+        working.mkdir()
         with tarfile.open(archive.path) as tar:
             tar.extractall(unpacked, filter="data")
 
         probe = f"""
 import json, sys
-sys.path.insert(0, {str(unpacked)!r})
+sys.path.append({str(unpacked)!r})
 
-# 1. flat import, as the harness does from the archive root
-import main
-assert callable(main.agent), "main.agent is not callable"
-
-# 2. the harness takes the LAST callable defined in the module
-src = open("main.py").read()
+# the harness execs main.py with no __name__/__file__/__package__ and takes
+# the LAST callable defined in the module as the agent
+src = open({str(unpacked / "main.py")!r}).read()
 env = {{}}
 exec(compile(src, "main.py", "exec"), env)
+agent = env.get("agent")
+assert callable(agent), "main.py must define agent(obs)"
 last = [v for v in env.values() if callable(v)][-1]
-assert last is env["agent"], f"last callable is {{last!r}}, not agent"
+assert last is agent, f"last callable is {{last!r}}, not agent"
 
-# 3. a full episode against the built-in baseline
+# a full episode against the built-in baseline
 from kaggle_environments import make
 e = make("kaggriculture", configuration={{"episodeSteps": {steps}}}, debug=True)
-e.run([main.agent, "starter"])
+e.run([agent, "starter"])
 final = e.steps[-1]
 print(json.dumps({{
     "rewards": [s["reward"] for s in final],
     "statuses": [s["status"] for s in final],
     "steps": len(e.steps),
+    "python": ".".join(map(str, sys.version_info[:3])),
 }}))
 """
         completed = subprocess.run(
-            [sys.executable, "-c", probe],
-            cwd=unpacked,
+            [
+                "uv",
+                "run",
+                "--no-project",
+                "--python",
+                PROD_PYTHON,
+                "--with",
+                f"kaggle-environments=={PROD_KAGGLE_ENVIRONMENTS}",
+                "python",
+                "-c",
+                probe,
+            ],
+            cwd=working,
             capture_output=True,
             text=True,
             timeout=1800,
@@ -176,17 +220,12 @@ def submissions_today() -> int:
     return count
 
 
-def record_submission(
-    archive: Archive, message: str, verification: dict[str, object]
-) -> Path:
-    """Append a submission to the local history.
+def git_state() -> tuple[str, bool]:
+    """Current HEAD sha and whether the working tree is dirty.
 
-    This is the audit trail linking a leaderboard score back to the exact code
-    that produced it, so it records the git sha alongside the case.
+    A dirty tree means the recorded sha does not reproduce the archive, so
+    the CLI warns before a real submission and the flag is persisted.
     """
-    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    now = datetime.now(timezone.utc)
-
     try:
         sha = subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -195,13 +234,38 @@ def record_submission(
             text=True,
             check=True,
         ).stdout.strip()
+        dirty = bool(
+            subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+        )
     except (subprocess.CalledProcessError, OSError):
-        sha = ""
+        return "", False
+    return sha, dirty
+
+
+def record_submission(
+    archive: Archive, message: str, verification: dict[str, object]
+) -> Path:
+    """Append a submission to the local history.
+
+    This is the audit trail linking a leaderboard score back to the exact code
+    that produced it, so it records the git sha (and whether the tree was
+    dirty at submit time) alongside the case.
+    """
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    now = datetime.now(timezone.utc)
+    sha, dirty = git_state()
 
     payload = {
         "case": archive.case,
         "message": message,
         "git_sha": sha,
+        "git_dirty": dirty,
         "submitted_at": now.isoformat(),
         "archive_bytes": archive.size_bytes,
         "members": list(archive.members),

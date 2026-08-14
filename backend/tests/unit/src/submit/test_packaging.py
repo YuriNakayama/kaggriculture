@@ -22,6 +22,7 @@ from submit.packaging import (
     SubmitError,
     build_archive,
     case_dir,
+    record_submission,
     submissions_today,
 )
 
@@ -40,6 +41,14 @@ def fake_case(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     (case / "__init__.py").write_text("", encoding="utf-8")
     (case / "__pycache__").mkdir()
     (case / "__pycache__" / "main.cpython-313.pyc").write_bytes(b"\x00")
+    # subpackage hierarchy — must survive packaging with paths intact
+    sub = case / "pkg" / "sub"
+    sub.mkdir(parents=True)
+    (case / "pkg" / "__init__.py").write_text("", encoding="utf-8")
+    (case / "pkg" / "core.py").write_text("VALUE = 2\n", encoding="utf-8")
+    (sub / "deep.py").write_text("VALUE = 3\n", encoding="utf-8")
+    (case / "pkg" / "data").mkdir()
+    (case / "pkg" / "data" / "w.bin").write_bytes(b"\x01\x02")
 
     monkeypatch.setattr(pkg, "PIPELINE_ROOT", tmp_path / "pipeline")
     return "fake/case1"
@@ -78,7 +87,31 @@ def test_main_py_lands_at_archive_root(fake_case: str, tmp_path: Path) -> None:
 def test_archive_excludes_pycache_and_init(fake_case: str, tmp_path: Path) -> None:
     archive = build_archive(fake_case, tmp_path / "s.tar.gz")
     assert not any("__pycache__" in m for m in archive.members)
-    assert "__init__.py" not in archive.members
+    assert not any(Path(m).name == "__init__.py" for m in archive.members)
+
+
+def test_archive_preserves_subpackage_hierarchy(fake_case: str, tmp_path: Path) -> None:
+    """Nested modules and data files keep their relative paths in the tar."""
+    archive = build_archive(fake_case, tmp_path / "s.tar.gz")
+    for needed in ("pkg/core.py", "pkg/sub/deep.py", "pkg/data/w.bin"):
+        assert needed in archive.members, f"{needed} must ship with its path"
+
+
+def test_record_submission_captures_git_state(
+    fake_case: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The audit record carries the sha and a dirty flag, both from git."""
+    import submit.packaging as pkg
+
+    monkeypatch.setattr(pkg, "HISTORY_DIR", tmp_path / "history")
+    archive = build_archive(fake_case, tmp_path / "s.tar.gz")
+
+    record = record_submission(archive, "msg", {"steps": 1})
+    data = json.loads(record.read_text(encoding="utf-8"))
+
+    assert isinstance(data["git_sha"], str)
+    assert isinstance(data["git_dirty"], bool)
+    assert data["case"] == "fake/case1"
 
 
 def test_archive_excludes_train_py(fake_case: str, tmp_path: Path) -> None:
