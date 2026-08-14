@@ -143,8 +143,15 @@ def _rollout_fn(step_fn: Any, batch: int) -> Any:
     return jax.jit(lambda s, n: jax.lax.fori_loop(0, n, body, s))
 
 
-def bench(step_fn: Any, batch: int, steps: int) -> dict[str, float]:
-    """1 構成の計測。compile は 1 回目、計測は 2 回目の wall clock。"""
+def bench(
+    step_fn: Any, batch: int, steps: int, repeats: int = 1
+) -> dict[str, float]:
+    """1 構成の計測。compile は 1 回目、計測は 2 回目以降の wall clock。
+
+    ``repeats`` を上げると複数回測って中央値を採る。1 回計測は他プロセスや
+    クロックの揺れを拾うので、代表値としては中央値の方が信用できる。
+    最小/最大も併せて返し、ばらつきの大きさが見えるようにする。
+    """
     rollout = _rollout_fn(step_fn, batch)
     state = initial_state(batch, seed=0)
     n = jnp.int32(steps)
@@ -153,14 +160,24 @@ def bench(step_fn: Any, batch: int, steps: int) -> dict[str, float]:
     jax.block_until_ready(rollout(state, n))  # type: ignore[no-untyped-call]
     compile_sec = time.perf_counter() - t0
 
-    t0 = time.perf_counter()
-    jax.block_until_ready(rollout(state, n))  # type: ignore[no-untyped-call]
-    wall = time.perf_counter() - t0
+    walls: list[float] = []
+    for _ in range(max(1, repeats)):
+        t0 = time.perf_counter()
+        jax.block_until_ready(rollout(state, n))  # type: ignore[no-untyped-call]
+        walls.append(time.perf_counter() - t0)
 
-    sps = batch * steps / wall
+    walls.sort()
+    median = walls[len(walls) // 2]
+    sps = batch * steps / median
     return {
-        "batch": batch, "wall_sec": wall, "compile_sec": compile_sec,
-        "steps_per_sec": sps, "vs_official": sps / OFFICIAL_STEPS_PER_SEC,
+        "batch": batch,
+        "wall_sec": median,
+        "wall_min": walls[0],
+        "wall_max": walls[-1],
+        "repeats": float(len(walls)),
+        "compile_sec": compile_sec,
+        "steps_per_sec": sps,
+        "vs_official": sps / OFFICIAL_STEPS_PER_SEC,
     }
 
 
@@ -169,6 +186,10 @@ def main() -> int:
     ap.add_argument("--steps", type=int, default=720, help="1 シーズン = 720")
     ap.add_argument("--batches", type=int, nargs="+",
                     default=[1, 64, 1024, 8192, 65536])
+    ap.add_argument("--repeats", type=int, default=1,
+                    help="各構成の計測回数。中央値を採用する")
+    ap.add_argument("--with-rng", action="store_true",
+                    help="本番設定 (weed_chance=0.005, shop unlock 有効) でも測る")
     ap.add_argument("--json", type=str, default="")
     args = ap.parse_args()
 
@@ -191,21 +212,40 @@ def main() -> int:
         f"{'env-steps/s':>14} {'vs official':>12}"
     )
     print(header, flush=True)
-    rows = []
-    for b in args.batches:
-        try:
-            r = bench(step_fn, b, args.steps)
-            rows.append(r)
-            print(f"{b:>7} {r['wall_sec']:>9.3f} {r['compile_sec']:>11.1f} "
-                  f"{r['steps_per_sec']:>14,.0f} {r['vs_official']:>11,.0f}x",
-                  flush=True)
-        except Exception as exc:  # noqa: BLE001
-            print(f"{b:>7}  FAILED {type(exc).__name__}: {str(exc)[:70]}", flush=True)
-            break
+    def sweep(fn: Any, label: str) -> list[dict[str, float]]:
+        out: list[dict[str, float]] = []
+        for b in args.batches:
+            try:
+                r = bench(fn, b, args.steps, repeats=args.repeats)
+                out.append(r)
+                spread = ""
+                if r["repeats"] > 1:
+                    spread = f"  [min {r['wall_min']:.3f} / max {r['wall_max']:.3f}]"
+                print(f"{b:>7} {r['wall_sec']:>9.3f} {r['compile_sec']:>11.1f} "
+                      f"{r['steps_per_sec']:>14,.0f} {r['vs_official']:>11,.0f}x"
+                      f"{spread}", flush=True)
+            except Exception as exc:  # noqa: BLE001
+                # OOM 等はここで止める。どこで落ちたかは記録に残る。
+                print(f"{b:>7}  FAILED {type(exc).__name__}: {str(exc)[:70]}",
+                      flush=True)
+                break
+        return out
+
+    rows = sweep(step_fn, "rng-off")
+
+    rng_rows: list[dict[str, float]] = []
+    if args.with_rng:
+        # 本番設定。雑草 spawn と shop 抽選が入るぶん scatter が増える。
+        # 実運用のスループットはこちらが代表値になる。
+        print("\n=== スループット (本番設定: RNG 有効) ===", flush=True)
+        print(header, flush=True)
+        rng_rows = sweep(E.make_step(), "rng-on")
 
     payload = {
         "device": str(device), "platform": device.platform,
-        "jax": jax.__version__, "fidelity_ok": ok, "digest": got, "bench": rows,
+        "jax": jax.__version__, "fidelity_ok": ok, "digest": got,
+        "bench": rows, "bench_rng_on": rng_rows,
+        "max_units": MAX_UNITS,
     }
     print("\nRESULT_JSON " + json.dumps(payload), flush=True)
     if args.json:

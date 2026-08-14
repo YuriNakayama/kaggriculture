@@ -50,9 +50,14 @@ torch-cpu = [
     "torch>=2.4",
 ]
 # JAX の CUDA build。onstart が `uv sync --group cuda` で入れる。
-# jax 本体は kaggle-environments が依存として持ち込むが、CUDA plugin は別途要る。
+#
+# `jax[cuda12]` は NVIDIA の CUDA ライブラリ一式 (cudnn/cublas/cusparse/nccl 等、
+# 数 GB) を引き込む。RunPod の pytorch image はそれらを既に同梱しているので、
+# JAX 側は plugin と PJRT だけ入れれば足りる (合計 約 280MB)。
+# 実測: `jax[cuda12]` では導入に 25 分かかっていた。
 cuda = [
-    "jax[cuda12]>=0.11; sys_platform == 'linux'",
+    "jax-cuda12-plugin>=0.11; sys_platform == 'linux'",
+    "jax-cuda12-pjrt>=0.11; sys_platform == 'linux'",
 ]
 
 [build-system]
